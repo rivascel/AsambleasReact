@@ -1,0 +1,9 @@
+@media (min-width: 900px){
+    .main--video{
+        border: 5px solid #e1bee7;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+    }
+}
+

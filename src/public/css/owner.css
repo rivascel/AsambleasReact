@@ -1,0 +1,178 @@
+:root {
+    --blue: #daf2f2;
+    --white: #FFFFFF;
+    --black: #000000;
+    --very-light-pink: #C7C7C7;
+    --text-input-field: #F7F7F7;
+    --hospital-green: #ACD9B2;
+    --sm: 14px;
+    --md: 16px;
+    --lg: 18px;
+  }
+  *{
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+  }
+  html{
+      font-size: 62.5%;
+  }
+  body {
+      background-color: var(--blue);
+      margin: 0;
+      font-family: 'Dosis', sans-serif;
+      
+  }
+  header{
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-width:324px;
+    height: 80px;
+    text-align: center;
+  }
+
+  img{
+    width: 150px;
+    height:80px;
+    align-self: center;
+  }
+
+  .header--title-container {
+    width: 100%;
+    min-width: 288px;
+    max-width: 900px;
+    height: 218px;
+    margin-top: 40;
+    text-align: center;
+    align-self: center;
+}
+
+.header--title-container h1 {
+    font-size: 2.4rem;
+    font-weight: bold;
+    line-height: 2.6rem;
+    color: var(--blue);
+}
+
+main{
+    width: 100%;
+    min-width: 320px;
+    height: auto;
+    background-color: var(--very-light-pink);
+
+}
+
+.main--identification-data{
+    position: relative;
+    margin: 5px;
+    padding: 5px;
+
+    /* height: 10vh;
+    margin: 1rem;
+    padding: 1rem;  */
+
+}
+.main--identification-data label{
+    margin: 10px;
+    padding: 10px;
+ 
+
+  }
+  /* input{
+
+    margin: 5px;
+    padding: 5px; 
+  }   */
+
+.video--show-screen{
+    position: relative;
+    width: 100px;
+    height: 180px; 
+    margin: 30px;
+  }
+
+.main--vote-button{
+    position: relative;
+    width: 30px;
+    height: 30px;
+    margin: 0 auto;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0px 4px 8px rgba(89, 73, 30, 0.16);
+    border: none;
+    border-radius: 5px;
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-decoration: none; 
+    /* background-image: url("/assets/icons/down-arrow.svg"); */
+  }
+
+
+.main--resume-statical{
+    position: relative;
+    height: 5vh;
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+
+  #write{
+      width: 300px;
+  }
+  .buttons{
+      display: flex;
+  }
+  .primary-button{
+    position: relative;
+    background-color: var(--hospital-green);
+    border-radius: 8px;
+    border: none;
+    color: var(--white);
+    width: 50%;
+    cursor: pointer;
+    font-size: var(--md);
+    font-weight: bold;
+    height: 50px;
+
+  }
+  #chatbox {
+    position: relative;
+    display:flex;
+    flex-wrap:wrap;
+	text-align:left;
+	margin:0 auto;
+	margin-bottom:25px;
+	padding:10px;
+	background:#fff;
+	height:180px;
+	width:300px;
+	border:1px solid #ACD8F0;
+	overflow:auto; 
+}
+
+#all-messages{
+
+	width:90%;
+	height: 120px;
+    border: #ff0000;
+    overflow: scroll;
+}
+
+.send-message {
+    position: relative;
+}
+
+
+.main--chat-attended_list{
+  background-color: var(--very-light-pink);
+  margin: 2px;
+}
+
+.main--chat-time{
+  display: flex;
+}
+
+
+

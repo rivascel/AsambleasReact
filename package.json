@@ -1,0 +1,22 @@
+{
+  "name": "web-asambleas",
+  "version": "1.0.0",
+  "description": "programa para conexion en linea de propietarios en las asambleas",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/index.js"
+  },
+  "author": "Ivan Rivas",
+  "license": "ISC",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  },
+  "devDependencies": {
+    "bufferutil": "^4.0.7",
+    "nodemon": "^2.0.22",
+    "utf-8-validate": "^5.0.10"
+  }
+}

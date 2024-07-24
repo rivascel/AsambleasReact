@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name=”robots” content=”index,follow”> 
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="./css/owner.css">
+        <link rel="stylesheet" href="./css/ownerDesktop.css">
+        <title>Asamblea PH</title>
+    </head>
+
+    <body>
+        <header>
+            <img src="" alt="">
+            <div class="header-title-container">
+                <h1>Asamblea de Copropietarios Conjunto Argo Calle 183 - Año 2025</h1>
+            </div>
+        </header>
+            
+        <main>
+            <div class="main--identification-data">
+                <h3>Propietario</h3>
+                <table>
+                    <trow>
+                        <tcolumn><label for="interior">Interior</label></tcolumn>
+                        <tcolumn><input type="number" id="interior" placeholder="" /></tcolumn>
+                    </trow>
+                    <trow>
+                        <tcolumn><label for="apartamento">Apartamento</label></tcolumn>
+                        <tcolumn><input type="number" id="apartamento" placeholder="1" /></tcolumn>
+                    </trow>
+                    <trow>
+                        <tcolumn><label for="correo">Correo Electrónico</label></tcolumn>
+                        <tcolumn><input type="email" id="correo" placeholder="correo@mail.com" /></tcolumn>
+                    </trow>
+                    
+                </table>
+        
+            </div>
+
+            <div class="main--video">
+                <div class="video--show-screen">
+                    <h2>Asamblea en vivo</h2>
+                    <video controls period="auto">
+                        <source src="../Wonderful_Tonight.mp4"/>
+                    </video>
+                </div>
+
+            <div class="video--vote-option">
+                <div class="video--vote-button">
+                    <button>Votación<span></span></button>
+                </div> 
+                <h2>Votación puntos de la agenda</h2>
+                <h2>Decisión a ser votada</h2>
+                <textarea id="decision" class="show">Aprueba el punto 1 de la agenda
+                </textarea>
+
+                <form id="myForm">
+                    <legend>Opciones para decidir sobre propuesta</legend>
+                    <label>
+                        <input type="radio" id="aprueba" name="myRadio" value=1 onclick="selectedVote()"> Aprueba
+                    </label>
+                    <label>
+                        <input type="radio" id="rechaza" name="myRadio" value=2 onclick="selectedVote()"> Rechaza
+                    </label>
+                    <label>
+                        <input type="radio" id="blanco" name="myRadio" value=0 onclick="selectedVote()"> Blanco
+                    </label>
+                </form>
+
+                <div class="video--resume-statical">
+                    <h2>Resultados Votación</h2>
+                        <div id="statical">
+                        </div>
+                </div>
+            </div>
+
+            <div class="main--chat">
+                <div id="chatbox" class="chat--box-talk">
+                    <h2>Comentarios de los asistentes</h2>
+                    <div id="menu">
+                            <p class="welcome">Welcome, <b></b></p>
+                            <p class="logout"><a id="exit" href="#">Exit Chat</a></p>
+                            <div style="clear:both"></div>
+                    </div>
+                    <div id="all-messages">
+                    </div>
+                    <div class="send-message">
+                        <input type="text" id="message">
+                        <button type="button" id="send-message" class="btn 
+                        secondary">enviar</button>
+                    </div>
+                </div>
+            </div>   
+            <div class="main--chat-attended_list">
+                <div class="main--chat-time">
+                    <button class="ask">Pedir la palabra</button>
+                    <div id="min">5</div>
+                    <div id="seg">00</div>
+                </div>
+                <div id="all-assistants">
+                </div>
+            </div>
+                     
+            
+            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+            <script src="/socket.io/socket.io.js"></script>
+            <script src="js/chat.js"></script>
+            <script src="js/vote.js"></script>
+            <script src="js/guardar.js"></script>
+            <script src="js/conteo.js"></script>
+        </main>
+    </body>
+</html>

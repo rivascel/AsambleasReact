@@ -1,0 +1,4 @@
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                ","aprueba":2}
+{"interior":"14","apartamento":"101","correo":"rivascel@gmail.com","proposicion":"Aprueba el punto 1 de la agenda\n                ","aprueba":1}
+{"interior":"23","apartamento":"443","correo":"gyy","proposicion":"Aprueba el punto 1 de la agenda\n                ","aprueba":2}
+{"interior":"14","apartamento":"101","correo":"rivascel@gmail.com","proposicion":"Aprueba el punto 1 de la agenda\n                ","aprueba":2}

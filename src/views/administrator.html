@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+    <title>Asamblea PH</title>
+</head>
+<style>
+    :root {
+      --blue: #daf2f2;
+      --white: #FFFFFF;
+      --black: #000000;
+      --very-light-pink: #C7C7C7;
+      --text-input-field: #F7F7F7;
+      --hospital-green: #ACD9B2;
+      --sm: 14px;
+      --md: 16px;
+      --lg: 18px;
+    }
+    *{
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    html{
+        font-size: 62.5%;
+    }
+    body {
+        background-color: var(--blue);
+        margin: 0;
+        font-family: 'Dosis', sans-serif;
+    }
+    .nav{
+        height: 30px;
+    }
+    .container{
+        display:flex;
+        justify-content: space-evenly;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+    .video{
+        width: 500px;
+        margin: 2px;
+    }
+    .vote{
+        width: 400px;
+        background-color: var(--hospital-green);
+        margin: 2px;
+    }
+    .chat{
+        width: 400px;
+        background-color: var(--very-light-pink);
+        margin: 2px;
+    }
+    .show{
+        font-size: var(--sm);
+        margin: 2px;
+        height:50px;
+        width: 300px;
+    }
+    #write{
+        width: 300px;
+    }
+    .buttons{
+        display: flex;
+    }
+    .primary-button{
+        background-color: var(--hospital-green);
+        border-radius: 8px;
+        border: none;
+        color: var(--white);
+        width: 50%;
+        cursor: pointer;
+        font-size: var(--md);
+        font-weight: bold;
+        height: 50px;
+
+    }
+  
+    @media (max-width: 640px) {
+      
+      }
+
+</style>
+<body>
+    <nav class="opcion">
+        <h3>Propietario</h3>
+        <label for="interior">Interior</label>
+        <input type="number" id="interior" placeholder="34"/>
+        <label for="apartamento">Apartamento</label>
+        <input type="number" id="apartamento" placeholder="203"/>
+        <label for="correo">Correo Electrónico</label>
+        <input type="email" id="correo" placeholder="correo@mail.com"/>
+        <div class="row mt-3">
+            <button class="btn btn-sucess"
+            id="agregar">Agregar</button>
+            <button class="btn btn-sucess"
+            id="Guardar">Guardar</button>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="video">
+            <h2>Asamblea en vivo</h2>
+            <video>
+                
+            </video>
+            
+        </div>
+            
+        <div class="vote">
+            <h2>Votación puntos de la agenda</h2>
+            <h2>Decisión a ser votada</h2>
+            <textarea class="show">
+            </textarea>
+            <div class="buttons">
+                <button class="primary-button">Aprueba</button>
+                <button class="primary-button">Rechaza</button>
+            </div>
+            <div class="buttonAdmin">
+                <button class="primary-button" id="admin">Agrega Decision</button>
+            </div>
+        </div>
+        <div class="col-12 mt-3" id="productos">
+            <table class="table table-striped" id="lista">
+                <tr>
+                    <td>Interior</td>
+                    <td>Apartamento</td>
+                    <td>Decision</td>
+                    <td>Voto</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="statical">
+            <h2>Resultados Votación</h2>
+            <div>
+            </div>
+        </div>
+        <div class="chat">
+            <h2>Comentarios de los asistentes</h2>
+            <div class="comments">
+                <textarea class="show">
+
+                </textarea>
+            </div>
+            <div class="show">
+                <input id="write">
+                <button class="primary-button">Enviar</button>
+            </div>
+        
+        </div>
+    </div>
+    <script src="./script.js"></script>
+</body>
+</html>
