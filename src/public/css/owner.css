@@ -28,8 +28,9 @@
     display: flex;
     width: 100%;
     min-width:324px;
-    height: 80px;
-    text-align: center;
+    height: 120px;
+    /* align-items: center; */
+    
   }
 
   img{
@@ -39,20 +40,24 @@
   }
 
   .header--title-container {
+    margin: 5px;
     width: 100%;
     min-width: 288px;
     max-width: 900px;
-    height: 218px;
+    height: 300px;
     margin-top: 40;
     text-align: center;
     align-self: center;
+    justify-items: center;
+    
 }
 
-.header--title-container h1 {
-    font-size: 2.4rem;
+.title h1 {
+    font-size: 1.5rem;
     font-weight: bold;
-    line-height: 2.6rem;
-    color: var(--blue);
+    line-height: 2.0rem;
+    color: var(--black);
+
 }
 
 main{
@@ -62,61 +67,70 @@ main{
     background-color: var(--very-light-pink);
 
 }
+@media (max-width: 380px){
+  .header-title-container h1{
+    font-size: 1.5rem;
+    text-align: center;
 
-.main--identification-data{
-    position: relative;
-    margin: 5px;
-    padding: 5px;
-
-    /* height: 10vh;
-    margin: 1rem;
-    padding: 1rem;  */
-
+  }
 }
-.main--identification-data label{
+.title{
     margin: 10px;
     padding: 10px;
+  }
+
+.identification{
+    display: grid;
+
+}
+
  
-
-  }
-  /* input{
-
-    margin: 5px;
-    padding: 5px; 
-  }   */
-
-.video--show-screen{
-    position: relative;
-    width: 100px;
-    height: 180px; 
-    margin: 30px;
+.work--vote,
+.work--show{
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    width: 100%;
+    text-align: center;
   }
 
-.main--vote-button{
-    position: relative;
-    width: 30px;
-    height: 30px;
-    margin: 0 auto;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    box-shadow: 0px 4px 8px rgba(89, 73, 30, 0.16);
-    border: none;
-    border-radius: 5px;
-    font-size: 1.4rem;
-    font-weight: bold;
-    text-decoration: none; 
-    /* background-image: url("/assets/icons/down-arrow.svg"); */
-  }
+#decision{
+  width: 100%;
+
+}
 
 
-.main--resume-statical{
-    position: relative;
-    height: 5vh;
+.work--resume{
+    /* height: 5vh;
     margin: 1rem;
-    padding: 1rem;
+    padding: 1rem; */
+    width: 100%;
+    border: 1px solid #ccc;
+    text-align: center;
   }
 
+  .work--chat{
+    display: flex;
+    border: 1px solid #ccc;
+  }
+  .work--attend{
+    text-align: center;
+    text-align: center;
+  }
+
+  .work--ask{
+    border: 1px solid #ccc;
+    background-color: var(--very-light-pink);
+    margin: 2px;
+    grid-column: 3;
+    text-align: center;
+  }
+
+  .work--list{
+    display: flex;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
 
   #write{
       width: 300px;
@@ -124,32 +138,20 @@ main{
   .buttons{
       display: flex;
   }
-  .primary-button{
-    position: relative;
-    background-color: var(--hospital-green);
-    border-radius: 8px;
-    border: none;
-    color: var(--white);
-    width: 50%;
-    cursor: pointer;
-    font-size: var(--md);
-    font-weight: bold;
-    height: 50px;
 
-  }
   #chatbox {
     position: relative;
     display:flex;
     flex-wrap:wrap;
-	text-align:left;
-	margin:0 auto;
-	margin-bottom:25px;
-	padding:10px;
-	background:#fff;
-	height:180px;
-	width:300px;
-	border:1px solid #ACD8F0;
-	overflow:auto; 
+    text-align:left;
+    margin:0 auto;
+    margin-bottom:25px;
+    padding:10px;
+    background:#fff;
+    height:180px;
+    width:300px;
+    border:1px solid #ACD8F0;
+    overflow:auto; 
 }
 
 #all-messages{
@@ -163,16 +165,3 @@ main{
 .send-message {
     position: relative;
 }
-
-
-.main--chat-attended_list{
-  background-color: var(--very-light-pink);
-  margin: 2px;
-}
-
-.main--chat-time{
-  display: flex;
-}
-
-
-
