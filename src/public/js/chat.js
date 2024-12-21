@@ -5,16 +5,12 @@ const allMessages = document.querySelector("#all-messages");
 
 send.addEventListener("click", ()=>{
     const message = document.querySelector("#message"); 
-
     socket.emit("message", message.value);
-
     message.value="";
 });
 
 //escuchar el evento que emite el servidor
-
-socket.on("message", ({user, message})=>{
-
+socket.on("message", ({ user, message })=>{
     const msg = document.createRange().createContextualFragment
     (`
     <div class="message">
@@ -27,6 +23,5 @@ socket.on("message", ({user, message})=>{
         </div>
     </div>
     `);
-
     allMessages.append(msg);
 });

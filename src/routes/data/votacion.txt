@@ -1,0 +1,30 @@
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 3 de la agenda\n                    ","aprueba":2}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 3 de la agenda\n                    ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 3 de la agenda\n                    ","aprueba":null}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 3 de la agenda\n                    ","aprueba":null}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 3 de la agenda\n                    ","aprueba":2}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 3 de la agenda\n                    ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":2}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":null}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":null}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":2}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":null}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":null}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":2}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 2 de la agenda\n                    ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 16 de la agenda\n                    ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 18 de la agenda\n                    ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 19 de la agenda\n                    ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 19 de la agenda\n                    ","aprueba":1}
+{"interior":"16","apartamento":"302","correo":"ggghj","proposicion":"\n            Aprueba el punto 1 de la agenda\n                    \n            ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":1}
+{"interior":"16","apartamento":"302","correo":"ggghj","proposicion":"","aprueba":2}
+{"interior":"16","apartamento":"302","correo":"ggghj","proposicion":"","aprueba":null}
+{"interior":"16","apartamento":"302","correo":"ggghj","proposicion":"","aprueba":null}
+{"interior":"16","apartamento":"302","correo":"ggghj","proposicion":"","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"\n            Aprueba el punto 1 de la agenda\n                    \n            ","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"\n            Aprueba el punto 1 de la agenda\n                    \n            ","aprueba":null}
+{"interior":"","apartamento":"","correo":"","proposicion":"\n            aprueba2\n            ","aprueba":2}

@@ -29,7 +29,8 @@
                     <input type="text" id="apartamento" placeholder="1" />
 
                     <label for="correo">Correo Electrónico</label></tcolumn>
-                    <input type="email" id="correo" placeholder="correo@mail.com" />
+                    <input type="email" id="correo" placeholder="correo@mail.com"/>
+                    <p id="copropietario">Nada aún...</p>
                 </form>    
             </div>
         </header>
@@ -45,8 +46,9 @@
                 <div class="work--vote">
                     <h2>Votación puntos de la agenda</h2>
                     <h3>Decisión a ser votada</h3>
-                    <textarea id="decision">Aprueba el punto 1 de la agenda
-                    </textarea>
+                    <div>
+                        <textarea id="decision" readonly></textarea>
+                    </div>
 
                     <form id="myForm">
                         <legend>Opciones para decidir sobre propuesta</legend>
@@ -62,9 +64,15 @@
                     </form>
                 </div>
 
+                <div class="cronometro">
+                    <div id="hms"></div>
+                </div>
+
                 <div class="work--resume">
                     <h2>Resultados Votación</h2>
-                        <img src="../assets/img/pastel.png"></img>
+                        <canvas id="results" width="300" height="200">
+                        </canvas>
+                        
                         <div id="statical">
                         </div>
                 </div>
@@ -86,25 +94,38 @@
                     </div>
                 </div>   
                 <div class="work--attend">
-                    <h3>Quorum actualizado Asamblea</h3>
+                    <h3>Video intervención - propietario</h3>
+                    <video id="localVideo" autoplay muted></video>
+                    <div id="remoteVideos"></div>
+                    <button type="button" id="cameraBtn" class="btn 
+                            secondary">Cámara</button>
+                    <button type="button" id="hangupBtn" class="btn 
+                    secondary">Colgar</button>
+                    <button type="button" id="createBtn" class="btn 
+                    secondary">Crear Sala</button>
+                    <button type="button" id="joinBtn" class="btn 
+                    secondary">Unirse a sala</button>
                 </div>
                 <div class="work--ask">
                     <div class="work--chat-time">
+                        <h2>Listado de asistentes</h2>
+                        <div id="all-assistants">
+                        </div>
                         <button class="work--ask-button">Pedir la palabra</button>
                         <!-- <div id="min">5</div>
                         <div id="seg">00</div> -->
                     </div>
-                    <div id="all-assistants">
-                    </div>
                 </div>
-                     
             </div>
             <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
             <script src="/socket.io/socket.io.js"></script>
             <script src="js/chat.js"></script>
             <script src="js/vote.js"></script>
-            <script src="js/guardar.js"></script>
-            <script src="js/conteo.js"></script>
+            <script src="js/client.js"></script>
+            <script src="js/asistentes.js"></script>
+            <script src="js/sendPoll.js"></script>
+            <script src="js/proposal_client.js"></script>
+            <script src="js/webrtc.js"></script>
         </main>
     </body>
 </html>

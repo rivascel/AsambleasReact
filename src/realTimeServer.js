@@ -7,54 +7,113 @@ module.exports = httpServer =>{
     let connectedUsers = [];
 
     io.on("connection", socket => {
-        const cookie = socket.handshake.headers.cookie;
-        const user = cookie.split("=").pop();
-        console.log('A user connected:', socket.id);
 
-        // // Añadir al usuario a la lista de usuarios conectados
-        connectedUsers.push(socket.id);
+        // const cookie = socket.handshake.headers.cookie;
 
-        // Enviar la lista actualizada a todos los clientes
-        io.emit('updateUserList', connectedUsers);
+        // if (cookie != administrador) {
+        // const user = cookie.split("=").pop();
+        // const user = cookie.split("username=").pop()?.split(";")[0]; // Validar la existencia de la cookie
 
+        const cookie = socket.handshake.headers.cookie || "";
+        const user = cookie.split("=").pop(); // Obtener el usuario de la cookie
 
-         // Manejar la desconexión
-        socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+        if (user != '') {
 
-
-        // Remover al usuario de la lista
-        connectedUsers = connectedUsers.filter(id => id !== socket.id);
-
-        // Enviar la lista actualizada a todos los clientes
-        io.emit('updateUserList', connectedUsers);
-        });
-
-        //enviar el mensaje y el usuario
-        socket.on("message", message => {
-            io.emit("message", {
-                user,message
+            if (user) {
+                if (!connectedUsers.includes(user)) {
+                    connectedUsers.push(user); // Agregar usuario si no está en la lista
+                };
+                console.log("Usuario conectado:", user);
+    
+                //Enviar la lista actualizada a todos los clientes
+                io.emit("updateConnectedUsers", connectedUsers);
+                console.log("lista de conectados",connectedUsers)
+            }
+    
+            // Escuchar el usuario enviado desde una página
+            socket.on("userUpdated", (data) => {
+                // Emitir el input a todos los clientes conectados
+                socket.broadcast.emit("updatedUser", data);
+                // io.emit("userUpdated", data);
             });
-        });
-
-        //Enviar resultado votacion a todos los sockets conectados
-        socket.on("vote1", voto1 =>{
-            io.emit("vote1", {
-                user,voto1
+            // Manejar la desconexión
+            socket.on("disconnect", () => {
+                console.log("Usuario desconectado:", user);
+                connectedUsers = connectedUsers.filter(id => id !== user);
+                
             });
-        });
-
-
-        socket.on("vote2", voto2  =>{
-            io.emit("vote2", {
-                user,voto2
+            // =======================================
+    
+            //enviar el mensaje y el usuario
+            socket.on("message", message => {
+                io.emit("message", {
+                    user,message
+                });
             });
-        });
-        socket.on("vote3", voto3  =>{
-            io.emit("vote2", {
-                user,voto3 
+    
+            //Enviar resultado votacion a todos los sockets conectados
+            socket.on("vote1", voto1 =>{
+                io.emit("vote1", {
+                    user,voto1
+                });
             });
+    
+            socket.on("vote2", voto2  =>{
+                io.emit("vote2", {
+                    user,voto2
+                });
+            });
+    
+            socket.on("vote3", voto3  =>{
+                io.emit("vote3", {
+                    user,voto3 
+                });
+            });
+            
+
+        }
+        // ===============CONEXION VIDEO ===================================
+         // Manejar eventos de WebRTC (señalización)
+         socket.on("offer", data => {
+            const { to, offer } = data;
+            io.to(to).emit("offer", { from: socket.id, offer });
         });
 
+        socket.on("answer", data => {
+            const { to, answer } = data;
+            io.to(to).emit("answer", { from: socket.id, answer });
+        });
+
+        socket.on("ice-candidate", data => {
+            const { to, candidate } = data;
+            io.to(to).emit("ice-candidate", { from: socket.id, candidate });
+        });
+
+        // Notificar a otros usuarios sobre nuevas conexiones
+        socket.on("join-room", roomId => {
+            socket.join(roomId);
+            socket.to(roomId).emit("user-connected", socket.id);
+        });
+
+        socket.on("disconnect", () => {
+            console.log("Cliente desconectado:", socket.id);
+            io.emit("user-disconnected", socket.id);
+        });
+        // ================= ENVIO DEL DECISION A CLIENTES ===================
+        socket.on("send-decision", data=>{
+            io.emit("receive-decision", data );
+        });
+
+        // ================= ENVIO DEL CRONOMETRO A CLIENTES ===================
+        // Escuchar el inicio del cronómetro
+        socket.on('start-cronometer', (data) => {
+            // Retransmitir a todos los clientes
+            io.emit('start-cronometer', data);
+        });
+
+        // Escuchar las actualizaciones del cronómetro
+        socket.on('update-cronometer', (data) => {
+            io.emit('update-cronometer', data);
+        });
     });
 };

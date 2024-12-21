@@ -1,160 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
-    <title>Asamblea PH</title>
-</head>
-<style>
-    :root {
-      --blue: #daf2f2;
-      --white: #FFFFFF;
-      --black: #000000;
-      --very-light-pink: #C7C7C7;
-      --text-input-field: #F7F7F7;
-      --hospital-green: #ACD9B2;
-      --sm: 14px;
-      --md: 16px;
-      --lg: 18px;
-    }
-    *{
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-    html{
-        font-size: 62.5%;
-    }
-    body {
-        background-color: var(--blue);
-        margin: 0;
-        font-family: 'Dosis', sans-serif;
-    }
-    .nav{
-        height: 30px;
-    }
-    .container{
-        display:flex;
-        justify-content: space-evenly;
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-    }
-    .video{
-        width: 500px;
-        margin: 2px;
-    }
-    .vote{
-        width: 400px;
-        background-color: var(--hospital-green);
-        margin: 2px;
-    }
-    .chat{
-        width: 400px;
-        background-color: var(--very-light-pink);
-        margin: 2px;
-    }
-    .show{
-        font-size: var(--sm);
-        margin: 2px;
-        height:50px;
-        width: 300px;
-    }
-    #write{
-        width: 300px;
-    }
-    .buttons{
-        display: flex;
-    }
-    .primary-button{
-        background-color: var(--hospital-green);
-        border-radius: 8px;
-        border: none;
-        color: var(--white);
-        width: 50%;
-        cursor: pointer;
-        font-size: var(--md);
-        font-weight: bold;
-        height: 50px;
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name=”robots” content=”index,follow”> 
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Quicksand&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="./css/owner.css">
+        <link rel="stylesheet" href="./css/ownerDesktop.css">
+        <link rel="stylesheet" href="./css/clock.css">
+        <title>Asamblea PH</title>
+    </head>
 
-    }
-  
-    @media (max-width: 640px) {
-      
-      }
+    <body>
+        <header>
+            <img src="" alt="">
+            <div class="title">
+                <h1>Asamblea de Copropietarios Conjunto Argo Calle 183 - Año 2025</h1>
+            </div>
+            <div class="identification">
+                <h3>Propietario</h3>
+                <form id="data">
+                    <label for="interior">Interior</label></tcolumn>
+                    <input type="text" id="interior" placeholder="" />
 
-</style>
-<body>
-    <nav class="opcion">
-        <h3>Propietario</h3>
-        <label for="interior">Interior</label>
-        <input type="number" id="interior" placeholder="34"/>
-        <label for="apartamento">Apartamento</label>
-        <input type="number" id="apartamento" placeholder="203"/>
-        <label for="correo">Correo Electrónico</label>
-        <input type="email" id="correo" placeholder="correo@mail.com"/>
-        <div class="row mt-3">
-            <button class="btn btn-sucess"
-            id="agregar">Agregar</button>
-            <button class="btn btn-sucess"
-            id="Guardar">Guardar</button>
-        </div>
-    </nav>
-    <div class="container">
-        <div class="video">
-            <h2>Asamblea en vivo</h2>
-            <video>
-                
-            </video>
-            
-        </div>
-            
-        <div class="vote">
-            <h2>Votación puntos de la agenda</h2>
-            <h2>Decisión a ser votada</h2>
-            <textarea class="show">
-            </textarea>
-            <div class="buttons">
-                <button class="primary-button">Aprueba</button>
-                <button class="primary-button">Rechaza</button>
-            </div>
-            <div class="buttonAdmin">
-                <button class="primary-button" id="admin">Agrega Decision</button>
-            </div>
-        </div>
-        <div class="col-12 mt-3" id="productos">
-            <table class="table table-striped" id="lista">
-                <tr>
-                    <td>Interior</td>
-                    <td>Apartamento</td>
-                    <td>Decision</td>
-                    <td>Voto</td>
-                </tr>
-            </table>
-        </div>
-        
-        <div class="statical">
-            <h2>Resultados Votación</h2>
-            <div>
-            </div>
-        </div>
-        <div class="chat">
-            <h2>Comentarios de los asistentes</h2>
-            <div class="comments">
-                <textarea class="show">
+                    <label for="apartamento">Apartamento</label>
+                    <input type="text" id="apartamento" placeholder="1" />
 
-                </textarea>
+                    <label for="correo">Correo Electrónico</label></tcolumn>
+                    <input type="email" id="correo" placeholder="correo@mail.com"/>
+                    <p id="copropietario">Nada aún...</p>
+                </form>    
             </div>
-            <div class="show">
-                <input id="write">
-                <button class="primary-button">Enviar</button>
+        </header>
+        <main>
+            <div class="work">
+                <div class="work--show">
+                    <h2>Asamblea en vivo</h2>
+                    <video controls period="auto">
+                        <source src="../Wonderful_Tonight.mp4"/>
+                    </video>
+                </div>
+
+                <div class="work--vote">
+                    <h2>Votación puntos de la agenda</h2>
+                    <h3>Decisión a ser votada</h3>
+                    <textarea id="decision">Aprueba el punto 1 de la agenda
+                    </textarea>
+                    
+                    <button type="button" id="activeBtn" class="btn 
+                        secondary">Activar pregunta votación</button>  
+                    
+                    <div class="cronometro">
+                        <div id="hms"></div>
+                        <h3>Ingreso los minutos para votar:</h3>
+                        <input type="number" id="minute" name="minuto" class="crono"/>
+                        <button type="button" id="startBtn" class="btn 
+                        secondary" class="crono">Inicie cronometro</button>
+                    </div>
+                </div>
+
+                <div class="work--resume">
+                    <h2>Resultados Votación</h2>
+                        <canvas id="results" width="300" height="200">
+                        </canvas>
+                        <div id="statical">
+                        </div>
+                        <button type="button" class="btn primary"
+                        id="calculo">Conteo</button>
+                </div>
+                <div class="work--chat">
+                    <div id="chatbox" class="chat--box-talk">
+                        <h2>Comentarios de los asistentes</h2>
+                        <div id="menu">
+                                <p class="welcome">Welcome, <b></b></p>
+                                <p class="logout"><a id="exit" href="#">Exit Chat</a></p>
+                                <div style="clear:both"></div>
+                        </div>
+                        <div id="all-messages">
+                        </div>
+                        <div class="send-message">
+                            <input type="text" id="message">
+                            <button type="button" id="send-message" class="btn 
+                            secondary">enviar</button>
+                        </div>
+                    </div>
+                </div>   
+                <div class="work--attend">
+                    <h3>Video intervención - propietario</h3>
+                    <video id="localVideo" autoplay muted></video>
+                    <div id="remoteVideos"></div>
+                    <button type="button" id="cameraBtn" class="btn 
+                            secondary">Cámara</button>
+                    <button type="button" id="hangupBtn" class="btn 
+                    secondary">Colgar</button>
+                    <button type="button" id="createBtn" class="btn 
+                    secondary">Crear Sala</button>
+                    <button type="button" id="joinBtn" class="btn 
+                    secondary">Unirse a sala</button>
+
+                </div>
+                <div class="work--ask">
+                    <div class="work--chat-time">
+                        <h2>Listado de asistentes</h2>
+                        <div id="all-assistants">
+                        </div>
+                        <button class="work--ask-button">Otorga la Palabra</button>
+                        <!-- <div id="min">5</div>
+                        <div id="seg">00</div> -->
+                    </div>
+                </div>
             </div>
-        
-        </div>
-    </div>
-    <script src="./script.js"></script>
-</body>
+            <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
+            <script src="/socket.io/socket.io.js"></script>
+            <script src="js/chat.js"></script>
+            <!-- <script src="js/vote.js"></script> -->
+            <script src="js/conteo.js"></script>
+            <script src="js/client.js"></script>
+            <script src="js/asistentes.js"></script>
+            <script src="js/webrtc.js"></script>
+            <script src="js/clock.js"></script>
+            <script src="js/crono_proposalAdmin.js"></script>
+        </main>
+    </body>
 </html>

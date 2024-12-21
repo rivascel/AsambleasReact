@@ -8,7 +8,6 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const httpServer = createServer(app);
 
-
 // Middleware para parsear el cuerpo de las solicitudes como JSON
 app.use(express.json());
 

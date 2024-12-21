@@ -21,10 +21,32 @@ router.get("/administrator", (req, res)=>{
     res.sendFile(views + "/administrator.html");
 });
 
+router.get("/file", (req, res)=>{
+    const filePath = path.join(__dirname,'data','votacion.txt'); // Ruta segura al archivo
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error al leer en el archivo:', err);
+            return res.status(500).send('Error al leer en el archivo.');
+        }
+
+        // res.send('Archivo escrito exitosamente.');
+        try {
+            // Dividir las líneas y parsearlas a objetos JSON
+            const votes = data.split('\n') // Dividir por líneas
+                .filter(line => line.trim() !== '') // Eliminar líneas vacías
+                .map(line => JSON.parse(line)); // Parsear cada línea como JSON
+            res.json(votes);
+        } catch (parseError) {
+            console.error('Error al parsear los datos:', parseError);
+            res.status(500).send('Error al procesar los datos');
+        }
+    }); 
+});
+
 router.post("/routes", (req, res)=>{
     const   globalNewDict   = req.body;
     // res.json(globalNewDict);
-    const filePath='votacion.txt';
+    const filePath=path.join(__dirname,'data','votacion.txt'); // Ruta segura al archivo
     // console.log ( "tipo de dato", req)
 
     // Validar la entrada
