@@ -1,0 +1,3 @@
+{"correo":"rivascel@gmail.com","interior":14,"apto":101}
+{"correo":"dsds@gmail.com","interior":50,"apto":102}
+{"correo":"gfgfg@gmail.com","interior":34,"apto":302}

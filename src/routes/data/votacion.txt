@@ -28,3 +28,11 @@
 {"interior":"","apartamento":"","correo":"","proposicion":"\n            Aprueba el punto 1 de la agenda\n                    \n            ","aprueba":1}
 {"interior":"","apartamento":"","correo":"","proposicion":"\n            Aprueba el punto 1 de la agenda\n                    \n            ","aprueba":null}
 {"interior":"","apartamento":"","correo":"","proposicion":"\n            aprueba2\n            ","aprueba":2}
+{"interior":"","apartamento":"","correo":"","proposicion":"","aprueba":1}
+{"interior":"6","apartamento":"401","correo":"rrr@gmail.com","proposicion":"","aprueba":2}
+{"interior":"","apartamento":"","correo":"","proposicion":"","aprueba":2}
+{"interior":"","apartamento":"","correo":"","proposicion":"","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"","aprueba":2}
+{"interior":"604","apartamento":"23332","correo":"sdfdfd","proposicion":"","aprueba":1}
+{"interior":"","apartamento":"","correo":"","proposicion":"","aprueba":1}
+{"interior":"14","apartamento":"101","correo":"rivascel@gmail.com","proposicion":"","aprueba":1}

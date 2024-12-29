@@ -3,10 +3,12 @@ const {createServer} = require("http");
 const realTimeServer = require("./realTimeServer");
 const path = require("path");
 const cookieParser = require("cookie-parser");
-
+const bodyParser = require('body-parser');
 
 const app = express();
 const httpServer = createServer(app);
+
+app.use(bodyParser.json());
 
 // Middleware para parsear el cuerpo de las solicitudes como JSON
 app.use(express.json());

@@ -31,19 +31,48 @@ module.exports = httpServer =>{
             }
     
             // Escuchar el usuario enviado desde una página
-            socket.on("userUpdated", (data) => {
-                // Emitir el input a todos los clientes conectados
-                socket.broadcast.emit("updatedUser", data);
-                // io.emit("userUpdated", data);
-            });
+            // socket.on("userUpdated", data => {
+            //     // Emitir el input a todos los clientes conectados
+            //     // socket.broadcast.emit("updatedUser", data);
+            //     console.log("email recibido desde login", data);
+
+            //     // data.value="";
+            //     socket.emit("updatedUser",  data );
+            //     console.log("updatedUser", data);
+
+            // });
+
+            socket.emit("updatedUser", user );
+            // console.log("updatedUser", user);
+
             // Manejar la desconexión
             socket.on("disconnect", () => {
-                console.log("Usuario desconectado:", user);
+                // console.log("Usuario desconectado:", user);
                 connectedUsers = connectedUsers.filter(id => id !== user);
                 
             });
             // =======================================
-    
+
+            // socket.on("connect", () => {
+            //     io.emit("connect", socket);
+            //     console.log("Conectado al servidor, ID:", socket.id);
+            // });
+            
+            // console.log("Receptor conectado, escuchando eventos send-votes...");
+            // console.log("Nuevo cliente conectado, ID:", socket.id);
+
+            // ================= ENVIO DEL DECISION A CLIENTES ===================
+            socket.on("send-decision", data=>{
+                io.emit("receive-decision", data );
+            });
+            
+        // ================= ENVIO DE VOTOS A CLIENTES =================
+            socket.on("send-votes", data => {
+                // console.log("Votos emitidos", data);
+                io.emit("receive-votes", { data });
+                // console.log("Votos recibidos del emisor:", data);
+            });
+            
             //enviar el mensaje y el usuario
             socket.on("message", message => {
                 io.emit("message", {
@@ -69,8 +98,6 @@ module.exports = httpServer =>{
                     user,voto3 
                 });
             });
-            
-
         }
         // ===============CONEXION VIDEO ===================================
          // Manejar eventos de WebRTC (señalización)
@@ -99,10 +126,7 @@ module.exports = httpServer =>{
             console.log("Cliente desconectado:", socket.id);
             io.emit("user-disconnected", socket.id);
         });
-        // ================= ENVIO DEL DECISION A CLIENTES ===================
-        socket.on("send-decision", data=>{
-            io.emit("receive-decision", data );
-        });
+        
 
         // ================= ENVIO DEL CRONOMETRO A CLIENTES ===================
         // Escuchar el inicio del cronómetro

@@ -1,21 +1,20 @@
-load();
-function load(){
-    const socket2 = io();
-    const correo = document.querySelector("#correo");
 
-    const coprop = document.querySelector("#copropietario");
+    const socket9 = io();
+    // const correo = document.querySelector("#correo");
+
+    // const coprop = document.querySelector("#copropietario");
 
     const allAssistants = document.querySelector("#all-assistants");
 
     // Actualizar el valor mostrado cuando se recibe un evento
-    socket2.on("updatedUser", (data) => {
-        coprop.innerHTML = data || "Sin nombre";
-        // console.log("usuario actualizado", user)
-    });
+    // socket2.on("updatedUser", (data) => {
+    //     coprop.innerHTML = data || "Sin nombre";
+    //     console.log("usuario actualizado", data);
+    // });
 
     // socket2.emit("connectedUsers", coprop);
 
-    socket2.on("updateConnectedUsers",  ( connectedUsers ) => {
+    socket9.on("updateConnectedUsers",  ( connectedUsers ) => {
         // console.log("connectedUsers", connectedUsers);
         allAssistants.innerHTML = ""; // Limpiar la lista antes de actualizar
         connectedUsers.forEach((user) => {
@@ -35,7 +34,6 @@ function load(){
     });
 
     // Escuchar desconexiones (opcional para mensajes visuales)
-    socket2.on("userDisconnected", (user) => {
+    socket9.on("userDisconnected", (user) => {
         console.log(`${user} se desconectó.`);
     });
-}

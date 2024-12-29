@@ -8,3 +8,5 @@ sent.addEventListener("click", () => {
     socket6.emit('send-decision', decision.value );
     // document.querySelector('#decision').value ="";
 });
+
+ 
