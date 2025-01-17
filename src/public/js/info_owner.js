@@ -10,6 +10,7 @@ socket2.on("updatedUser", ( email ) => {
     fetchOwnerByEmail(globalEmail);
 });
 
+
 async function fetchOwnerByEmail(email){
     try{
         const response = await fetch('http://localhost:3000/fileOwnerByEmail', {
@@ -22,20 +23,19 @@ async function fetchOwnerByEmail(email){
             throw new Error(`Error: ${response.statusText}`);
         }
         const ownerData = await response.json();
+        // console.log("owerData",ownerData);
 
         document.getElementById("interior").value = ownerData.owner.interior || '';
         document.getElementById("apartamento").value = ownerData.owner.apto || '';
         document.getElementById("correo").value = ownerData.owner.correo || '';
-        document.getElementById("resultado").textContent = "Información cargada con éxito";
-    
+        document.getElementById("participacion").textContent = `${ownerData.participacion}%` || '';
+        // document.getElementById("resultado").textContent = "Información cargada con éxito";
+
     } catch(error){
         console.error('Error fetching owner data:', error.message);
         document.getElementById("copropietario").textContent = "Error al cargar la información";
     }
 }    
     
-// const emailFromCookie = document.cookie.split('; ').find(row => row.startsWith('username='))?.split('=')[1];
-// if (emailFromCookie) {
-//     fetchOwnerByEmail(emailFromCookie);
-// }
+
 

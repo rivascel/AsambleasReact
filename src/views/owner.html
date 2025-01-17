@@ -32,8 +32,10 @@
 
                     <label for="correo">Correo Electrónico</label></tcolumn>
                     <input type="email" id="correo" placeholder="correo@mail.com" readonly/>
-                    <!-- <p id="correo"></p> -->
 
+                    <label for="participacion">participacion<label></tcolumn>
+                    <p id="participacion">Indique participacion...</p>
+                    
                     <p id="copropietario">Nada aún...</p>
                     <p id="resultado"></p>
                 </form>    
@@ -58,13 +60,13 @@
                     <form id="myForm">
                         <legend>Opciones para decidir sobre propuesta</legend>
                         <label>
-                            <input type="radio" id="aprueba" name="myRadio" value=1 onclick="selectedVote()"> Aprueba
+                            <input type="radio" id="aprueba" name="myRadio" value=1 onclick="selectedVote()" disabled> Aprueba
                         </label>
                         <label>
-                            <input type="radio" id="rechaza" name="myRadio" value=2 onclick="selectedVote()"> Rechaza
+                            <input type="radio" id="rechaza" name="myRadio" value=2 onclick="selectedVote()" disabled> Rechaza
                         </label>
                         <label>
-                            <input type="radio" id="blanco" name="myRadio" value=0 onclick="selectedVote()"> Blanco
+                            <input type="radio" id="blanco" name="myRadio" value=0 onclick="selectedVote()" disabled> Blanco
                         </label>
                     </form>
                 </div>
@@ -114,7 +116,13 @@
                         <h2>Listado de asistentes</h2>
                         <div id="all-assistants">
                         </div>
-                        <button class="work--ask-button">Pedir la palabra</button>
+                        <h3>Orden de otorgar palabra</h3>
+                        <div id="all-users">
+                        </div>
+                        <h3>Porcentaje de quorum</h3>
+                        <div id="quorum"></div>
+                        
+                        <button class="work--ask-button" id="ask">Pedir la palabra</button>
                         <!-- <div id="min">5</div>
                         <div id="seg">00</div> -->
                     </div>
@@ -123,13 +131,15 @@
             <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js"></script>
             <script src="/socket.io/socket.io.js"></script>
             <script src="js/info_owner.js"></script>
-            <script src="js/asistentes.js"></script>
+            <script type="module" src="js/asistentes.js"></script>
             <script src="js/chat.js"></script>
             <script src="js/vote.js"></script>
             <script src="js/client.js"></script>
             <script src="js/sendPoll.js"></script>
             <script src="js/proposal_client.js"></script>
+            <script type="module" src="js/cola.js"></script>
             <script src="js/webrtc.js"></script>
+            <script src="js/clock_cliente.js"></script>
         </main>
     </body>
 </html>

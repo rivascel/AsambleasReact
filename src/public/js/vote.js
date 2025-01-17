@@ -18,34 +18,3 @@ rechaza.addEventListener('click', ()=>{
     rechaza.value="";
 });
 
-// socket1.on("vote1", ({user, voto1})=>{
-//     const resultado_votacion = document.createRange().createContextualFragment
-//     (`
-//     <div class="votes">
-//         <div class="votes-list">
-//             <div class="vote-info">
-//                 <span class="username">${user}</span>
-//                 <span class="vote">${voto1}</span>
-//             </div>
-//         </div>
-//     </div>
-//     `);
-//     statical.append(resultado_votacion);
-// }) 
-
-// socket1.on("vote2", ({user, voto2})=>{
-//     const resultado_votacion = document.createRange().createContextualFragment
-//     (`
-//     <div class="votes">
-//         <div class="votes-list">
-//             <div class="vote-info">
-//                 <span class="username">${user}</span>
-//                 <span class="vote">${voto2}</span>
-//             </div>
-//         </div>
-//     </div>
-//     `);
-//     statical.append(resultado_votacion);
-// }) 
-// }
-

@@ -44,6 +44,51 @@ router.get("/file", (req, res)=>{
     }); 
 });
 
+router.get("/dataFile", (req, res)=>{
+    const filePath = path.join(__dirname,'data','correos.txt'); // Ruta segura al archivo
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error al leer en el archivo:', err);
+            return res.status(500).send('Error al leer en el archivo.');
+        }
+
+        // res.send('Archivo escrito exitosamente.');
+        try {
+            // Dividir las líneas y parsearlas a objetos JSON
+            const emails = data.split('\n') // Dividir por líneas
+                .filter(line => line.trim() !== '') // Eliminar líneas vacías
+                .map(line => JSON.parse(line)); // Parsear cada línea como JSON
+            res.json(emails);
+        } catch (parseError) {
+            console.error('Error al parsear los datos:', parseError);
+            res.status(500).send('Error al procesar los datos');
+        }
+    }); 
+});
+
+// ================= Archivos de correo validar Quorum ==================
+router.get("/emailFile", (req, res)=>{
+    const filePath = path.join(__dirname,'data','correos.txt'); // Ruta segura al archivo
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error al leer en el archivo:', err);
+            return res.status(500).send('Error al leer en el archivo.');
+        }
+
+        // res.send('Archivo escrito exitosamente.');
+        try {
+            // Dividir las líneas y parsearlas a objetos JSON
+            const votes = data.split('\n') // Dividir por líneas
+                .filter(line => line.trim() !== '') // Eliminar líneas vacías
+                .map(line => JSON.parse(line)); // Parsear cada línea como JSON
+            res.json(votes);
+        } catch (parseError) {
+            console.error('Error al parsear los datos:', parseError);
+            res.status(500).send('Error al procesar los datos');
+        }
+    }); 
+});
+
 router.post("/fileOwnerByEmail", (req, res)=>{
     const  { email }  = req.body;
 
@@ -72,12 +117,17 @@ router.post("/fileOwnerByEmail", (req, res)=>{
                     console.error(`Error al parsear la línea ${index + 1}:`, error);
                     throw new Error('Archivo contiene líneas inválidas.');
                 }
+                
             });
+            // console.log("owners",owners);
 
             const owner = owners.find(o => o.correo.trim().toLowerCase() === email.trim().toLowerCase());
 
             if (owner) {
-                return res.json({message:"contenido del archivo parseado",owner});
+                const participacion = owner['participacion'];
+                // console.log("participacion",participacion);
+
+                return res.json({message:"contenido del archivo parseado y participacion",owner, participacion});
             } else {
                 
                 return res.status(404).send('Correo no encontrado.');

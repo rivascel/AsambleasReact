@@ -1,11 +1,11 @@
 const socket6 = io();
 
-const sent = document.querySelector('#activeBtn');
+const decisionOffer = document.querySelector('#decision');
 
 // Escuchar el clic para enviar la decisión
-sent.addEventListener("click", () => {
-    const decision = document.querySelector('#decision');
-    socket6.emit('send-decision', decision.value );
+document.querySelector("#activeBtn").addEventListener("click", () => {
+    socket6.emit('send-decision', decisionOffer.value );
+    alert("se envio la pregunta");
     // document.querySelector('#decision').value ="";
 });
 

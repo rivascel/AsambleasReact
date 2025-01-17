@@ -6,13 +6,18 @@ const canvas_rec = document.getElementById('results');
 const ctx_rec = canvas_rec.getContext('2d');
 
 // Escuchar cuando se envie la decision
-socket8.on('receive-decision',  (data)  => {
-    const decisionVar = document.createRange().createContextualFragment
-        (`
-        ${data}
-        `);
-    recDecision.append(decisionVar);
+socket8.on('receive-decision',  data  => {
+    recDecision.textContent=data;
 });    
+
+// socket8.on('start-cronometer', ({ approval, reject, blank }) => {
+
+//     // document.querySelector('#hms').innerHTML = time;
+//     document.querySelector('#aprueba').disabled = approval;
+//     document.querySelector('#rechaza').disabled = reject;
+//     document.querySelector('#blanco').disabled = blank;
+// });
+
 
 socket8.on('receive-votes', (votes) => {
     console.log('Datos recibidos del servidor:',votes);
@@ -52,8 +57,6 @@ socket8.on('receive-votes', (votes) => {
             ctx.fillStyle = '#000';
             ctx.fillText(labels[index], x, canvas.height - 5);
         });
-
-
     }
     else {
         console.error("Formato de votos recibido inválido:", votes);

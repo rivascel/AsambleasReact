@@ -16,6 +16,12 @@
       #interior,#apartamento,#correo{
         width: 20%;
       }
+      .logo {
+        width: 5px;
+        margin-bottom: 5px;
+        justify-self: center;
+        display: none;
+      }
 
 }
 

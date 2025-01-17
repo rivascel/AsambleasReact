@@ -23,6 +23,7 @@ app.use(require("./routes"));
 
 //Public
 app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, 'assets')));
 
 //app.use()
 

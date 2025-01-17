@@ -1,4 +1,3 @@
-
 const socket5 = io();
 
 // let minFinal= parseInt(document.querySelector('#minute').value, 10); //aseguramos que es un numero
@@ -22,10 +21,13 @@ document.querySelector("#startBtn").addEventListener("click", () => {
     seg = 0;
     min = 0;
     parar();
-    intervalo = setInterval(escribir, 10);
+
+    intervalo = setInterval(escribir, 1000);
 
     // Enviar a los clientes que el cronómetro ha iniciado
-    socket5.emit('start-cronometer', { time: `${min}:00`});
+    socket5.emit('start-cronometer', { 
+        time: `${min}:00`, aprueba:true, rechaza:true, blanco:true
+    });
 });
 
 function escribir(){
@@ -38,6 +40,8 @@ function escribir(){
     if (min >= minFinal) {
         parar();
         alert("El tiempo terminó");
+
+        socket5.emit('end-cronometer');
     }
 
     const sAux = seg < 10 ? "0" + seg : seg;
@@ -55,16 +59,5 @@ function parar() {
     if (intervalo) {
         clearInterval(intervalo);
     }
-
-// Escuchar cuando se inicia el cronómetro
-socket5.on('start-cronometer', ({ time }) => {
-    // Mostrar la decisión y el tiempo inicial
-    document.querySelector('#hms').innerHTML = time;
-});
-
-// Escuchar actualizaciones del cronómetro
-socket5.on('update-cronometer', ({ time }) => {
-    document.querySelector('#hms').innerHTML = time;
-});
 
 }

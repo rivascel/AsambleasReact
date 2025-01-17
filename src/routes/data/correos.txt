@@ -1,3 +1,7 @@
-{"correo":"rivascel@gmail.com","interior":14,"apto":101}
-{"correo":"dsds@gmail.com","interior":50,"apto":102}
-{"correo":"gfgfg@gmail.com","interior":34,"apto":302}
+{"correo":"rivascel@gmail.com","interior":14,"apto":101,"participacion":2}
+{"correo":"dsds@gmail.com","interior":50,"apto":102,"participacion":0}
+{"correo":"gfgfg@gmail.com","interior":34,"apto":302,"participacion":1}
+{"correo":"gfgfgkjh@gmail.com","interior":34,"apto":302,"participacion":1}
+{"correo":"rivascel@hotmail.com","interior":34,"apto":302,"participacion":1}
+{"correo":"riv@hotmail.com","interior":54,"apto":302,"participacion":1}
+{"correo":"rivas@hotmail.com","interior":65,"apto":302,"participacion":1}

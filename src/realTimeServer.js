@@ -18,7 +18,6 @@ module.exports = httpServer =>{
         const user = cookie.split("=").pop(); // Obtener el usuario de la cookie
 
         if (user != '') {
-
             if (user) {
                 if (!connectedUsers.includes(user)) {
                     connectedUsers.push(user); // Agregar usuario si no está en la lista
@@ -62,15 +61,15 @@ module.exports = httpServer =>{
             // console.log("Nuevo cliente conectado, ID:", socket.id);
 
             // ================= ENVIO DEL DECISION A CLIENTES ===================
-            socket.on("send-decision", data=>{
-                io.emit("receive-decision", data );
+            socket.on("send-decision", (data) => {
+                io.emit("receive-decision", (data) );
             });
             
         // ================= ENVIO DE VOTOS A CLIENTES =================
             socket.on("send-votes", data => {
-                // console.log("Votos emitidos", data);
+                console.log("Votos emitidos", data);
                 io.emit("receive-votes", { data });
-                // console.log("Votos recibidos del emisor:", data);
+                console.log("Votos recibidos del emisor:", data);
             });
             
             //enviar el mensaje y el usuario
@@ -101,7 +100,7 @@ module.exports = httpServer =>{
         }
         // ===============CONEXION VIDEO ===================================
          // Manejar eventos de WebRTC (señalización)
-         socket.on("offer", data => {
+        socket.on("offer", data => {
             const { to, offer } = data;
             io.to(to).emit("offer", { from: socket.id, offer });
         });
@@ -130,14 +129,27 @@ module.exports = httpServer =>{
 
         // ================= ENVIO DEL CRONOMETRO A CLIENTES ===================
         // Escuchar el inicio del cronómetro
-        socket.on('start-cronometer', (data) => {
+        socket.on('start-cronometer', ({ time, aprueba, rechaza, blanco })  => {
+
+            // const { time, aprueba, rechaza, blanco } = data;
             // Retransmitir a todos los clientes
-            io.emit('start-cronometer', data);
+            io.emit('start-cronometer', { 
+                time, aprueba, rechaza, blanco 
+
+            });
+            console.log("cronometro iniciado", time, aprueba, rechaza, blanco);
         });
 
         // Escuchar las actualizaciones del cronómetro
-        socket.on('update-cronometer', (data) => {
+        socket.on('update-cronometer', data => {
             io.emit('update-cronometer', data);
         });
+
+        socket.on('end-cronometer', () => {
+            io.emit('end-cronometer');
+        });
+
+     
+
     });
 };
