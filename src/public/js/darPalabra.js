@@ -1,11 +1,6 @@
-import Queue from "./cola.js";
 
 const socket9 = io();
-const ask = document.querySelector("#ask");
-
-const allAssistants = document.querySelector("#all-assistants");
 const allUsers = document.querySelector("#all-users");
-
 
 socket9.on("updateConnectedUsers",  ( connectedUsers ) => {
     allAssistants.innerHTML = ""; // Limpiar la lista antes de actualizar
@@ -98,13 +93,22 @@ function renderUsers(){
             <div class="users" id="user-${safeUserId}">
                 <div class="users-body">
                     <div class="user-info">
-                        <span class="username">${user}</span>
+                        <span class="username" data-user="${user}">${user}</span>
                         <img src="../assets/img/hand-up.png" alt="" class="logo">
                     </div>
                 </div>
             </div>
         `);
         allUsers.append(userElement);
+
+        const userAllow = document.querySelector(`#user-${safeUserId}.username`);
+        if (userAllow){
+            userAllow.addEventListener("click", () => {
+                
+            });
+        }
+
+
     });
 };
 

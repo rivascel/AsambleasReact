@@ -21,18 +21,7 @@
                 <h1>Asamblea de Copropietarios Conjunto Argo Calle 183 - Año 2025</h1>
             </div>
             <div class="identification">
-                <h3>Propietario</h3>
-                <form id="data">
-                    <label for="interior">Interior</label></tcolumn>
-                    <input type="text" id="interior" placeholder="" />
 
-                    <label for="apartamento">Apartamento</label>
-                    <input type="text" id="apartamento" placeholder="1" />
-
-                    <label for="correo">Correo Electrónico</label></tcolumn>
-                    <input type="email" id="correo" placeholder="correo@mail.com"/>
-                    <p id="copropietario">Nada aún...</p>
-                </form>    
             </div>
         </header>
         <main>
@@ -96,20 +85,17 @@
                             secondary">Cámara</button>
                     <button type="button" id="hangupBtn" class="btn 
                     secondary">Colgar</button>
-                    <button type="button" id="createBtn" class="btn 
+                    <!-- <button type="button" id="createBtn" class="btn 
                     secondary">Crear Sala</button>
                     <button type="button" id="joinBtn" class="btn 
-                    secondary">Unirse a sala</button>
+                    secondary">Unirse a sala</button> -->
 
                 </div>
                 <div class="work--ask">
                     <div class="work--chat-time">
-                        <h2>Listado de asistentes</h2>
-                        <div id="all-assistants">
-                        </div>
-                        <button class="work--ask-button">Otorga la Palabra</button>
-                        <!-- <div id="min">5</div>
-                        <div id="seg">00</div> -->
+                        
+                        <h3>Orden de otorgar palabra</h3>
+                        <div id="all-users">
                     </div>
                 </div>
             </div>
@@ -119,7 +105,7 @@
             <!-- <script src="js/vote.js"></script> -->
             <script src="js/conteo.js"></script>
             <script src="js/client.js"></script>
-            <script src="js/asistentes.js"></script>
+            <script type="module" src="js/darPalabra.js"></script>
             <script src="js/webrtc.js"></script>
             <script src="js/clock.js"></script>
             <script src="js/crono_proposalAdmin.js"></script>

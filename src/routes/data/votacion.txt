@@ -5,3 +5,5 @@
 {"interior":"14","apartamento":"101","correo":"riv@hotmail.com","proposicion":"Aprueba el punto 5 de la agenda\n                    ","aprueba":1}
 {"interior":"14","apartamento":"101","correo":"rivas@hotmail.com","proposicion":"Aprueba el punto 5 de la agenda\n                    ","aprueba":1}
 {"interior":"14","apartamento":"101","correo":"gfgfgkjh@gmail.com","proposicion":"Aprueba el punto 5 de la agenda\n                    ","aprueba":1}
+{"interior":"34","apartamento":"302","correo":"rivascel@hotmail.com","proposicion":"damos inicio a la asamblea\n                    ","aprueba":1}
+{"interior":"14","apartamento":"101","correo":"rivascel@gmail.com","proposicion":"damos inicio a la asamblea\n                    ","aprueba":1}

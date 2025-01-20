@@ -33,11 +33,13 @@
                     <label for="correo">Correo Electrónico</label></tcolumn>
                     <input type="email" id="correo" placeholder="correo@mail.com" readonly/>
 
-                    <label for="participacion">participacion<label></tcolumn>
-                    <p id="participacion">Indique participacion...</p>
+                    <label for="participacion">Inmuebles que representa<label></tcolumn>
+                    <p id="participacion"></p>
                     
-                    <p id="copropietario">Nada aún...</p>
+                    <p id="mensajeError"></p>
                     <p id="resultado"></p>
+                    <h3>Porcentaje de quorum</h3>
+                        <div id="quorum"></div>
                 </form>    
             </div>
         </header>
@@ -106,25 +108,20 @@
                             secondary">Cámara</button>
                     <button type="button" id="hangupBtn" class="btn 
                     secondary">Colgar</button>
-                    <button type="button" id="createBtn" class="btn 
+                    <!-- <button type="button" id="createBtn" class="btn 
                     secondary">Crear Sala</button>
                     <button type="button" id="joinBtn" class="btn 
-                    secondary">Unirse a sala</button>
+                    secondary">Unirse a sala</button> -->
                 </div>
                 <div class="work--ask">
                     <div class="work--chat-time">
-                        <h2>Listado de asistentes</h2>
+                        <!-- <h2>Listado de asistentes</h2> -->
                         <div id="all-assistants">
                         </div>
-                        <h3>Orden de otorgar palabra</h3>
+                        <button class="work--ask-button" id="ask">Pedir la palabra</button>
+                        <h3>Orden solitud de la palabra</h3>
                         <div id="all-users">
                         </div>
-                        <h3>Porcentaje de quorum</h3>
-                        <div id="quorum"></div>
-                        
-                        <button class="work--ask-button" id="ask">Pedir la palabra</button>
-                        <!-- <div id="min">5</div>
-                        <div id="seg">00</div> -->
                     </div>
                 </div>
             </div>
