@@ -23,5 +23,10 @@
         display: none;
       }
 
+      #localvideo
+      #remotevideo{
+        width: 30%;
+        height: 30%;
+      }
 }
 

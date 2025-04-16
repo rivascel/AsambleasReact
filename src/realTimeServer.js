@@ -17,7 +17,7 @@ module.exports = httpServer =>{
 
         const cookie = socket.handshake.headers.cookie || "";
         if (cookie != administrador) {
-            const user = cookie.split("username=").pop()?.split(";")[0]; // Validar la existencia de la cookie
+            const user = decodeURIComponent(cookie.split("username=").pop()?.split(";")[0]); // Validar la existencia de la cookie
 
         // const user = cookie.split("=").pop(); // Obtener el usuario de la cookie
 
@@ -33,18 +33,6 @@ module.exports = httpServer =>{
                     console.log("lista de conectados",connectedUsers)
                 }
         
-                // Escuchar el usuario enviado desde una página
-                // socket.on("userUpdated", data => {
-                //     // Emitir el input a todos los clientes conectados
-                //     // socket.broadcast.emit("updatedUser", data);
-                //     console.log("email recibido desde login", data);
-
-                //     // data.value="";
-                //     socket.emit("updatedUser",  data );
-                //     console.log("updatedUser", data);
-
-                // });
-
                 socket.emit("updatedUser", user );
                 // console.log("updatedUser", user);
 
@@ -55,7 +43,7 @@ module.exports = httpServer =>{
                 });
 
                 socket.on("wordUser", ({ user, action}) =>{
-                    if (!global.currentAskUsers){
+                    if (!global.currentAskUsers){ //si no hay usuarios solicitando, array en blanco
                         global.currentAskUsers = []
                     }
                     if (action === 'add'){
@@ -71,17 +59,6 @@ module.exports = httpServer =>{
                     console.log("wordUser:", global.currentAskUsers);
                 });
                 
-                
-                // =======================================
-
-                // socket.on("connect", () => {
-                //     io.emit("connect", socket);
-                //     console.log("Conectado al servidor, ID:", socket.id);
-                // });
-                
-                // console.log("Receptor conectado, escuchando eventos send-votes...");
-                // console.log("Nuevo cliente conectado, ID:", socket.id);
-
                 // ================= ENVIO DEL DECISION A CLIENTES ===================
                 socket.on("send-decision", (data) => {
                     io.emit("receive-decision", (data) );
@@ -122,31 +99,31 @@ module.exports = httpServer =>{
             }
             // ===============CONEXION VIDEO ===================================
             // Manejar eventos de WebRTC (señalización)
-            socket.on("offer", data => {
-                const { to, offer } = data;
-                io.to(to).emit("offer", { from: socket.id, offer });
-            });
+            // socket.on("offer", data => {
+            //     const { to, offer } = data;
+            //     io.to(to).emit("offer", { from: socket.id, offer });
+            // });
 
-            socket.on("answer", data => {
-                const { to, answer } = data;
-                io.to(to).emit("answer", { from: socket.id, answer });
-            });
+            // socket.on("answer", data => {
+            //     const { to, answer } = data;
+            //     io.to(to).emit("answer", { from: socket.id, answer });
+            // });
 
-            socket.on("ice-candidate", data => {
-                const { to, candidate } = data;
-                io.to(to).emit("ice-candidate", { from: socket.id, candidate });
-            });
+            // socket.on("ice-candidate", data => {
+            //     const { to, candidate } = data;
+            //     io.to(to).emit("ice-candidate", { from: socket.id, candidate });
+            // });
 
-            // Notificar a otros usuarios sobre nuevas conexiones
-            socket.on("join-room", roomId => {
-                socket.join(roomId);
-                socket.to(roomId).emit("user-connected", socket.id);
-            });
+            // // Notificar a otros usuarios sobre nuevas conexiones
+            // socket.on("join-room", roomId => {
+            //     socket.join(roomId);
+            //     socket.to(roomId).emit("user-connected", socket.id);
+            // });
 
-            socket.on("disconnect", () => {
-                console.log("Cliente desconectado:", socket.id);
-                io.emit("user-disconnected", socket.id);
-            });
+            // socket.on("disconnect", () => {
+            //     console.log("Cliente desconectado:", socket.id);
+            //     io.emit("user-disconnected", socket.id);
+            // });
             
 
             // ================= ENVIO DEL CRONOMETRO A CLIENTES ===================

@@ -5,6 +5,7 @@ const fs = require("fs");
 const nodemailer = require('nodemailer');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
+const  sendMagicLink  = require("../utils/sendMagicLink");
 
 //Traemos el config para el jwtSecret
 const { config } = require('./../config/config');
@@ -164,29 +165,15 @@ router.post("/routes", (req, res)=>{
 
 // ============================= envio del enlace ======================
 
-// Configuración de transporte de Nodemailer
-const transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: {
-        user: config.email_user,
-        pass: config.email_pass
-    },
-});
-
-async function testMail() {
-    try {
-        await transporter.verify();
-        console.log("Conexión con Gmail exitosa");
-    } catch (error) {
-        console.error("Error conectándose:", error.message);
-
-    }
-}
-testMail();
-
-
 router.get("/owner", (req, res) =>{
+    const username = req.cookies.username;
+
+  if (!username) {
+    return res.redirect('/'); // o mostrar una página de acceso denegado
+  }
+
     res.sendFile(views + "/owner.html");
+
 });
 
 // Endpoint para solicitar un enlace mágico
@@ -199,22 +186,16 @@ router.post('/request-magic-link', async (req, res) => {
 
     // Generar un token JWT con un tiempo de expiración (15 minutos)
     const token = jwt.sign({ email }, config.jwtSecret, { expiresIn: '15m' });
-    const magicLink = `${config.BaseUrl}/owner?token=${token}`;
+    // const magicLink = `${config.BaseUrl}/owner?token=${token}`;
 
-    try {
-        // Enviar correo con el enlace mágico
-        await transporter.sendMail({
-            from: `"Asamblea Copropietarios" <${config.email_user}>`,
-            to: email,
-            subject: 'Tu enlace para acceder a la Asamblea de Copropietarios',
-            html: `<p>Haz clic en el enlace para acceder a la aplicación:</p>
-                   <a href="${magicLink}">Acceder</a>`,
-        });
+    const result = await sendMagicLink(email, token);
 
-        res.json({ message: 'Enlace mágico enviado. Verifica tu correo electrónico.' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error enviando el enlace mágico', error });
+    if (result.success) {
+      res.json({ message: 'Correo enviado' });
+    } else {
+      res.status(500).json({ error: 'No se pudo enviar el correo' });
     }
+
 });
 
 // Endpoint para manejar el enlace mágico
@@ -227,9 +208,16 @@ router.get('/magic-link', (req, res) => {
 
     try {
         // Verificar el token
-        const payload = jwt.verify(token, SECRET_KEY);
+        const payload = jwt.verify(token, config.jwtSecret);
 
-        res.json({ message: 'Acceso concedido', email: payload.email });
+        res.cookie('username', payload.email, {
+            httpOnly: true,
+            secure: config.isProd,
+            maxAge: 1000 * 60 * 60 * 2, // 2 horas
+          });
+
+        // res.json({ message: 'Acceso concedido', email: payload.email });
+        return res.redirect('/owner'); // Redirigir al usuario a la página de propietario
     } catch (error) {
         res.status(401).json({ message: 'Token inválido o expirado' });
     }

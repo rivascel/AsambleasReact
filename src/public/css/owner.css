@@ -240,10 +240,10 @@ div#videos {
   flex-wrap: wrap;
 }
 
-div #localVideo > video {
+.work--attend#localVideo {
   background: black;
-  width: 640px;
-  height: 100%;
+  width: 20px;
+  height: 50%;
   display: block;
   margin: 1em;
 }

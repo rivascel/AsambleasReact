@@ -47,10 +47,25 @@
             <div class="work">
                 <div class="work--show">
                     <h2>Asamblea en vivo</h2>
-                    <video controls period="auto">
-                        <source src="../Wonderful_Tonight.mp4"/>
+                    <video id="remoteVideo" autoplay></video>
                     </video>
                 </div>
+
+                <div class="work--attend">
+                    <h3>Video intervención - propietario</h3>
+                    <video id="localVideo" autoplay></video>
+                    
+                    <button type="button" id="cameraBtn" class="btn 
+                            secondary">Cámara</button>
+                    <button type="button" id="hangupBtn" class="btn 
+                    secondary">Colgar</button>
+                    <!-- <button type="button" id="createBtn" class="btn 
+                    secondary">Crear Sala</button> -->
+                    <!-- <button type="button" id="joinBtn" class="btn 
+                    secondary">Unirse a sala</button> -->
+                </div>
+
+
 
                 <div class="work--vote">
                     <h2>Votación puntos de la agenda</h2>
@@ -100,19 +115,8 @@
                         </div>
                     </div>
                 </div>   
-                <div class="work--attend">
-                    <h3>Video intervención - propietario</h3>
-                    <video id="localVideo" autoplay muted></video>
-                    <div id="remoteVideos"></div>
-                    <button type="button" id="cameraBtn" class="btn 
-                            secondary">Cámara</button>
-                    <button type="button" id="hangupBtn" class="btn 
-                    secondary">Colgar</button>
-                    <!-- <button type="button" id="createBtn" class="btn 
-                    secondary">Crear Sala</button>
-                    <button type="button" id="joinBtn" class="btn 
-                    secondary">Unirse a sala</button> -->
-                </div>
+
+
                 <div class="work--ask">
                     <div class="work--chat-time">
                         <!-- <h2>Listado de asistentes</h2> -->
@@ -131,12 +135,15 @@
             <script type="module" src="js/asistentes.js"></script>
             <script src="js/chat.js"></script>
             <script src="js/vote.js"></script>
-            <script src="js/client.js"></script>
+            <!-- <script src="js/client.js"></script> -->
             <script src="js/sendPoll.js"></script>
             <script src="js/proposal_client.js"></script>
             <script type="module" src="js/cola.js"></script>
-            <script src="js/webrtc.js"></script>
+            <!-- <script src="js/pedirPalabra.js"></script> -->
+            <script src="js/quorom.js"></script>
+            <!-- <script type="module" src="js/webrtc/webrtc_client.js"></script> -->
             <script src="js/clock_cliente.js"></script>
+            <script type="module" src="js/webrtc/main.js"></script>
         </main>
     </body>
 </html>
