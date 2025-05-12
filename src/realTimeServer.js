@@ -7,7 +7,7 @@ module.exports = httpServer =>{
     let connectedUsers = [];
     administrador = "";
 
-    io.on("connection", socket => {
+        io.on("connection", socket => {
 
         // const cookie = socket.handshake.headers.cookie;
 
@@ -65,10 +65,10 @@ module.exports = httpServer =>{
                 });
                 
             // ================= ENVIO DE VOTOS A CLIENTES =================
-                socket.on("send-votes", data => {
-                    console.log("Votos emitidos", data);
-                    io.emit("receive-votes", { data });
-                    console.log("Votos recibidos del emisor:", data);
+                socket.on("send-votes", vote_send => {
+                    console.log("Votos emitidos", vote_send);
+                    socket.broadcast.emit("receive-votes",   vote_send  );
+                    console.log("Votos recibidos del emisor:", vote_send);
                 });
                 
                 //enviar el mensaje y el usuario
@@ -128,25 +128,36 @@ module.exports = httpServer =>{
 
             // ================= ENVIO DEL CRONOMETRO A CLIENTES ===================
             // Escuchar el inicio del cronómetro
-            socket.on('start-cronometer', ({ time, aprueba, rechaza, blanco })  => {
+                socket.on('start-cronometer', ({ time, aprueba, rechaza, blanco })  => {
 
-                // const { time, aprueba, rechaza, blanco } = data;
-                // Retransmitir a todos los clientes
-                io.emit('start-cronometer', { 
-                    time, aprueba, rechaza, blanco 
+                    // const { time, aprueba, rechaza, blanco } = data;
+                    // Retransmitir a todos los clientes
+                    io.emit('start-cronometer', { 
+                        time, aprueba, rechaza, blanco 
 
+                    });
+                    console.log("cronometro iniciado", time, aprueba, rechaza, blanco);
                 });
-                console.log("cronometro iniciado", time, aprueba, rechaza, blanco);
-            });
 
-            // Escuchar las actualizaciones del cronómetro
-            socket.on('update-cronometer', data => {
-                io.emit('update-cronometer', data);
-            });
+                // Escuchar las actualizaciones del cronómetro
+                socket.on('update-cronometer', data => {
+                    io.emit('update-cronometer', data);
+                });
 
-            socket.on('end-cronometer', () => {
-                io.emit('end-cronometer');
-            });
+                socket.on('end-cronometer', () => {
+                    io.emit('end-cronometer');
+                });
+
+                socket.on('ocultar', data => {
+                    socket.broadcast.emit('ocultar', data);
+                });
+
+                socket.on('signal', data => {
+                    // Retransmitir señal a todos excepto al emisor
+                    socket.broadcast.emit('signal', data);
+                  });
+                
         }
     });
+    
 };

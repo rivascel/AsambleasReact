@@ -8,19 +8,16 @@ const jwt = require('jsonwebtoken');
 const  sendMagicLink  = require("../utils/sendMagicLink");
 
 //Traemos el config para el jwtSecret
-const { config } = require('./../config/config');
-
-const views = path.join(__dirname, "/../views");
+const { config } = require('../config/config');
 
 const isLoggedIn = require("../middlewares/IsLoggedIn");
 
-//definicion de rutas
-router.get("/", (req, res) =>{
-    res.sendFile(views + "/index.html");
-});
+const { requireAuth } = require('../middlewares/auth');
 
-router.get("/administrator", (req, res)=>{
-    res.sendFile(views + "/administrator.html");
+router.get('/owner-data', requireAuth, (req, res) => {
+    // Este endpoint solo devuelve datos si la cookie está presente
+    const email = req.cookies.username;
+    res.json({ email, dashboardData: "Aquí van tus datos" });
 });
 
 router.get("/file", (req, res)=>{
@@ -31,7 +28,6 @@ router.get("/file", (req, res)=>{
             return res.status(500).send('Error al leer en el archivo.');
         }
 
-        // res.send('Archivo escrito exitosamente.');
         try {
             // Dividir las líneas y parsearlas a objetos JSON
             const votes = data.split('\n') // Dividir por líneas
@@ -118,15 +114,12 @@ router.post("/fileOwnerByEmail", (req, res)=>{
                     console.error(`Error al parsear la línea ${index + 1}:`, error);
                     throw new Error('Archivo contiene líneas inválidas.');
                 }
-                
             });
-            // console.log("owners",owners);
 
             const owner = owners.find(o => o.correo.trim().toLowerCase() === email.trim().toLowerCase());
 
             if (owner) {
                 const participacion = owner['participacion'];
-                // console.log("participacion",participacion);
 
                 return res.json({message:"contenido del archivo parseado y participacion",owner, participacion});
             } else {
@@ -143,9 +136,7 @@ router.post("/fileOwnerByEmail", (req, res)=>{
 router.post("/routes", (req, res)=>{
     const   globalNewDict   = req.body;
     
-    // res.json(globalNewDict);
     const filePath=path.join(__dirname,'data','votacion.txt'); // Ruta segura al archivo
-    // console.log ( "tipo de dato", req)
 
     // Validar la entrada
     if (!filePath || !globalNewDict) {
@@ -165,17 +156,6 @@ router.post("/routes", (req, res)=>{
 
 // ============================= envio del enlace ======================
 
-router.get("/owner", (req, res) =>{
-    const username = req.cookies.username;
-
-  if (!username) {
-    return res.redirect('/'); // o mostrar una página de acceso denegado
-  }
-
-    res.sendFile(views + "/owner.html");
-
-});
-
 // Endpoint para solicitar un enlace mágico
 router.post('/request-magic-link', async (req, res) => {
     const { email } = req.body;
@@ -186,7 +166,6 @@ router.post('/request-magic-link', async (req, res) => {
 
     // Generar un token JWT con un tiempo de expiración (15 minutos)
     const token = jwt.sign({ email }, config.jwtSecret, { expiresIn: '15m' });
-    // const magicLink = `${config.BaseUrl}/owner?token=${token}`;
 
     const result = await sendMagicLink(email, token);
 
@@ -195,11 +174,11 @@ router.post('/request-magic-link', async (req, res) => {
     } else {
       res.status(500).json({ error: 'No se pudo enviar el correo' });
     }
-
 });
 
 // Endpoint para manejar el enlace mágico
 router.get('/magic-link', (req, res) => {
+
     const { token } = req.query;
 
     if (!token) {
@@ -212,16 +191,18 @@ router.get('/magic-link', (req, res) => {
 
         res.cookie('username', payload.email, {
             httpOnly: true,
-            secure: config.isProd,
+            // secure: config.isProd,
+            secure: true,
+            sameSite: 'None', // Necesario para cross-origin
             maxAge: 1000 * 60 * 60 * 2, // 2 horas
           });
 
-        // res.json({ message: 'Acceso concedido', email: payload.email });
-        return res.redirect('/owner'); // Redirigir al usuario a la página de propietario
+        // En lugar de redirigir directamente
+        return res.json({ redirectTo: `${config.FrontEndBaseUrl}/owner` });
+    
     } catch (error) {
         res.status(401).json({ message: 'Token inválido o expirado' });
     }
 });
-
 
 module.exports = router;

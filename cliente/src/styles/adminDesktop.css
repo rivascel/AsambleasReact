@@ -1,0 +1,118 @@
+:root {
+    --blue: #daf2f2;
+    --white: #FFFFFF;
+    --black: #000000;
+    --very-light-pink: #C7C7C7;
+    --text-input-field: #F7F7F7;
+    --hospital-green: #ACD9B2;
+    --sm: 14px;
+    --md: 16px;
+    --lg: 18px;
+  }
+  *{
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+  }
+
+  html{
+      font-size: 62.5%;
+  }
+  body {
+      background-color: var(--blue);
+      margin: 0;
+      font-family: 'Dosis', sans-serif;
+      /* height: 80vh; */
+  }
+
+  h2 {
+    width: auto;
+  }
+
+  header{
+    background-color: var(--hospital-green);
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-width:324px;
+    height: auto;
+    /* align-items: center; */
+  }
+
+  main{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    width: 100%;
+    height: 100%;
+    background-color: var(--very-light-pink);
+
+}
+
+  .meeting {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    grid-template-rows: repeat(2, auto);
+    justify-content: center;
+    align-content: center;
+    /* width: 100%; */
+    height: 100%;
+    width: calc(100% - 10px);
+    margin: 3px;
+    padding: 5px;
+  }
+  .meeting__show{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 3px;
+    padding: 5px;
+    width: fit-content;
+    
+    border: 1px solid #abeac6;
+    
+  }
+
+  .meeting__show h2,
+  .meeting__show .btn {
+    max-width: 100%;
+    text-align: center;
+}
+
+  .meeting__intervention{
+    margin: 3px;
+    padding: 5px;
+    border: 1px solid #abeac6;
+    height: 200px;
+
+  }
+ 
+  .meeting__ask{
+    margin: 3px;
+    padding: 5px;
+    border: 1px solid #abeac6;
+
+  }
+
+  .meeting__poll{
+    display: grid;
+    margin: 3px;
+    padding: 5px;
+    border: 1px solid #abeac6;
+    height: 500px;
+  }
+
+  
+ 
+  .videos, #remoteVideo {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid #abeac6;
+  }
+
+  
+  .meeting__chat{
+    border: 1px solid #abeac6;
+    width: fit-content;
+  }

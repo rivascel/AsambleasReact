@@ -1,12 +1,10 @@
 const { Resend } = require('resend');
-require('dotenv').config();
 const { config } = require('../config/config');
 
 const resend = new Resend(config.api_key); // Guárdala en .env
 
-
 async function sendMagicLink(to, token) {
-  const magicLink = `${config.BaseUrl}/magic-link?token=${token}`;
+  const magicLink = `${config.FrontEndBaseUrl}/magic-link?token=${token}`;
 
   try {
     const data = await resend.emails.send({
@@ -22,6 +20,7 @@ async function sendMagicLink(to, token) {
     });
 
     console.log('Correo enviado:', data);
+
     return { success: true };
   } catch (error) {
     console.error('Error al enviar el correo:', error);

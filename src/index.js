@@ -1,13 +1,22 @@
+require('dotenv').config({ path: '../.env' }); // ruta relativa al root del proyecto
+
 const express = require("express");
-const {createServer} = require("http");
+const fs = require("fs");
 const realTimeServer = require("./realTimeServer");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const bodyParser = require('body-parser');
-
-
+const https = require("https");
 const app = express();
-const httpServer = createServer(app);
+const cors = require('cors');
+
+app.use(cors({
+  origin: ['https://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200 // Para navegadores antiguos
+}));
 
 app.use(bodyParser.json());
 
@@ -16,35 +25,37 @@ app.use(express.json());
 
 //settings
 app.set("port", process.env.PORT || 3000);
-app.set("views", path.join(__dirname, "views"))
 app.use(cookieParser());
 
-//Routes
-app.use(require("./routes"));
+const authRoutes = require('./routes'); // o './routes/auth'
+app.use('/api', authRoutes);
 
-//Public
-app.use(express.static(path.join(__dirname, "public")));
-app.use(express.static(path.join(__dirname, 'assets')));
 
-//app.use()
+// app.use(express.static(path.join(__dirname, 'assets')));
+app.use(express.static(path.join(__dirname, '../cliente/dist')));
 
-// Manejo de rutas en Single Page Applications (SPA)
 app.get('*', (req, res, next) => {
-    if (req.path.endsWith('.js') || req.path.endsWith('.css')) {
-        return next(); // Deja que Express maneje los archivos estáticos
-    }
-    res.sendFile(path.join(__dirname, 'public')); // Envía el archivo HTML para cualquier otra ruta
+  const ext = path.extname(req.path);
+  if (ext) return next(); // Deja pasar archivos estáticos con extensión
+
+  // Si no tiene extensión, asumimos que es una ruta de SPA
+  res.sendFile(path.join(__dirname, '../cliente/dist/index.html'));
 });
 
+const sslOptions = {
+    key: fs.readFileSync(path.join(__dirname, 'ssl/key.pem')),
+    cert: fs.readFileSync(path.join(__dirname, 'ssl/cert.pem'))
+  };
 
 //Levanto el servidor
-httpServer.listen(app.get("port"), ()=>{
-    console.log("el servidor esta corriendo en el puerto ", 
-    app.get("port"));
-});
+const httpsServer = https.createServer(sslOptions, app); //crea servidor https
 
 //Llamo al servidor de Socket.io
-realTimeServer(httpServer);
+realTimeServer(httpsServer);
 
+
+httpsServer.listen(app.get("port"), () => {
+    console.log(`Servidor HTTPS corriendo en https://localhost:${app.get("port")}`);
+  });
 
 
