@@ -55,7 +55,7 @@ reject.addEventListener('change', updateStatus)
 blank.addEventListener('change', updateStatus)
 
 function poll(globalNewDict){
-    const res= fetch('https://localhost:3000/routes', {
+    const res= fetch('http://localhost:3000/routes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(globalNewDict)

@@ -34,9 +34,9 @@ socket9.on("updateConnectedUsers",  ( connectedUsers ) => {
             if (!Array.isArray(votesData)) {
                 throw new Error("La respuesta del servidor no es un arreglo.");
             }
-    
+            //los propietarios conectados se filtren por el correo que sea el mismo del archivo de texto
             let quorum = votesData.filter(mail => connectedUsers.includes(mail.correo));
-    
+            // el numero de conectados dividido por el total de propietarios del archivo de texto
             let quorumPercentage = quorum.length/votesData.length*100;
             
             const quorumElement= document.querySelector("#quorum");

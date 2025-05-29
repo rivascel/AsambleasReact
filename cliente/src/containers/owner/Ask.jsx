@@ -8,7 +8,9 @@ const AskToParticipate = () => {
   const handleRequest = async () => {
     try {
       // Ejemplo de envío al backend (ajusta a tu API o Supabase)
-      await axios.post("https://localhost:3000/api/request-participation", {}, {
+      await axios.post("http://localhost:3000/api/request-participation", 
+        { roomId: "main-room" }, 
+        {
         withCredentials: true, // si usas cookies seguras
       });
 

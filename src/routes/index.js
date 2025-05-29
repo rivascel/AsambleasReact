@@ -2,10 +2,9 @@ const express=require("express");
 const router = express.Router();
 const path = require("path");
 const fs = require("fs");
-const nodemailer = require('nodemailer');
-const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const  sendMagicLink  = require("../utils/sendMagicLink");
+const { requestToJoinRoom }= require("../utils/js/webrtc/supabase");
 
 //Traemos el config para el jwtSecret
 const { config } = require('../config/config');
@@ -13,6 +12,7 @@ const { config } = require('../config/config');
 const isLoggedIn = require("../middlewares/IsLoggedIn");
 
 const { requireAuth } = require('../middlewares/auth');
+
 
 router.get('/owner-data', requireAuth, (req, res) => {
     // Este endpoint solo devuelve datos si la cookie está presente
@@ -34,28 +34,6 @@ router.get("/file", (req, res)=>{
                 .filter(line => line.trim() !== '') // Eliminar líneas vacías
                 .map(line => JSON.parse(line)); // Parsear cada línea como JSON
             res.json(votes);
-        } catch (parseError) {
-            console.error('Error al parsear los datos:', parseError);
-            res.status(500).send('Error al procesar los datos');
-        }
-    }); 
-});
-
-router.get("/dataFile", (req, res)=>{
-    const filePath = path.join(__dirname,'data','correos.txt'); // Ruta segura al archivo
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error('Error al leer en el archivo:', err);
-            return res.status(500).send('Error al leer en el archivo.');
-        }
-
-        // res.send('Archivo escrito exitosamente.');
-        try {
-            // Dividir las líneas y parsearlas a objetos JSON
-            const emails = data.split('\n') // Dividir por líneas
-                .filter(line => line.trim() !== '') // Eliminar líneas vacías
-                .map(line => JSON.parse(line)); // Parsear cada línea como JSON
-            res.json(emails);
         } catch (parseError) {
             console.error('Error al parsear los datos:', parseError);
             res.status(500).send('Error al procesar los datos');
@@ -133,7 +111,7 @@ router.post("/fileOwnerByEmail", (req, res)=>{
     }); 
 });
 
-router.post("/routes", (req, res)=>{
+router.post("/votacion", (req, res)=>{
     const   globalNewDict   = req.body;
     
     const filePath=path.join(__dirname,'data','votacion.txt'); // Ruta segura al archivo
@@ -157,6 +135,7 @@ router.post("/routes", (req, res)=>{
 // ============================= envio del enlace ======================
 
 // Endpoint para solicitar un enlace mágico
+
 router.post('/request-magic-link', async (req, res) => {
     const { email } = req.body;
 
@@ -195,14 +174,55 @@ router.get('/magic-link', (req, res) => {
             secure: true,
             sameSite: 'None', // Necesario para cross-origin
             maxAge: 1000 * 60 * 60 * 2, // 2 horas
-          });
+            });
+
+        // Enviar cookie segura con el token
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,       // solo en HTTPS
+            sameSite: 'Strict', // protege CSRF
+            maxAge: 15 * 60 * 1000 // 15 minutos
+            });
+
 
         // En lugar de redirigir directamente
-        return res.json({ redirectTo: `${config.FrontEndBaseUrl}/owner` });
+        return res.json({ 
+            redirectTo: `${config.FrontEndBaseUrl}/owner`,
+            email: payload.email, 
+        });
     
     } catch (error) {
         res.status(401).json({ message: 'Token inválido o expirado' });
     }
+});
+
+
+router.post('/request-participation', async (req, res) => {
+  try {
+
+     const token = req.cookies?.token;
+    
+    if (!token) {
+        console.log('Token no encontrado en cookies');
+        return res.status(401).json({ error: 'Token no proporcionado' });
+    }
+
+    // console.log('Cookies recibidas:', req.cookies);
+    // console.log('Body recibido:', req.body);
+
+    const decoded = jwt.verify(token, config.jwtSecret);
+    const email = decoded.email;
+    const { roomId } = req.body;
+
+    if (!roomId) return res.status(400).json({ error: 'roomId requerido' });
+
+    await requestToJoinRoom(roomId, email);
+
+    res.status(200).json({ message: 'Solicitud enviada' });
+  } catch (err) {
+    console.error("Error al procesar solicitud:", err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
 });
 
 module.exports = router;

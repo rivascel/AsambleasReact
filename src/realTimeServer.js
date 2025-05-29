@@ -3,26 +3,33 @@
 
 module.exports = httpServer =>{
     const { Server } = require("socket.io");
-    const io = new Server(httpServer);
+    const io = new Server(httpServer, {
+        cors: {
+            origin: 'http://localhost:5173',
+            methods: ['GET', 'POST'],
+            credentials: true
+        }
+    }
+    );
     let connectedUsers = [];
-    administrador = "";
+    const ADMIN_EMAIL = "admin";
+    let administrador = "";
 
+    // Configuración de Socket.IO con CORS
         io.on("connection", socket => {
 
-        // const cookie = socket.handshake.headers.cookie;
-
-        // if (cookie != administrador) {
-        // const user = cookie.split("=").pop();
-        // const user = cookie.split("username=").pop()?.split(";")[0]; // Validar la existencia de la cookie
-
         const cookie = socket.handshake.headers.cookie || "";
-        if (cookie != administrador) {
-            const user = decodeURIComponent(cookie.split("username=").pop()?.split(";")[0]); // Validar la existencia de la cookie
+            
+        const user = decodeURIComponent(cookie.split("username=").pop()?.split(";")[0]); // Validar la existencia de la cookie
+        console.log("admin", user);
+        if (!user) return;
 
-        // const user = cookie.split("=").pop(); // Obtener el usuario de la cookie
+        // if (user === ADMIN_EMAIL || user) {
+        // administrador = user;
+        // }
 
             if (user != '') {
-                if (user) {
+                if (user || user === ADMIN_EMAIL) {
                     if (!connectedUsers.includes(user)) {
                         connectedUsers.push(user); // Agregar usuario si no está en la lista
                     };
@@ -40,7 +47,10 @@ module.exports = httpServer =>{
                 socket.on("disconnect", () => {
                     // console.log("Usuario desconectado:", user);
                     connectedUsers = connectedUsers.filter(id => id !== user);
-                });
+                    console.log("Usuario desconectado:", user);
+                    io.emit("updateConnectedUsers", connectedUsers); // ⬅️ importante
+                    console.log("lista de conectados", connectedUsers);
+                                });
 
                 socket.on("wordUser", ({ user, action}) =>{
                     if (!global.currentAskUsers){ //si no hay usuarios solicitando, array en blanco
@@ -60,8 +70,8 @@ module.exports = httpServer =>{
                 });
                 
                 // ================= ENVIO DEL DECISION A CLIENTES ===================
-                socket.on("send-decision", (data) => {
-                    io.emit("receive-decision", (data) );
+                socket.on("send-decision", text => {
+                    socket.broadcast.emit("receive-decision", text );
                 });
                 
             // ================= ENVIO DE VOTOS A CLIENTES =================
@@ -72,13 +82,18 @@ module.exports = httpServer =>{
                 });
                 
                 //enviar el mensaje y el usuario
-                socket.on("message", message => {
-                    io.emit("message", {
-                        user,message
+                socket.on("message", (data) => {
+                    socket.broadcast.emit("message", data);
+                });
+        
+                //Enviar resultado votacion de todos los sockets conectados
+               socket.on("vote", voto =>{
+                    io.emit("vote", {
+                        user,voto
                     });
                 });
         
-                //Enviar resultado votacion a todos los sockets conectados
+
                 socket.on("vote1", voto1 =>{
                     io.emit("vote1", {
                         user,voto1
@@ -128,15 +143,15 @@ module.exports = httpServer =>{
 
             // ================= ENVIO DEL CRONOMETRO A CLIENTES ===================
             // Escuchar el inicio del cronómetro
-                socket.on('start-cronometer', ({ time, aprueba, rechaza, blanco })  => {
+                socket.on('start-cronometer', ({ time })  => {
 
                     // const { time, aprueba, rechaza, blanco } = data;
                     // Retransmitir a todos los clientes
                     io.emit('start-cronometer', { 
-                        time, aprueba, rechaza, blanco 
+                        time 
 
                     });
-                    console.log("cronometro iniciado", time, aprueba, rechaza, blanco);
+                    console.log("cronometro iniciado", time);
                 });
 
                 // Escuchar las actualizaciones del cronómetro
@@ -157,7 +172,6 @@ module.exports = httpServer =>{
                     socket.broadcast.emit('signal', data);
                   });
                 
-        }
     });
     
 };

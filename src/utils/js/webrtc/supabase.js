@@ -1,5 +1,7 @@
 // supabase.js
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+// import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = 'https://hhmqduncjwddwptghsaj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhobXFkdW5jandkZHdwdGdoc2FqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE4ODQ0NTIsImV4cCI6MjA1NzQ2MDQ1Mn0.0IC33LEBv1O4QO9ctymNJu7nMjzXqk1P3Un9gf8WYds';
@@ -7,7 +9,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let approved='approved';
 
-export async function createRoom(roomId, offer) {
+async function createRoom(roomId, offer) {
     const { error } = await supabase
         .from('rooms')
         .insert([{ room_id: roomId, offer, candidates: [] }]);
@@ -15,7 +17,7 @@ export async function createRoom(roomId, offer) {
 }
 
 //El usuario se une a la sala
-export async function requestToJoinRoom(roomId, userId) {
+async function requestToJoinRoom(roomId, userId) {
     const { error } = await supabase
       .from('requests')
       .insert([{ user_id: userId, status: 'pending', room_id: roomId }]);
@@ -28,7 +30,7 @@ export async function requestToJoinRoom(roomId, userId) {
     console.log(`Request sent for room: ${roomId}. Waiting for admin approval.`);
   }
   
-export async function getPendingRequest(roomId) {
+async function getPendingRequest(roomId) {
     const { data, error } = await supabase
         .from('requests')
         .select('user_id')
@@ -40,7 +42,7 @@ export async function getPendingRequest(roomId) {
     return data?.user_id;
 }
 
-export async function approveUser(userId, roomId, approved='approved') {
+async function approveUser(userId, roomId, approved='approved') {
     const { error } = await supabase
         .from('requests')
         .update({ status: 'approved' })
@@ -69,7 +71,7 @@ export async function approveUser(userId, roomId, approved='approved') {
 }
 
 
-export function listenForApproval(userId, roomId, callback) {
+function listenForApproval(userId, roomId, callback) {
     return supabase
         .channel('room-approval')
         .on(
@@ -89,7 +91,7 @@ export function listenForApproval(userId, roomId, callback) {
         .subscribe();
 }
 
-export async function deleteCandidate(userId) {
+async function deleteCandidate(userId) {
     // Primero, obtén los datos actuales
     const { data: roomData, error: roomFetchError } = await supabase
       .from('rooms')
@@ -133,5 +135,14 @@ export async function deleteCandidate(userId) {
         console.log(`Request del usuario "${userId}" eliminada correctamente.`);
     }
 }
+
+module.exports = {
+    createRoom,
+    requestToJoinRoom,
+    getPendingRequest,
+    approveUser,
+    listenForApproval,
+    deleteCandidate
+};
   
 

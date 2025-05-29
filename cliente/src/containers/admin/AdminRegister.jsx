@@ -1,33 +1,26 @@
 import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
-import { UserContext } from "../components/UserContext";
-import "../styles/Header.css";
+import { UserContext } from "../../components/UserContext";
+import { useNavigate } from 'react-router-dom';
 
-const RegisterOwner = ({ onRegister }) => {
+const RegisterAdmin = ({ onRegister }) => {
 
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
     const { login } = useContext(UserContext);
+    const navigate = useNavigate();
 
     // useEffect(() => {
-    //     axios.get("https://localhost:3000/api/owner-data", { withCredentials: true })
-    //       .then(() => window.location.href = "/owner")
-    //       .catch(() => {}); // no hacer nada si no hay sesión
-          
+    //     window.location.href = "/admin/dashboard";
     //   }, []);
-  
+
     const handleSendLink = async () => {
       try {
-        await axios.post("http://localhost:3000/api/request-magic-link", 
-            { email },
-            { withCredentials: true }
-        );
-
-
-        setMessage("Enlace enviado. Revisa tu correo.");
         onRegister?.(email); // si quieres avanzar al siguiente paso visual
         login(email);
-        // login(email);
+        document.cookie = `username=${email}; `;
+        navigate("/admin/dashboard"); // ✅ sin recargar la página
+        
       } catch (error) {
         console.error(error);
         setMessage("Hubo un error al enviar el enlace.");
@@ -38,7 +31,7 @@ const RegisterOwner = ({ onRegister }) => {
         <>
         <div className="input-group">
             <label htmlFor="username">Escribe tu correo electrónico</label>
-            <input type="email" id="username"
+            <input  id="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
             />
@@ -52,6 +45,6 @@ const RegisterOwner = ({ onRegister }) => {
     ); 
 };
 
-export default RegisterOwner;
+export default RegisterAdmin;
 
 

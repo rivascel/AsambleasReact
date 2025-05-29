@@ -1,13 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
-
+import { io } from "socket.io-client";
 import Ask from '../containers/owner/Ask';
 import Chat from '../containers/Chat';
 import Graph from '../containers/Graph';
 import VideoGeneral from '../containers/Video_general';
 import VideoPersonal from '../containers/Video_personal';
-import Questions from '../containers/Questions';
+import MeetingPollOwner from '../containers/owner/Meeting_poll_owner';
 import MeetingPoll from '../containers/admin/Meeting_poll';
+import Questions from '../containers/owner/Questions';
+import { UserContext } from "../components/UserContext";
+import Header from '../components/Header';
+
+const socket5 = io("http://localhost:3000", {
+  withCredentials: true,
+});
 
 const Section = ({ title, children }) => (
   <div className="bg-white p-4 rounded-lg shadow-md">
@@ -17,61 +24,133 @@ const Section = ({ title, children }) => (
 );
 
 const DashBoardOwner = () => {
-  const [email, setEmail] = useState(null);
+  // const [email, setEmail] = useState(null);
   const [error, setError] = useState(null);
+  // const [quorum, setQuorum] = useState(null);
+  const [votesData, setVotesData] = useState({}); // lista de todos los propietarios
+  const { email, login, setQuorum } = useContext(UserContext);
+
+    useEffect(() => {
+    axios.get("http://localhost:3000/api/owner-data", {
+      withCredentials: true,
+      })
+      .then((res) => {
+            login(res.data.email); // ✅ Actualiza el contexto global
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("No autorizado. Redirigiendo...");
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
+      });
+    }, []);
 
   useEffect(() => {
-    axios.get("https://localhost:3000/api/owner-data", {
-      withCredentials: true,
-    })
-    .then((res) => setEmail(res.data.email))
-    .catch((err) => {
-      console.error(err);
-      setError("No autorizado. Redirigiendo...");
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 2000);
-    });
-  }, []);
+    if (!email) return;
+    
+    axios.post("http://localhost:3000/api/fileOwnerByEmail", 
+            { email },
+            { withCredentials: true },
+        )
+        .then((response) => {
 
-  if (error) return <p>{error}</p>;
+         // 3. Mapea los nombres del archivo a los que usa tu aplicación
+            const ownerData = {
+                email: response.data.owner.correo,  // "correo" en el archivo -> "email" en tu app
+                interior: response.data.owner.interior,
+                apartamento: response.data.owner.apto,  // "apto" en el archivo -> "apartamento" en tu app
+                participacion: response.data.participacion,
+            };
+
+            // 3. Guarda los datos en el contexto
+            login(email, ownerData); // Pasa los datos al login
+          })
+        .catch(error =>{
+          console.error("Error", error);
+        })
+  }, [email]); 
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      fetchOwners();
+    };
+
+    socket5.on("updateConnectedUsers",  handleUpdate);
+    return () => socket5.off("updateConnectedUsers", handleUpdate);
+  }, [email]);      
+
+  const fetchOwners = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/api/emailFile", {
+        withCredentials: true,
+      });
+      if (Array.isArray(response.data)) {
+        setVotesData(response.data);
+        calcularQuorum(response.data);
+      } else {
+        console.error("❌ El endpoint no devolvió un array.");
+      }
+    } catch (err) {
+      console.error("Error al obtener todos los propietarios:", err);
+    }
+  };
+
+  const calcularQuorum = (data) => {
+    if (!data.length) return;
+
+    const SumItems = data.reduce((acumulator, objeto) => acumulator + parseInt(objeto.participacion), 0);
+      for (let i = 0; i < data.length; i++) {
+          
+        if (data[i].correo.trim() === email) {
+            const quorumPercentage = (parseInt(data[i].participacion) / SumItems) * 100;
+            // console.log("quorumPercentage",quorumPercentage);
+            setQuorum(quorumPercentage); // Actualiza el estado del quorum
+            break;
+          }
+         else {
+          console.log(`No se encontró el correo: ${email}`);
+        }
+      }
+  };
+    if (error) return <p>{error}</p>;
+
 
   return (
     <>
-    
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Bienvenido al panel del propietario</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Section title="Transmisión General">
-          <VideoGeneral />
-        </Section>
+      <div className="p-6 bg-gray-100 min-h-screen">
+        <h1 className="text-3xl font-bold mb-6">Bienvenido al panel del propietario</h1>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Section title="Transmisión General">
+            <VideoGeneral />
+          </Section>
 
-        <Section title="Tu Cámara">
-          <VideoPersonal />
-        </Section>
+          <Section title="Tu Cámara">
+            <VideoPersonal />
+          </Section>
 
-        <Section title="Preguntas Recibidas">
-          <Questions />
-        </Section>
+          <Section title="Preguntas Recibidas">
+            <Questions />
+          </Section>
 
-        <Section title="Pedir la Palabra">
-          <Ask />
-        </Section>
+          <Section title="Pedir la Palabra">
+            <Ask />
+          </Section>
 
-        <Section title="Votación">
-          <MeetingPoll />
-        </Section>
+          <Section title="Votación">
+            <MeetingPollOwner />
+          </Section>
 
-        <Section title="Chat">
-          <Chat />
-        </Section>
+          <Section title="Chat">
+            <Chat />
+          </Section>
 
-        <Section title="Gráficos">
-          <Graph />
-        </Section>
+          <Section title="Gráficos">
+            <Graph />
+          </Section>
+        </div>
       </div>
-    </div>
     </>
   );
 

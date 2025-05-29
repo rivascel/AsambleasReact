@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import { io } from "socket.io-client";
+import { UserContext } from "../components/UserContext";
+
+const socket4 = io("http://localhost:3000", {
+  withCredentials: true,
+  auth: {
+    username: "admin"
+  }
+});
 
 const Chat = () => {
+  const { email, logout } = useContext(UserContext);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const username = "Propietario"; // Podrías obtenerlo desde props o contexto
+  const username = email; // Podrías obtenerlo desde props o contexto
 
   const handleSend = () => {
     if (message.trim() === "") return;
@@ -14,9 +24,22 @@ const Chat = () => {
       timestamp: new Date().toLocaleTimeString(),
     };
 
-    setMessages([...messages, newMessage]);
-    setMessage("");
+    // setMessages([...messages, newMessage]);
+    socket4.emit("message", newMessage);
+    setMessage(""); // sólo limpias el input, el servidor se encargará de reflejarlo
   };
+
+  useEffect(() => {
+    const handleIncoming = (msg) => {
+      setMessages((prevMessages) => [...prevMessages, msg]);
+    };
+
+    socket4.on("message", handleIncoming);
+
+    return () => {
+      socket4.off("message", handleIncoming);
+    };
+  }, []);
 
   return (
     <div className="bg-white p-4 rounded shadow-md">

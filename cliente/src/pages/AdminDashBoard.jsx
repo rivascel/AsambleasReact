@@ -1,30 +1,35 @@
 import React from 'react';
-import { useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import axios from 'axios';
 
 import Ask from '../containers/owner/Ask';
 import Chat from '../containers/Chat';
 import Graph from '../containers/Graph';
 import VideoGeneral from '../containers/Video_general';
 import VideoPersonal from '../containers/Video_personal';
+import MeetingPoll from '../containers/admin/Meeting_poll';
+import Questions from '../containers/admin/SendQuestion';
+import { UserContext } from "../components/UserContext";
+
+const Section = ({ title, children }) => (
+  <div className="bg-white p-4 rounded-lg shadow-md">
+    <h2 className="text-xl font-semibold mb-2">{title}</h2>
+    <div>{children}</div>
+  </div>
+);
 
 const DashBoardAdmin = () => {
-  const [email, setEmail] = useState(null);
+  // const [email, setEmail] = useState(null);
   const [error, setError] = useState(null);
+  const { email, login } = useContext(UserContext);
 
   useEffect(() => {
-    axios.get("https://localhost:3000/api/owner-data", {
-      withCredentials: true, // <- importante para que mande la cookie
-    })
-    .then((res) => {
-      setEmail(res.data.email);
-    })
-    .catch((err) => {
-      console.error(err);
+    if (!email) {
       setError("No autorizado. Redirigiendo...");
       setTimeout(() => {
-        window.location.href = "/"; // o '/login'
+        window.location.href = "/";
       }, 2000);
-    });
+    }
   }, []);
 
   if (error) return <p>{error}</p>;
@@ -44,15 +49,12 @@ const DashBoardAdmin = () => {
           <VideoPersonal />
         </Section>
 
-        <Section title="Preguntas Recibidas">
+        <Section title="Punto a ser votado">
           <Questions />
         </Section>
 
         <Section title="Pedir la Palabra">
           <Ask />
-        </Section>
-
-        <Section title="Votación">
           <MeetingPoll />
         </Section>
 

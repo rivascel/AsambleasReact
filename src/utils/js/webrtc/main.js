@@ -1,8 +1,15 @@
 const socket12=io();
-import { createRoom, requestToJoinRoom, approveUser, listenForApproval, getPendingRequest, deleteCandidate } from './supabase.js';
-import { openUserMedia, hangUp } from './media.js';
-import { createPeerConnection, getPeerConnection, addLocalTracks, closeConnection } from './webrtc.js';
-import { setupUI, setRoomText, toggleButtonStates, showAlert, enableCameraButton, askingToJoin, answeringAdmin, renderUsers } from '../ui/ui.js';
+
+const { createRoom, requestToJoinRoom, approveUser, listenForApproval, getPendingRequest, deleteCandidate } = require('./supabase.js');
+const { openUserMedia, hangUp } = require('./media.js');
+const { createPeerConnection, getPeerConnection, addLocalTracks, closeConnection } = require('./webrtc.js');
+const { setupUI, setRoomText, toggleButtonStates, showAlert, enableCameraButton, askingToJoin, answeringAdmin, renderUsers } = require('../ui/ui.js');
+
+
+// import { createRoom, requestToJoinRoom, approveUser, listenForApproval, getPendingRequest, deleteCandidate } from './supabase.js';
+// import { openUserMedia, hangUp } from './media.js';
+// import { createPeerConnection, getPeerConnection, addLocalTracks, closeConnection } from './webrtc.js';
+// import { setupUI, setRoomText, toggleButtonStates, showAlert, enableCameraButton, askingToJoin, answeringAdmin, renderUsers } from '../ui/ui.js';
 
 let peerConnection = null;
 const roomId = "main-room";
@@ -86,7 +93,14 @@ async function handleCamera() {
     enableCameraButton(false);
 }
 
-
-
-
 init();
+
+module.exports = {
+    createRooms,
+    requestToJoin,
+    handleJoinRequest,
+    handleCamera,
+    hangUp,
+    deleteCandidate,
+    roomId
+};

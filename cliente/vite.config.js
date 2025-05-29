@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   plugins: [react(),tailwindcss()],
   server: {
-    https: {
+    http: {
       key: fs.readFileSync(path.resolve(__dirname, '../src/ssl/key.pem')),
       cert: fs.readFileSync(path.resolve(__dirname, '../src/ssl/cert.pem')),
     },
