@@ -9,6 +9,7 @@ import VideoPersonal from '../containers/Video_personal';
 import MeetingPollOwner from '../containers/owner/Meeting_poll_owner';
 import MeetingPoll from '../containers/admin/Meeting_poll';
 import Questions from '../containers/owner/Questions';
+import VoteUpdater from '../containers/VotesUpdater';
 import { UserContext } from "../components/UserContext";
 import Header from '../components/Header';
 
@@ -28,7 +29,7 @@ const DashBoardOwner = () => {
   const [error, setError] = useState(null);
   // const [quorum, setQuorum] = useState(null);
   const [votesData, setVotesData] = useState({}); // lista de todos los propietarios
-  const { email, login, setQuorum } = useContext(UserContext);
+  const { email, login, setQuorum, setApprovalVotes, setRejectVotes, setBlankVotes } = useContext(UserContext);
 
     useEffect(() => {
     axios.get("http://localhost:3000/api/owner-data", {
@@ -80,6 +81,21 @@ const DashBoardOwner = () => {
     return () => socket5.off("updateConnectedUsers", handleUpdate);
   }, [email]);      
 
+  useEffect(() => {
+    const handleUpdateVotes = (data) => {
+        setApprovalVotes(data.approval);
+        setRejectVotes(data.reject);
+        setBlankVotes(data.blank);
+    };
+
+    socket5.on('send-votes', handleUpdateVotes);
+
+    return () => {
+        socket5.off('send-votes', handleUpdateVotes);
+    };
+}, [setApprovalVotes, setRejectVotes, setBlankVotes]);
+
+   
   const fetchOwners = async () => {
     try {
       const response = await axios.get("http://localhost:3000/api/emailFile", {
@@ -147,6 +163,7 @@ const DashBoardOwner = () => {
           </Section>
 
           <Section title="Gráficos">
+            {/* <VoteUpdater /> */}
             <Graph />
           </Section>
         </div>

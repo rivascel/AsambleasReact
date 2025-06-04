@@ -11,16 +11,17 @@
 {"interior":"14","apartamento":"101","correo":"rivascel@gmail.com","proposicion":"Aprueba usted el orden del dia\n                    ","aprueba":1}
 {"interior":"14","apartamento":"101","correo":"rivascel@gmail.com","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":1}
 {"interior":"14","apartamento":"101","correo":"rivascel@gmail.com","proposicion":"Aprueba el punto 1 de la agenda\n                    ","aprueba":0}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"2"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"2"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"2"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"2"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"1"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"1"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"2"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"0"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"1"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"2"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"1"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"2"}
-{"interior":14,"apartamento":101,"email":"rivascel@gmail.com","decision":"","valor":"2"}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":1}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":1}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":0}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":1}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":1}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Aprueba aumento cuota del 5%","valor":1}

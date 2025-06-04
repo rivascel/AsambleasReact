@@ -8,6 +8,10 @@ const UserProvider = ({ children }) => {
   const [ownerData, setOwnerData] = useState(null); // NUEVO
   const [quorum, setQuorum] = useState(null);
   const [votingEnabled, setVotingEnabled] = useState(false); 
+  const [decisionText, setDecisionText] = useState("Propuesta de ejemplo para ser votada.");
+  const [approvalVotes, setApprovalVotes] = useState(0);
+  const [rejectVotes, setRejectVotes] = useState(0);
+  const [blankVotes, setBlankVotes] = useState(0);    
 
 
     // ✅ Recuperar datos guardados al inicio
@@ -41,7 +45,6 @@ const UserProvider = ({ children }) => {
     setQuorum(null);
     localStorage.removeItem("ownerInfo");
   };
-
   return (
     <UserContext.Provider value={
       { 
@@ -54,11 +57,22 @@ const UserProvider = ({ children }) => {
         quorum,
         setQuorum,
         votingEnabled, 
-        setVotingEnabled
+        setVotingEnabled,
+        decisionText,
+        setDecisionText,
+        approvalVotes,
+        rejectVotes,
+        blankVotes,
+        setApprovalVotes,
+        setRejectVotes,
+        setBlankVotes,
+        
        }}>
       {children}
     </UserContext.Provider>
   );
+
+ 
 };
 
 export default UserProvider;

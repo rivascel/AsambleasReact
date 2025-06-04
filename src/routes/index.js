@@ -157,7 +157,6 @@ router.post('/request-magic-link', async (req, res) => {
 
 // Endpoint para manejar el enlace mágico
 router.get('/magic-link', (req, res) => {
-
     const { token } = req.query;
 
     if (!token) {

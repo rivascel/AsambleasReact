@@ -33,7 +33,6 @@ module.exports = httpServer =>{
                     if (!connectedUsers.includes(user)) {
                         connectedUsers.push(user); // Agregar usuario si no está en la lista
                     };
-                    console.log("Usuario conectado:", user);
         
                     //Enviar la lista actualizada a todos los clientes
                     io.emit("updateConnectedUsers", connectedUsers);
@@ -41,7 +40,6 @@ module.exports = httpServer =>{
                 }
         
                 socket.emit("updatedUser", user );
-                // console.log("updatedUser", user);
 
                 // Manejar la desconexión
                 socket.on("disconnect", () => {
@@ -50,7 +48,7 @@ module.exports = httpServer =>{
                     console.log("Usuario desconectado:", user);
                     io.emit("updateConnectedUsers", connectedUsers); // ⬅️ importante
                     console.log("lista de conectados", connectedUsers);
-                                });
+                });
 
                 socket.on("wordUser", ({ user, action}) =>{
                     if (!global.currentAskUsers){ //si no hay usuarios solicitando, array en blanco
@@ -75,42 +73,12 @@ module.exports = httpServer =>{
                 });
                 
             // ================= ENVIO DE VOTOS A CLIENTES =================
-                socket.on("send-votes", vote_send => {
-                    console.log("Votos emitidos", vote_send);
-                    socket.broadcast.emit("receive-votes",   vote_send  );
-                    console.log("Votos recibidos del emisor:", vote_send);
-                });
-                
                 //enviar el mensaje y el usuario
                 socket.on("message", (data) => {
                     socket.broadcast.emit("message", data);
                 });
         
-                //Enviar resultado votacion de todos los sockets conectados
-               socket.on("vote", voto =>{
-                    io.emit("vote", {
-                        user,voto
-                    });
-                });
-        
-
-                socket.on("vote1", voto1 =>{
-                    io.emit("vote1", {
-                        user,voto1
-                    });
-                });
-        
-                socket.on("vote2", voto2  =>{
-                    io.emit("vote2", {
-                        user,voto2
-                    });
-                });
-        
-                socket.on("vote3", voto3  =>{
-                    io.emit("vote3", {
-                        user,voto3 
-                    });
-                });
+               
             }
             // ===============CONEXION VIDEO ===================================
             // Manejar eventos de WebRTC (señalización)
@@ -145,8 +113,6 @@ module.exports = httpServer =>{
             // Escuchar el inicio del cronómetro
                 socket.on('start-cronometer', ({ time })  => {
 
-                    // const { time, aprueba, rechaza, blanco } = data;
-                    // Retransmitir a todos los clientes
                     io.emit('start-cronometer', { 
                         time 
 
@@ -170,6 +136,10 @@ module.exports = httpServer =>{
                 socket.on('signal', data => {
                     // Retransmitir señal a todos excepto al emisor
                     socket.broadcast.emit('signal', data);
+                  });
+
+                socket.on('send-votes', data => {
+                    socket.broadcast.emit('send-votes', data);
                   });
                 
     });

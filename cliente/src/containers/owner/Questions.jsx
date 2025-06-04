@@ -35,9 +35,9 @@ const Questions = () => {
     const nuevoVoto = {
       interior: ownerData.interior,
       apartamento: ownerData.apartamento,
-      email: email,
-      decision: decision, 
-      valor: value,
+      correo: email,
+      proposicion: decision, 
+      valor: parseInt(value),
     };
     
     await axios.post('http://localhost:3000/api/votacion', nuevoVoto)

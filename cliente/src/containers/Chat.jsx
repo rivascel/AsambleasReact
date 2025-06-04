@@ -24,11 +24,13 @@ const Chat = () => {
       timestamp: new Date().toLocaleTimeString(),
     };
 
-    // setMessages([...messages, newMessage]);
+    setMessages([...messages, newMessage]);
     socket4.emit("message", newMessage);
     setMessage(""); // sólo limpias el input, el servidor se encargará de reflejarlo
   };
 
+  //este useEffect se usa para recibir un mensaje, agregarlo al final de mensajes previos
+  // y escuchar los que recibe
   useEffect(() => {
     const handleIncoming = (msg) => {
       setMessages((prevMessages) => [...prevMessages, msg]);
@@ -58,7 +60,8 @@ const Chat = () => {
         ) : (
           messages.map((msg, idx) => (
             <div key={idx} className="mb-1">
-              <span className="font-medium">{msg.user}:</span> {msg.text}{" "}
+              <span className="font-medium">{msg.user}:</span> 
+                {msg.text}{" "}
               <span className="text-xs text-gray-400">({msg.timestamp})</span>
             </div>
           ))
@@ -75,7 +78,7 @@ const Chat = () => {
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
         />
         <button
-          className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-black px-4 py-1 rounded hover:bg-blue-700"
           onClick={handleSend}
         >
           Enviar

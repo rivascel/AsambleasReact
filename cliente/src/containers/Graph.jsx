@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
+import { UserContext } from "../components/UserContext";
+
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -15,16 +17,20 @@ import {
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const Graph = () => {
-  const data = {
-    labels: ["Aprueba", "Rechaza", "Blanco"],
-    datasets: [
-      {
-        label: "Votos",
-        data: [12, 5, 3], // Aquí puedes conectar con tu backend o Supabase
-        backgroundColor: ["#4ade80", "#f87171", "#94a3b8"],
-      },
-    ],
-  };
+    const { approvalVotes, rejectVotes, blankVotes } = useContext(UserContext);
+    // console.log("approvalVotes, rejectVotes, blankVotes", approvalVotes, rejectVotes, blankVotes);
+
+    const data = {
+      labels: ["Aprueba", "Rechaza", "Blanco"],
+      datasets: [
+        {
+          label: "Votos",
+          data: [approvalVotes, rejectVotes, blankVotes],
+          backgroundColor: ["#4ade80", "#f87171", "#94a3b8"],
+        },
+      ],
+    };
+  // };
 
   const options = {
     responsive: true,

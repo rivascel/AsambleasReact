@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { io } from "socket.io-client";
+import { UserContext } from "../../components/UserContext";
 
 const socket1 = io("http://localhost:3000", {
   withCredentials: true,
 });
 
 const SendQuestions = () => {
-  const [decisionText, setDecisionText] = useState("Propuesta de ejemplo para ser votada.");
+  // const [decisionText, setDecisionText] = useState("Propuesta de ejemplo para ser votada.");
+  const { decisionText, setDecisionText } = useContext(UserContext);
 
   const SendtoUsers = (e) => {
     socket1.emit('send-decision', decisionText);
