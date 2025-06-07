@@ -168,7 +168,7 @@ const PollingManage = () => {
                 <h3>Cronómetro actual: {displayTime}</h3>
                 <button 
                     onClick={initCronometer}
-                    className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    className="bg-blue-600 text-black px-6 py-2 rounded hover:bg-blue-700">
                         Inicie cronometro
                 </button>
             </div>

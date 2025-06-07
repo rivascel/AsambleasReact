@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 
-import Ask from '../containers/owner/Ask';
+import Approve from '../containers/admin/Approve';
 import Chat from '../containers/Chat';
 import Graph from '../containers/Graph';
 import VideoGeneral from '../containers/Video_general';
@@ -38,7 +38,7 @@ const DashBoardAdmin = () => {
         <>
     
     <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Bienvenido al panel del propietario</h1>
+      <h1 className="text-3xl font-bold mb-6">Bienvenido al panel del Administrador</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Section title="Transmisión General">
@@ -53,8 +53,8 @@ const DashBoardAdmin = () => {
           <Questions />
         </Section>
 
-        <Section title="Pedir la Palabra">
-          <Ask />
+        <Section title="Otorgar la Palabra">
+          <Approve />
           <MeetingPoll />
         </Section>
 

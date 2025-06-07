@@ -36,40 +36,48 @@ async function getPendingRequest(roomId) {
         .select('user_id')
         .eq('room_id', roomId)
         .eq('status', 'pending')
-        .single();
+        // .single();
         // .maybeSingle();
-    if (error) throw error;
-    return data?.user_id;
+    if (error) {
+        throw error;
+    }
+    console.log('Supabase data:', data);
+    return data;
 }
 
-async function approveUser(userId, roomId, approved='approved') {
+async function approveUser(roomId, userId, approved='approved') {
+
+   //aprobar el usuario
     const { error } = await supabase
         .from('requests')
         .update({ status: 'approved' })
         .eq('user_id', userId)
-        .eq('room_id', roomId);
+        .eq('room_id', roomId)
+
     if (error) throw error;
 
-    const { data, error: fetchError } = await supabase
-        .from('requests')
-        .select('user_id')
-        .eq('user_id', userId)
-        .eq('status', approved)
+    // obtener lista actual de candidatos en sala
+    const { data: roomData, error: roomError } = await supabase
+        .from('rooms')
+        .select('candidates')
+        .eq('room_id', roomId)
         .single();
 
-    if (fetchError) throw fetchError;
+    if (roomError) throw roomError;
 
-    const newCandidates = data?.userId || [];
-    newCandidates.push(userId);
+    const currentCandidates = roomData?.candidates || [];
 
-    const { error: updateError } = await supabase
+    //agregar el nuevo candidato si no esta ya incluido
+    const newCandidates = [...new Set([...currentCandidates, userId])];
+
+    // 4. Actualizar la sala con los nuevos candidatos
+    const { error: updateRoomError } = await supabase
         .from('rooms')
         .update({ candidates: newCandidates })
         .eq('room_id', roomId);
 
-    if (updateError) throw updateError;
+    if (updateRoomError) throw updateRoomError;
 }
-
 
 function listenForApproval(userId, roomId, callback) {
     return supabase

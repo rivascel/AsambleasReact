@@ -5,6 +5,8 @@ const fs = require("fs");
 const jwt = require('jsonwebtoken');
 const  sendMagicLink  = require("../utils/sendMagicLink");
 const { requestToJoinRoom }= require("../utils/js/webrtc/supabase");
+const { getPendingRequest }= require("../utils/js/webrtc/supabase");
+const { approveUser }= require("../utils/js/webrtc/supabase");
 
 //Traemos el config para el jwtSecret
 const { config } = require('../config/config');
@@ -206,9 +208,6 @@ router.post('/request-participation', async (req, res) => {
         return res.status(401).json({ error: 'Token no proporcionado' });
     }
 
-    // console.log('Cookies recibidas:', req.cookies);
-    // console.log('Body recibido:', req.body);
-
     const decoded = jwt.verify(token, config.jwtSecret);
     const email = decoded.email;
     const { roomId } = req.body;
@@ -218,6 +217,40 @@ router.post('/request-participation', async (req, res) => {
     await requestToJoinRoom(roomId, email);
 
     res.status(200).json({ message: 'Solicitud enviada' });
+  } catch (err) {
+    console.error("Error al procesar solicitud:", err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+//recupera los que piden la palabra de supabase
+router.post('/recover-users', async (req, res) => {
+  try {
+    const { roomId } = req.body;
+
+    if (!roomId) return res.status(400).json({ error: 'roomId requerido' });
+
+    const pendingUsers = await getPendingRequest(roomId);
+    // console.log("usuarios pendientes",pendingUsers);
+    res.status(200).json({ pendingUsers});
+
+
+    // res.status(200).json({ message: 'Solicitantes enviados' });
+  } catch (err) {
+    console.error("Error al procesar solicitud:", err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+router.post('/approved-users', async (req, res) => {
+    
+  try {
+    const { roomId, userId } = req.body;
+
+    if (!roomId) return res.status(400).json({ error: 'roomId requerido' });
+    await approveUser(roomId, userId);
+
+    res.status(200).json({ message: 'Solicitante aprobado' });
   } catch (err) {
     console.error("Error al procesar solicitud:", err);
     res.status(500).json({ error: 'Error del servidor' });

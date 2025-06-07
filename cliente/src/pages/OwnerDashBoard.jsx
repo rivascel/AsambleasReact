@@ -9,7 +9,6 @@ import VideoPersonal from '../containers/Video_personal';
 import MeetingPollOwner from '../containers/owner/Meeting_poll_owner';
 import MeetingPoll from '../containers/admin/Meeting_poll';
 import Questions from '../containers/owner/Questions';
-import VoteUpdater from '../containers/VotesUpdater';
 import { UserContext } from "../components/UserContext";
 import Header from '../components/Header';
 
