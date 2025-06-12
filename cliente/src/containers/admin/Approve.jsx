@@ -8,48 +8,92 @@ const socket5 = io("http://localhost:3000", {
 });
 
 const AttendeesList = () => {
-  // const [receive, setReceive] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  // const [isApproved, setIsApproved] = useState(null);
-  const { email } = useContext(UserContext);
+  const [pendingUsers, setPendingUsers] = useState(null);
+  const [isApproved, setIsApproved] = useState(null);
+  // const [error, setError] = useState(null);
 
   useEffect( ()=>{
     const fetchUsers = async () =>  {
-      const response= await fetch("http://localhost:3000/api/recover-users",
-            { 
+      try {
+        const [pendingRes, approvedRes] = await Promise.all([
+          fetch("http://localhost:3000/api/recover-users", { 
               method: 'POST',
-              headers: { 'Content-type':'application/json' },
+              headers: { 'Content-Type':'application/json' },
               body: JSON.stringify({ roomId: "main-room" }),
-            });
+            }),
+          fetch("http://localhost:3000/api/searched-users-approved", { 
+              method: 'POST',
+              headers: { 'Content-Type':'application/json' },
+              body: JSON.stringify({ roomId: "main-room" }),
+            })
+        ]);
 
-          const data = await response.json();
-          // console.log("users",data);
-        
-          setUsers(data.pendingUsers);
-          setLoading(false);
-          };
-          fetchUsers();
+        if (!pendingRes.ok || !approvedRes.ok) {
+          throw new Error("Error al cargar los usuarios");
+        }
+
+        const pendingUsers = await pendingRes.json();
+        const approvedUsers = await approvedRes.json();
+        // console.log("pending, approved", pendingUsers, approvedUsers);
+
+        setPendingUsers(pendingUsers.pendingUsers || pendingUsers || []);
+        setIsApproved(approvedUsers.approvedUsers || approvedUsers || []);
+
+      } catch (error) {
+        console.error("Error cargando usuarios:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
   },[]);
 
-  const handleApprove = async (userId) => {
+    const handleApprove = async (userId) => {
+      try {
+          const response = await fetch("http://localhost:3000/api/approved-users",
+            { 
+                method: 'POST',
+                headers: { 'Content-type':'application/json' },
+                body: JSON.stringify({ roomId: "main-room" , userId: userId }),
+            });
+
+            setPendingUsers(prev => prev.filter(user => user.user_id !== userId));
+            setIsApproved(prev => [...prev, userId]);
+
+          // if (!error) {
+          // setUsers(prev => 
+          //   prev.map(u => 
+          //     u.user_id === userId ? { ...u, status: 'approved' } : u));
+          // }
+      } catch (err) {
+      console.error(err);
+      console.log("Error al enviar la solicitud.");
+      }
+    }
+
+  const handleCancel = async (email) => {
     try {
-        await fetch("http://localhost:3000/api/approved-users",
+        await fetch("http://localhost:3000/api/cancel-users",
           { 
               method: 'POST',
               headers: { 'Content-type':'application/json' },
-              body: JSON.stringify({ roomId: "main-room" , userId: userId }),
+              body: JSON.stringify({ userId: email }),
           });
-          
-        if (!error) {
-        setUsers(prev => 
-          prev.map(u => 
-            u.user_id === userId ? { ...u, status: 'approved' } : u));
-        }
+
+          // Actualiza los estados localmente
+          setIsApproved(prev => prev.filter(id => id !== email));
+          setPendingUsers(prev => [...prev, { user_id: email }]);
+              
+        // if (!error) {
+        // setUsers(prev => 
+        //   prev.map(u => 
+        //     u.user_id === email ? { ...u, status: 'cancel' } : u));
+        // }
     } catch (err) {
     console.error(err);
-    setError("Error al enviar la solicitud.");
+    console.log("Error al enviar la solicitud.");
     }
   }
 
@@ -59,25 +103,45 @@ const AttendeesList = () => {
 
       {loading ? (
           <p> Cargando </p>
-        ) :  (Array.isArray(users) && users.length > 0 ?
-          
-            (users
-              .map(user => (
-              <div key={user.user_id} className="mb-2 p-2 border rounded">
-                <p>{user.user_id} </p>
+        ) : (
+              <>
+                <h2 className="text-lg font-bold">Usuarios pendientes</h2>
                 
-                  <button
-                    onClick={()=>handleApprove(user.user_id)}
-                    className="bg-blue-500 text-red px-3 py-1 rounded hover:bg-blue-600"
-                  >
-                    Aprobar
-                  </button>
-              </div>
-              ))
+                  {pendingUsers.length > 0 ? (
+                    pendingUsers.map(user => (
+                      <div key={user.user_id} className="mb-2 p-2 border rounded">
+                        <p>{user.user_id} </p>
+                        <button
+                          onClick={()=>handleApprove(user.user_id)}
+                          className="bg-blue-500 text-red px-3 py-1 rounded hover:bg-blue-600"
+                        >
+                          Aprobar
+                        </button>
+                      </div>
+                      ))
+                      ) : (
+                          <p>No hay usuarios pendientes</p>
+                    )
+                  } 
+                  
+                <h2 className="text-lg font-bold mt-4">Usuarios aprobados</h2>
+                  {isApproved.length > 0 ? (
+                    isApproved.map((email, index) => (
+                        <div key={`approved-${ index }`} className="mb-2 p-2 border rounded">
+                          <p>{email} </p>
+                          <button
+                            onClick={()=>handleCancel(email)}
+                            className="bg-blue-500 text-red px-3 py-1 rounded hover:bg-blue-600"
+                          >
+                            Cancelar aprobacion
+                          </button>
+                        </div>
+                    )) 
+                  ) : ( <p>No hay usuarios pendientes</p>
+                )}
+              </>
             )
-            : <p>No hay usuarios pendientes</p>
-          )
-          }
+    }
     </div>
   );
 };

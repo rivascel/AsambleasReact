@@ -11,8 +11,6 @@ const Header = () => {
     //     console.log("Datos del propietario recibidos en Header:", ownerData);
     // }, [ownerData]);
 
-   
-
     return (
         <header style={{
             backgroundColor: '#282c34',

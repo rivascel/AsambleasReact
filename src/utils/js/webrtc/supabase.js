@@ -41,7 +41,23 @@ async function getPendingRequest(roomId) {
     if (error) {
         throw error;
     }
-    console.log('Supabase data:', data);
+    // console.log('Supabase data:', data);
+    return data;
+}
+
+async function getPendingRequestById(roomId, userId) {
+    const { data, error } = await supabase
+        .from('requests')
+        .select('user_id')
+        .eq('room_id', roomId)
+        .eq('user_id', userId)
+        .eq('status', 'pending')
+        // .single();
+        // .maybeSingle();
+    if (error) {
+        throw error;
+    }
+    // console.log('Supabase data:', data);
     return data;
 }
 
@@ -79,6 +95,43 @@ async function approveUser(roomId, userId, approved='approved') {
     if (updateRoomError) throw updateRoomError;
 }
 
+//consulta de usuarios aprobados
+async function ApprovedUserQuery(roomId) {
+    try {
+            const { data, error } = await supabase
+            .from('rooms')
+            .select('candidates')
+            .eq('room_id', roomId)
+            // .single();
+            .maybeSingle();
+
+            // console.log('Respuesta cruda de Supabase:', { data, error });   
+
+        if (error) throw error;
+
+        return data?.candidates?.filter(candidate => candidate !== null) || [];
+    } catch (error) {
+        console.error('Error en ApprovedUserQuery:', error);
+        throw error; // Propaga el error para manejarlo en el endpoint
+    }
+
+        // console.log('Candidatos aprobados:', currentCandidates);
+        // console.log('Datos procesados:', currentCandidates); // Debug 5
+
+        // return currentCandidates;
+
+        //agregar el nuevo candidato si no esta ya incluido
+        // const newCandidates = [...new Set([...currentCandidates, userId])];
+
+        // 4. Actualizar la sala con los nuevos candidatos
+        // const { error: updateRoomError } = await supabase
+        //     .from('rooms')
+        //     .update({ candidates: newCandidates })
+        //     .eq('room_id', roomId);
+
+        // if (updateRoomError) throw updateRoomError;
+}
+
 function listenForApproval(userId, roomId, callback) {
     return supabase
         .channel('room-approval')
@@ -112,13 +165,13 @@ async function deleteCandidate(userId) {
         console.warn('No se encontró ninguna sala que contenga al usuario.');
        
     } else {
-    const updatedCandidatesRoom = (roomData?.candidates).filter(id => id !== userId);
+        const updatedCandidatesRoom = (roomData?.candidates).filter(id => id !== userId);
 
-    const { error: roomUpdateError } = await supabase
-        .from('rooms')
-        .update({ candidates: updatedCandidatesRoom })
-        .overlaps('candidates', [userId]);
-    if (roomUpdateError) throw roomUpdateError;
+        const { error: roomUpdateError } = await supabase
+            .from('rooms')
+            .update({ candidates: updatedCandidatesRoom })
+            .overlaps('candidates', [userId]);
+        if (roomUpdateError) throw roomUpdateError;
     }
       
   
@@ -150,7 +203,9 @@ module.exports = {
     getPendingRequest,
     approveUser,
     listenForApproval,
-    deleteCandidate
+    deleteCandidate,
+    ApprovedUserQuery,
+    getPendingRequestById
 };
   
 

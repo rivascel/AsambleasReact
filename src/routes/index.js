@@ -7,6 +7,9 @@ const  sendMagicLink  = require("../utils/sendMagicLink");
 const { requestToJoinRoom }= require("../utils/js/webrtc/supabase");
 const { getPendingRequest }= require("../utils/js/webrtc/supabase");
 const { approveUser }= require("../utils/js/webrtc/supabase");
+const { ApprovedUserQuery }= require("../utils/js/webrtc/supabase");
+const { deleteCandidate }= require("../utils/js/webrtc/supabase");
+const { getPendingRequestById }= require("../utils/js/webrtc/supabase");
 
 //Traemos el config para el jwtSecret
 const { config } = require('../config/config');
@@ -146,7 +149,7 @@ router.post('/request-magic-link', async (req, res) => {
     }
 
     // Generar un token JWT con un tiempo de expiración (15 minutos)
-    const token = jwt.sign({ email }, config.jwtSecret, { expiresIn: '15m' });
+    const token = jwt.sign({ email }, config.jwtSecret, { expiresIn: '24h' });
 
     const result = await sendMagicLink(email, token);
 
@@ -174,7 +177,7 @@ router.get('/magic-link', (req, res) => {
             // secure: config.isProd,
             secure: true,
             sameSite: 'None', // Necesario para cross-origin
-            maxAge: 1000 * 60 * 60 * 2, // 2 horas
+            // maxAge: 1000 * 60 * 60 * 2, // 2 horas
             });
 
         // Enviar cookie segura con el token
@@ -182,7 +185,7 @@ router.get('/magic-link', (req, res) => {
             httpOnly: true,
             secure: true,       // solo en HTTPS
             sameSite: 'Strict', // protege CSRF
-            maxAge: 15 * 60 * 1000 // 15 minutos
+            // maxAge: 15 * 60 * 1000 * 2 // 15 minutos
             });
 
 
@@ -223,6 +226,24 @@ router.post('/request-participation', async (req, res) => {
   }
 });
 
+//recupera solicitudes por id
+router.post('/recover-users-id', async (req, res) => {
+  try {
+    const { roomId, userId } = req.body;
+
+    if (!roomId) return res.status(400).json({ error: 'roomId requerido' });
+
+    const pendingUsersById = await getPendingRequestById(roomId, userId);
+    // console.log("usuarios pendientes",pendingUsers);
+    res.status(200).json({ pendingUsersById});
+
+    // res.status(200).json({ message: 'Solicitantes enviados' });
+  } catch (err) {
+    console.error("Error al procesar solicitud:", err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 //recupera los que piden la palabra de supabase
 router.post('/recover-users', async (req, res) => {
   try {
@@ -251,6 +272,40 @@ router.post('/approved-users', async (req, res) => {
     await approveUser(roomId, userId);
 
     res.status(200).json({ message: 'Solicitante aprobado' });
+  } catch (err) {
+    console.error("Error al procesar solicitud:", err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+router.post('/searched-users-approved', async (req, res) => {
+    
+  try {
+    const { roomId } = req.body;
+    // console.log('Request recibido con roomId:', roomId); // Debug 1
+
+    if (!roomId) return res.status(400).json({ error: 'roomId requerido' });
+    const data = await ApprovedUserQuery(roomId);
+    // console.log('Datos obtenidos de Supabase:', data); // Debug 2
+
+    res.status(200).json({ 
+        success: true,
+        approvedUsers: data });
+  } catch (err) {
+    console.error("Error al procesar solicitud:", err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+
+router.post('/cancel-users', async (req, res) => {
+    
+  try {
+    const { userId } = req.body;
+
+    await deleteCandidate(userId);
+
+    res.status(200).json({ message: 'Solicitante cancelado' });
   } catch (err) {
     console.error("Error al procesar solicitud:", err);
     res.status(500).json({ error: 'Error del servidor' });

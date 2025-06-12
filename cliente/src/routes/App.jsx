@@ -10,8 +10,6 @@ import MagicLinkVerification from '../containers/MagicLinkVerification';
 import React, { useContext } from "react";
 import UserProvider, { UserContext } from "../components/UserContext";
 import AdminRegister from '../containers/admin/AdminRegister';
-
-// import ProtectedRoute from '../components/ProtectedRoute';
 import Home from '../pages/Home';
 
 function App() {
@@ -29,11 +27,11 @@ function App() {
         <BrowserRouter>
               <Routes>
                   <Route path="/" element={<Home/>}/> 
-                  <Route path="/admin" element={<Layout><AdminRegister/></Layout>}/>
-                  <Route path="/admin/dashboard" element={<Layout><AdminDashBoard/></Layout>}/>
+                  <Route path="/admin" element={<AdminRegister/>}/>
+                  <Route path="/admin/dashboard" element={<AdminDashBoard/>}/>
                   <Route path="/owner" element={<Layout><OwnerDashBoard/></Layout>}/>
-                  <Route path="/magic-link" element={<Layout><MagicLinkVerification /></Layout>} />
-                  <Route path="/auth-redirect" element={<Layout><AuthRedirect /></Layout>} />
+                  <Route path="/magic-link" element={<MagicLinkVerification />} />
+                  <Route path="/auth-redirect" element={<AuthRedirect />} />
               </Routes>
         </BrowserRouter>
       </UserProvider>

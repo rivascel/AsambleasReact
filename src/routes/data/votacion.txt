@@ -25,3 +25,6 @@
 {"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
 {"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Po","valor":2}
 {"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Aprueba aumento cuota del 5%","valor":1}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Aprueba N1","valor":2}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Propuesta de ejemplo para ser votada.","valor":0}
+{"interior":14,"apartamento":101,"correo":"rivascel@gmail.com","proposicion":"Propuesta #3","valor":1}
