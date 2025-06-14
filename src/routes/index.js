@@ -104,7 +104,7 @@ router.post("/fileOwnerByEmail", (req, res)=>{
             if (owner) {
                 const participacion = owner['participacion'];
 
-                return res.json({message:"contenido del archivo parseado y participacion",owner, participacion});
+                return res.json({message:"contenido del archivo parseado y participacion", owner, participacion});
             } else {
                 
                 return res.status(404).send('Correo no encontrado.');
@@ -205,6 +205,7 @@ router.post('/request-participation', async (req, res) => {
   try {
 
      const token = req.cookies?.token;
+    //  const io = req.io; // Usa la instancia compartida
     
     if (!token) {
         console.log('Token no encontrado en cookies');

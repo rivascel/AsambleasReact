@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { UserContext } from "../../components/UserContext";
+import { io } from "socket.io-client";
+
+const socket7 = io("http://localhost:3000", {
+  withCredentials: true,
+});
 
 const AskToParticipate = () => {
   const [sent, setSent] = useState(true);
@@ -36,6 +41,7 @@ const AskToParticipate = () => {
 
     };
     fetchUsers();
+    
   },[email]);
 
   const handleRequest = async () => {
@@ -47,7 +53,7 @@ const AskToParticipate = () => {
         withCredentials: true, // si usas cookies seguras
       });
       
-      setSent(true);
+      setSent(false);
 
     } catch (err) {
       console.error(err);
@@ -62,6 +68,7 @@ const AskToParticipate = () => {
         { roomId: "main-room", userId:email }, 
         {withCredentials: true} // si usas cookies seguras
       );
+      setSent(true);
 
     } catch (err) {
       console.error(err);

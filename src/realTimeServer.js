@@ -77,6 +77,15 @@ module.exports = httpServer =>{
                 socket.on("message", (data) => {
                     socket.broadcast.emit("message", data);
                 });
+
+                // ===================== ACTUALIZAR USE EFFECT SOLICITUDES REALIZADAS =======
+                socket.on("request-update", (userId, roomId, status, timeStamp) => {
+                    socket.broadcast.emit("request-update", (userId, roomId, status, timeStamp));
+                });
+
+                socket.on("request-update-cancel", (userId, status, timeStamp) => {
+                    socket.broadcast.emit("request-update", (userId, roomId, status, timeStamp));
+                });
         
                
             }

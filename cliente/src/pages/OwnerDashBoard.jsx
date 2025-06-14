@@ -60,6 +60,7 @@ const DashBoardOwner = () => {
                 interior: response.data.owner.interior,
                 apartamento: response.data.owner.apto,  // "apto" en el archivo -> "apartamento" en tu app
                 participacion: response.data.participacion,
+                alias: response.data.owner.alias
             };
 
             // 3. Guarda los datos en el contexto

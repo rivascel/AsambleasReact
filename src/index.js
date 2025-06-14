@@ -27,6 +27,13 @@ app.use(bodyParser.json());
 //settings
 app.set("port", process.env.PORT || 3000);
 
+// Pasa io a tus rutas
+// app.use((req, res, next) => {
+//   req.io = io; // Ahora todas las rutas tendrán acceso a io
+//   next();
+// });
+
+
 const authRoutes = require('./routes'); // o './routes/auth'
 app.use('/api', authRoutes);
 

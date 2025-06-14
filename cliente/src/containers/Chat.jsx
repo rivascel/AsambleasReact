@@ -13,16 +13,18 @@ const Chat = () => {
   const { email, logout } = useContext(UserContext);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [alias, setAlias]=useState("");
   const username = email; // Podrías obtenerlo desde props o contexto
+  const { ownerData }  = useContext(UserContext);
 
   const handleSend = () => {
     if (message.trim() === "") return;
 
-    const newMessage = {
-      user: username,
-      text: message,
-      timestamp: new Date().toLocaleTimeString(),
-    };
+      const newMessage = {
+        user: ownerData?.alias || username,
+        text: message,
+        timestamp: new Date().toLocaleTimeString()
+      }
 
     setMessages([...messages, newMessage]);
     socket4.emit("message", newMessage);

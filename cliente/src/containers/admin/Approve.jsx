@@ -84,7 +84,7 @@ const AttendeesList = () => {
 
           // Actualiza los estados localmente
           setIsApproved(prev => prev.filter(id => id !== email));
-          setPendingUsers(prev => [...prev, { user_id: email }]);
+          // setPendingUsers(prev => [...prev, { user_id: email }]);
               
         // if (!error) {
         // setUsers(prev => 

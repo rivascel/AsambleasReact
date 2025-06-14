@@ -19,50 +19,46 @@ const Header = () => {
             textAlign: 'center',
           }}>
             <h1>Web Asambleas</h1>
-            <div className="identification">
-                <h3>Dato Inmueble/Propietario</h3>
-
-                <form id="data">
-                    <div className="form-row">
+            <h3>Dato Inmueble/Propietario</h3>
+            <div className="flex flex-row p-2 m-2 bg-blue gap-6 place-content-center">
+                
+                    <div className="p-1">
                         <strong>Interior</strong>
                         <p id="interior">
                             {ownerData?.interior || ''}
                             </p>
                     </div>
                 
-                    <div className="form-row">
+                    <div className="p-1">
                         <strong>Apartamento</strong>
                         <p id="apartamento">
                             {ownerData?.apartamento || ''}
                             </p>
                     </div>
                 
-                    <div className="form-row">
+                    <div className="p-1">
                         <strong>Correo Electrónico</strong>
                         <p id="correo">
                             {ownerData?.email || ''}
                             </p>
                     </div>
                 
-                    <div className="form-row">
+                    <div className="p-1">
                         <strong>Inmuebles que representa</strong>
                         <p id="participacion">
                             {ownerData?.participacion || ''}
                             </p>
                     </div>
                 
-                    <div className="form-row">
+                    <div className="p-1">
                         <strong>Porcentaje de quorum</strong>
                         <div id="quorum">
-                            {/* {quorum !== null ? `${quorum.toFixed(2)}%` : "No disponible"} */}
-                            {/* {quorum || "No disponible"} */}
                             {typeof quorum === "number" ? `${quorum.toFixed(2)}%` : "No disponible"}
                         </div>
                     </div>
 
                     <p id="mensajeError"></p>
                     <p id="resultado">  </p>
-                </form>
             </div>
             
         </header>

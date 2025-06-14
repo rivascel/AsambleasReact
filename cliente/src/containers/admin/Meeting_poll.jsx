@@ -173,15 +173,11 @@ const PollingManage = () => {
                 </button>
             </div>
             <div className="meeting__polling--summary">
-                <h2>Resultados Votación</h2>
-                    <canvas id="results" width="300" height="200"></canvas>
-                    <div id="statical" hidden></div>
-                    <button type="button" 
-                    id="calculo"
-                    onClick={countVotes}
-                    >Conteo</button>
-                    <button type="button" 
-                    id="ocultar">Ocultar</button>
+                <button type="button" 
+                id="calculo"
+                onClick={countVotes}
+                >Conteo</button>
+
             </div>
         </div>
     );
