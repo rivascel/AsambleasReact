@@ -4,12 +4,17 @@ const path = require("path");
 const fs = require("fs");
 const jwt = require('jsonwebtoken');
 const  sendMagicLink  = require("../utils/sendMagicLink");
-const { requestToJoinRoom }= require("../utils/js/webrtc/supabase");
+const { createRoom, requestToJoinRoom }= require("../utils/js/webrtc/supabase");
 const { getPendingRequest }= require("../utils/js/webrtc/supabase");
 const { approveUser }= require("../utils/js/webrtc/supabase");
 const { ApprovedUserQuery }= require("../utils/js/webrtc/supabase");
 const { deleteCandidate }= require("../utils/js/webrtc/supabase");
 const { getPendingRequestById }= require("../utils/js/webrtc/supabase");
+const { offers }= require("../utils/js/webrtc/supabase");
+const { addViewerToBroadcast }= require("../utils/js/webrtc/supabase");
+
+// const { getPeerConnection, getRemoteStream, closeConnection }= require("../utils/js/webrtc/webrtc-no");
+
 
 //Traemos el config para el jwtSecret
 const { config } = require('../config/config');
@@ -279,6 +284,36 @@ router.post('/approved-users', async (req, res) => {
   }
 });
 
+router.post('/offer', async (req, res) => {
+    
+  try {
+    const { offer } = req.body;
+
+    if (!offer) return res.status(400).json({ error: 'userId requerido' });
+    await offers(offer);
+
+    res.status(200).json({ message: 'Solicitante aprobado' });
+  } catch (err) {
+    console.error("Error al procesar solicitud:", err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+router.post('/answer', async (req, res) => {
+    
+  try {
+    const { answer } = req.body;
+
+    if (!answer) return res.status(400).json({ error: 'userId requerido' });
+    await offersAnswer(answer);
+
+    res.status(200).json({ message: 'Solicitante aprobado' });
+  } catch (err) {
+    console.error("Error al procesar solicitud:", err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 router.post('/searched-users-approved', async (req, res) => {
     
   try {
@@ -311,6 +346,44 @@ router.post('/cancel-users', async (req, res) => {
     console.error("Error al procesar solicitud:", err);
     res.status(500).json({ error: 'Error del servidor' });
   }
+});
+
+
+//================== ENDPOINTS WEBRTC-CLIENT - SUPABASE============================
+router.post('/activate-call', async (req, res)=> {
+    try {
+        const { roomId, userId, offerId } = req.body;
+        
+        requestToJoinRoom(roomId, userId, offerId)
+
+        res.status(200).json({ message: 'LLamada activada' });
+
+        }catch(err){
+            console.error("Error al procesar solicitud:", err);
+            res.status(500).json({ error: 'Error del servidor' });
+        }
+    });
+
+
+router.post('/create-room', (req, res) => {
+
+    try{
+        createRoom(roomId);
+    }catch(err){
+        console.error("Error al procesar solicitud:", err);
+        res.status(500).json({ error: 'Error del servidor' });
+    }
+    
+});
+
+// Exponer configuración WebRTC
+router.get('/webrtc-config', (req, res) => {
+  res.json({
+    iceServers: [
+      { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] }
+    ],
+    iceCandidatePoolSize: 10
+  });
 });
 
 module.exports = router;

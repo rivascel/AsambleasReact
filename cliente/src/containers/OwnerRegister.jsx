@@ -7,18 +7,12 @@ const RegisterOwner = ({ onRegister }) => {
 
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
-    const { login } = useContext(UserContext);
 
-    // useEffect(() => {
-    //     axios.get("https://localhost:3000/api/owner-data", { withCredentials: true })
-    //       .then(() => window.location.href = "/owner")
-    //       .catch(() => {}); // no hacer nada si no hay sesión
-          
-    //   }, []);
+    const { login } = useContext(UserContext);
   
     const handleSendLink = async () => {
       try {
-        await axios.post("http://localhost:3000/api/request-magic-link", 
+        await axios.post("https://localhost:3000/api/request-magic-link", 
             { email },
             { withCredentials: true }
         );

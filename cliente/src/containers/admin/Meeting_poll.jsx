@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import { UserContext } from "../../components/UserContext";
 import axios from 'axios';
 
-const socket3 = io("http://localhost:3000", {
+const socket3 = io("https://localhost:3000", {
   withCredentials: true,
 });
 
@@ -61,9 +61,9 @@ const PollingManage = () => {
     async function countVotes() {
             try { 
             //trae las votaciones
-            const response = await axios.get("http://localhost:3000/api/file")
+            const response = await axios.get("https://localhost:3000/api/file")
             //trae los propietarios y su participacion
-            const res = await axios.get("http://localhost:3000/api/emailFile")
+            const res = await axios.get("https://localhost:3000/api/emailFile")
     
             const votesData = response.data;
             const ownerData = res.data;

@@ -21,7 +21,7 @@ const MagicLinkVerification = () => {
       };
 
       try {
-        const res = await fetch(`http://localhost:3000/api/magic-link?token=${token}`, {
+        const res = await fetch(`https://localhost:3000/api/magic-link?token=${token}`, {
           credentials: "include",
         });
 

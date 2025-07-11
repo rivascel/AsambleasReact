@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import axios from 'axios';
 import { UserContext } from "../../components/UserContext";
 
-const socket2 = io("http://localhost:3000", {
+const socket2 = io("https://localhost:3000", {
   withCredentials: true,
 });
 
@@ -40,7 +40,7 @@ const Questions = () => {
       valor: parseInt(value),
     };
     
-    await axios.post('http://localhost:3000/api/votacion', nuevoVoto)
+    await axios.post('https://localhost:3000/api/votacion', nuevoVoto)
       .then(response => {
       })
     .catch(error => {

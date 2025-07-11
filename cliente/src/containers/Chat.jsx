@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { io } from "socket.io-client";
 import { UserContext } from "../components/UserContext";
 
-const socket4 = io("http://localhost:3000", {
+const socket4 = io("https://localhost:3000", {
   withCredentials: true,
   auth: {
     username: "admin"

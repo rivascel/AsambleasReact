@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { io } from "socket.io-client";
 import { UserContext } from "../../components/UserContext";
 
-const socket1 = io("http://localhost:3000", {
+const socket1 = io("https://localhost:3000", {
   withCredentials: true,
 });
 

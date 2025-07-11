@@ -4,14 +4,14 @@ import { io } from "socket.io-client";
 import Ask from '../containers/owner/Ask';
 import Chat from '../containers/Chat';
 import Graph from '../containers/Graph';
-import VideoGeneral from '../containers/Video_general';
-import VideoPersonal from '../containers/Video_personal';
+import VideoGeneral from '../containers/owner/Video_general';
+import VideoPersonal from '../containers/owner/Video_personal';
 import MeetingPollOwner from '../containers/owner/Meeting_poll_owner';
 import Questions from '../containers/owner/Questions';
 import { UserContext } from "../components/UserContext";
 import Header from '../components/Header';
 
-const socket5 = io("http://localhost:3000", {
+const socket5 = io("https://localhost:3000", {
   withCredentials: true,
 });
 
@@ -28,12 +28,13 @@ const DashBoardOwner = () => {
   // const [quorum, setQuorum] = useState(null);
   const [votesData, setVotesData] = useState({}); // lista de todos los propietarios
   const { email, login, setQuorum, setApprovalVotes, setRejectVotes, setBlankVotes } = useContext(UserContext);
-
+  
     useEffect(() => {
-    axios.get("http://localhost:3000/api/owner-data", {
+    axios.get("https://localhost:3000/api/owner-data", {
       withCredentials: true,
       })
       .then((res) => {
+            // email;
             login(res.data.email); // ✅ Actualiza el contexto global
       })
       .catch((err) => {
@@ -48,7 +49,7 @@ const DashBoardOwner = () => {
   useEffect(() => {
     if (!email) return;
     
-    axios.post("http://localhost:3000/api/fileOwnerByEmail", 
+    axios.post("https://localhost:3000/api/fileOwnerByEmail", 
             { email },
             { withCredentials: true },
         )
@@ -97,7 +98,7 @@ const DashBoardOwner = () => {
    
   const fetchOwners = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/api/emailFile", {
+      const response = await axios.get("https://localhost:3000/api/emailFile", {
         withCredentials: true,
       });
       if (Array.isArray(response.data)) {

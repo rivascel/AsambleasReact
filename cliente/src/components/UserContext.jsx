@@ -4,6 +4,8 @@ export const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
   const [email, setEmail] = useState("");
+  const [users, setUsers] = useState([]); // NUEVO
+  const [adminId, setAdminId] = useState(""); // NUEVO
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [ownerData, setOwnerData] = useState(null); // NUEVO
   const [quorum, setQuorum] = useState(null);
@@ -27,6 +29,7 @@ const UserProvider = ({ children }) => {
   }, []);
 
   const login = (email, data) => {
+
     setEmail(email);
     setIsAuthenticated(true);
     setOwnerData(data);
@@ -66,13 +69,12 @@ const UserProvider = ({ children }) => {
         setApprovalVotes,
         setRejectVotes,
         setBlankVotes,
+        setAdminId
         
        }}>
       {children}
     </UserContext.Provider>
   );
-
- 
 };
 
 export default UserProvider;

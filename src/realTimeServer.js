@@ -5,7 +5,7 @@ module.exports = httpServer =>{
     const { Server } = require("socket.io");
     const io = new Server(httpServer, {
         cors: {
-            origin: 'http://localhost:5173',
+            origin: 'https://localhost:5173',
             methods: ['GET', 'POST'],
             credentials: true
         }
@@ -21,15 +21,10 @@ module.exports = httpServer =>{
         const cookie = socket.handshake.headers.cookie || "";
             
         const user = decodeURIComponent(cookie.split("username=").pop()?.split(";")[0]); // Validar la existencia de la cookie
-        console.log("admin", user);
         if (!user) return;
 
-        // if (user === ADMIN_EMAIL || user) {
-        // administrador = user;
-        // }
-
             if (user != '') {
-                if (user || user === ADMIN_EMAIL) {
+                if (user ) {
                     if (!connectedUsers.includes(user)) {
                         connectedUsers.push(user); // Agregar usuario si no está en la lista
                     };
@@ -84,39 +79,39 @@ module.exports = httpServer =>{
                 });
 
                 socket.on("request-update-cancel", (userId, status, timeStamp) => {
-                    socket.broadcast.emit("request-update", (userId, roomId, status, timeStamp));
+                    socket.broadcast.emit("request-update", (userId, status, timeStamp));
                 });
         
                
             }
             // ===============CONEXION VIDEO ===================================
             // Manejar eventos de WebRTC (señalización)
-            // socket.on("offer", data => {
-            //     const { to, offer } = data;
-            //     io.to(to).emit("offer", { from: socket.id, offer });
-            // });
+            socket.on("offer", data => {
+                const { to, offer } = data;
+                io.to(to).emit("offer", { from: socket.id, offer });
+            });
 
-            // socket.on("answer", data => {
-            //     const { to, answer } = data;
-            //     io.to(to).emit("answer", { from: socket.id, answer });
-            // });
+            socket.on("answer", data => {
+                const { to, answer } = data;
+                io.to(to).emit("answer", { from: socket.id, answer });
+            });
 
-            // socket.on("ice-candidate", data => {
-            //     const { to, candidate } = data;
-            //     io.to(to).emit("ice-candidate", { from: socket.id, candidate });
-            // });
+            socket.on("ice-candidate", data => {
+                const { to, candidate } = data;
+                io.to(to).emit("ice-candidate", { from: socket.id, candidate });
+            });
 
-            // // Notificar a otros usuarios sobre nuevas conexiones
-            // socket.on("join-room", roomId => {
-            //     socket.join(roomId);
-            //     socket.to(roomId).emit("user-connected", socket.id);
-            // });
+            // Notificar a otros usuarios sobre nuevas conexiones
+            socket.on("join-room", roomId => {
+                socket.join(roomId);
+                socket.to(roomId).emit("user-connected", socket.id);
+            });
 
-            // socket.on("disconnect", () => {
-            //     console.log("Cliente desconectado:", socket.id);
-            //     io.emit("user-disconnected", socket.id);
+            // socket.on("broadCasting",   (email)   => {
+            //     console.log("Administrador transmitiendo:", administrador);
+            //     // Enviar mensaje a todos los clientes conectados   
+            //     io.emit("admin-connected", email );
             // });
-            
 
             // ================= ENVIO DEL CRONOMETRO A CLIENTES ===================
             // Escuchar el inicio del cronómetro

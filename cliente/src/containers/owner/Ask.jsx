@@ -3,7 +3,7 @@ import axios from "axios";
 import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
 
-const socket7 = io("http://localhost:3000", {
+const socket7 = io("https://localhost:3000", {
   withCredentials: true,
 });
 
@@ -18,7 +18,7 @@ const AskToParticipate = () => {
 
     const fetchUsers = async () =>  {
       try {
-        const res = await fetch("http://localhost:3000/api/recover-users-id", 
+        const res = await fetch("https://localhost:3000/api/recover-users-id", 
             { 
               method: 'POST',
               headers: { 'Content-Type':'application/json' },
@@ -27,6 +27,10 @@ const AskToParticipate = () => {
 
         if (!res.ok ) {
           throw new Error("Error al cargar los usuarios");
+        } else if (res === '') {
+          console.log("No hay solicitudes pendientes.");
+          setReq([]);
+          return;
         }
 
         const data = await res.json();
@@ -47,7 +51,7 @@ const AskToParticipate = () => {
   const handleRequest = async () => {
     try {
       // Ejemplo de envío al backend (ajusta a tu API o Supabase)
-      await axios.post("http://localhost:3000/api/request-participation", 
+      await axios.post("https://localhost:3000/api/request-participation", 
         { roomId: "main-room" }, 
         {
         withCredentials: true, // si usas cookies seguras
@@ -64,7 +68,7 @@ const AskToParticipate = () => {
   const cancelRequest = async () => {
     try {
       // Ejemplo de envío al backend (ajusta a tu API o Supabase)
-      await axios.post("http://localhost:3000/api/cancel-users", 
+      await axios.post("https://localhost:3000/api/cancel-users", 
         { roomId: "main-room", userId:email }, 
         {withCredentials: true} // si usas cookies seguras
       );

@@ -3,7 +3,7 @@ import axios from "axios";
 import { io } from "socket.io-client";
 import { UserContext } from "../../components/UserContext";
 
-const socket5 = io("http://localhost:3000", {
+const socket5 = io("https://localhost:3000", {
   withCredentials: true,
 });
 
@@ -18,12 +18,12 @@ const AttendeesList = () => {
     const fetchUsers = async () =>  {
       try {
         const [pendingRes, approvedRes] = await Promise.all([
-          fetch("http://localhost:3000/api/recover-users", { 
+          fetch("https://localhost:3000/api/recover-users", { 
               method: 'POST',
               headers: { 'Content-Type':'application/json' },
               body: JSON.stringify({ roomId: "main-room" }),
             }),
-          fetch("http://localhost:3000/api/searched-users-approved", { 
+          fetch("https://localhost:3000/api/searched-users-approved", { 
               method: 'POST',
               headers: { 'Content-Type':'application/json' },
               body: JSON.stringify({ roomId: "main-room" }),
@@ -52,7 +52,7 @@ const AttendeesList = () => {
 
     const handleApprove = async (userId) => {
       try {
-          const response = await fetch("http://localhost:3000/api/approved-users",
+          const response = await fetch("https://localhost:3000/api/approved-users",
             { 
                 method: 'POST',
                 headers: { 'Content-type':'application/json' },
@@ -75,7 +75,7 @@ const AttendeesList = () => {
 
   const handleCancel = async (email) => {
     try {
-        await fetch("http://localhost:3000/api/cancel-users",
+        await fetch("https://localhost:3000/api/cancel-users",
           { 
               method: 'POST',
               headers: { 'Content-type':'application/json' },
