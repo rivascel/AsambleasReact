@@ -4,8 +4,7 @@ import { io } from "socket.io-client";
 import Ask from '../containers/owner/Ask';
 import Chat from '../containers/Chat';
 import Graph from '../containers/Graph';
-import VideoGeneral from '../containers/owner/Video_general';
-import VideoPersonal from '../containers/owner/Video_personal';
+import VideoOwner from '../containers/owner/Video_owner';
 import MeetingPollOwner from '../containers/owner/Meeting_poll_owner';
 import Questions from '../containers/owner/Questions';
 import { UserContext } from "../components/UserContext";
@@ -139,11 +138,7 @@ const DashBoardOwner = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Section title="Transmisión General">
-            <VideoGeneral />
-          </Section>
-
-          <Section title="Tu Cámara">
-            <VideoPersonal />
+            <VideoOwner />
           </Section>
 
           <Section title="Preguntas Recibidas">

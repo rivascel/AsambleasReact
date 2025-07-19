@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
-import { startBroadcasting, stopLocalStream, setupAdminListeners } from "../../hooks/webrtc-manager";
+import { startBroadcasting, stopLocalStream, 
+  // createOfferToViewer, 
+  listenForAnswers
+ } from "../../hooks/webrtc-manager";
 
 const socket10 = io("https://localhost:3000", {
   withCredentials: true,
@@ -13,13 +16,17 @@ const VideoGeneral = () => {
   const localRef = useRef();
   const remoteRef = useRef();
   const { email } = useContext(UserContext);
-  const signalingChannel = useRef(null);
   const roomId="main-room";
 
     const openBroadcasting = async () => {
       try {
         // 1. Obtener stream local
-        startBroadcasting(email, roomId, localRef.current);
+        await startBroadcasting(roomId, email, localRef.current);
+        //Funcion que escucha las respuestas 
+
+        // await createOfferToViewer(roomId, email );
+        await listenForAnswers(email);
+
         setIsBroadcasting(true);
 
       } catch (error) {
@@ -46,10 +53,11 @@ const VideoGeneral = () => {
           <video ref={localRef} autoPlay playsInline muted className="rounded border"></video>
         </div>
 
+        <h3 className="text-lg font-medium mb-2">Intervencion de copropietario</h3>
+
         <div className="flex gap-4 mb-4">
           <video ref={remoteRef} autoPlay playsInline muted className="rounded border"></video>
         </div>
-
 
         <div className="controls">
           {!isBroadcasting ? (

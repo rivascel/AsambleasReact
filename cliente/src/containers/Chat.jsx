@@ -4,18 +4,17 @@ import { UserContext } from "../components/UserContext";
 
 const socket4 = io("https://localhost:3000", {
   withCredentials: true,
-  auth: {
-    username: "admin"
-  }
+  // auth: {
+  //   username: "admin"
+  // }
 });
 
 const Chat = () => {
-  const { email, logout } = useContext(UserContext);
+  const { email, logout, ownerData } = useContext(UserContext);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [alias, setAlias]=useState("");
   const username = email; // Podrías obtenerlo desde props o contexto
-  const { ownerData }  = useContext(UserContext);
 
   const handleSend = () => {
     if (message.trim() === "") return;

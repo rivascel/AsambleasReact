@@ -5,8 +5,7 @@ import axios from 'axios';
 import Approve from '../containers/admin/Approve';
 import Chat from '../containers/Chat';
 import Graph from '../containers/Graph';
-import VideoGeneral from '../containers/admin/Video_general_admin';
-import VideoPersonal from '../containers/admin/Video_personal_admin';
+import VideoAdmin from '../containers/admin/Video_admin';
 import MeetingPoll from '../containers/admin/Meeting_poll';
 import Questions from '../containers/admin/SendQuestion';
 import { UserContext } from "../components/UserContext";
@@ -41,12 +40,9 @@ const DashBoardAdmin = () => {
       <h1 className="text-3xl font-bold mb-6">Bienvenido al panel del Administrador</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Section title="Transmisión General">
-          <VideoGeneral />
-        </Section>
 
-        <Section title="Tu Cámara">
-          <VideoPersonal />
+        <Section title="Transmisión General">
+          <VideoAdmin />
         </Section>
 
         <Section title="Punto a ser votado">

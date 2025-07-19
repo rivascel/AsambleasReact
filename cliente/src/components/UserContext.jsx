@@ -29,7 +29,6 @@ const UserProvider = ({ children }) => {
   }, []);
 
   const login = (email, data) => {
-
     setEmail(email);
     setIsAuthenticated(true);
     setOwnerData(data);
@@ -54,6 +53,7 @@ const UserProvider = ({ children }) => {
         isAuthenticated,
         setIsAuthenticated,
         email,
+        setEmail,
         login,
         logout,
         ownerData,

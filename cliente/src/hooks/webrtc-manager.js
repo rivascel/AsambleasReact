@@ -1,33 +1,30 @@
 // Import the new functions
 import { 
-  offerToViewer, 
-  candidateViewer, 
-  answerToAdmin, 
-  candidateAdmin,
-  listenForNewViewers,
   registerAdminIsActive,
-  deleteAdmin
-  // listenForJoinRequests // Import the new listener
+  getAllViewersAndListen,
+  listenToSignals,
+  sendSignal
 } from "../../src/supabase-client";
 
 let peerConnections = {};
 let localStream;
-let remoteStream;
+
 
 // Obtener configuración del servidor
 const response = await fetch('https://localhost:3000/api/webrtc-config');
-const configuration = await response.json();
-
 /**
  * ADMIN: Starts the broadcast.
  * This function gets the local stream and listens for viewers.
  */
-export async function startBroadcasting(adminId, roomId, localVideoElement) {
+export async function startBroadcasting(roomId, adminId, localVideoElement) {
+  const configuration = await response.json();
+  const pc = new RTCPeerConnection(configuration);
+
   try {
     console.log(`Pasando Administrador ${adminId},  sala ${roomId}..., video ${localVideoElement}`);
-    await registerAdminIsActive(adminId, roomId);
+    await registerAdminIsActive(roomId, adminId );
     // 1. Start the admin's local video stream
-    await startLocalStream(localVideoElement);
+    await startLocalStream(roomId, adminId, localVideoElement, pc);
    
     console.log(`Admin ${adminId} is broadcasting in room ${roomId}. Waiting for viewers...`);
   } catch (error) {
@@ -35,10 +32,17 @@ export async function startBroadcasting(adminId, roomId, localVideoElement) {
   }
 }
 
-export async function startLocalStream(videoElement) {
+export async function startLocalStream(roomId, adminId, localVideoElement, pc) {
   try {
+    
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    videoElement.srcObject = localStream;
+    localVideoElement.srcObject = localStream;
+    
+    // Agregar tracks del local stream
+    localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
+
+    await createOfferToViewer (roomId, adminId, pc);
+
     return localStream;
   } catch (error) {
     console.error("Error al obtener el stream local:", error);
@@ -46,123 +50,110 @@ export async function startLocalStream(videoElement) {
   }
 }
 
-export async function stopLocalStream(adminId, videoElement) {
-  await deleteAdmin(adminId);
-  localStream = videoElement?.srcObject;
+export async function stopLocalStream(adminId, localVideoElement) {
+  // await deleteAdmin(adminId);
+  localStream = localVideoElement?.srcObject;
   if (localStream) {
     localStream.getTracks().forEach(track => track.stop());
-    videoElement.srcObject = null;
+    localVideoElement.srcObject = null;
     console.log("stream detenido correctamente")
   } else {
     console.warn("No hay stream activo en el videoElement");
   }
-
-}
-
-// Listen for new viewers who send a 'join' request
-export function setupAdminListeners(adminId, roomId) {
-  // 1. Escuchar nuevos viewers
-  const newViewersChannel = listenForNewViewers(roomId, adminId, (viewerId) => {
-     console.log(`Configurando listener para room: ${roomId}, admin: ${adminId}`);
-    console.log(`Nuevo viewer detectado: ${viewerId}`);
-    
-    // 2. Crear y enviar oferta al viewer
-    createOfferToViewer(roomId, adminId, viewerId);
-  });
-
-  // Retornar el canal para poder desuscribirse luego
-  return newViewersChannel;
 }
 
 // Admin crea y envía oferta a un viewer
-export async function createOfferToViewer(roomId, adminId, viewerId) {
-  try {
-    const pc = new RTCPeerConnection(configuration);
-    peerConnections[viewerId] = pc;
+export async function createOfferToViewer(roomId, adminId, pc) {
 
-    // Agregar tracks del local stream
-    localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+  if (!adminId)  {
+    throw new Error("adminId y roomId es requerido");
+  }
+  if (!roomId)  {
+    throw new Error("roomId es requerido");
+}
+
+  let unsubscribe;
+
+      
+  try {
+    const {viewers, unsubscribe:unsub} = await getAllViewersAndListen(roomId, async (newViewerId)=>{
+      console.log("Nuevo viewer ", newViewerId);
+        // Aquí podrías enviar una nueva oferta al viewer si es necesario
+      
+    });
+    unsubscribe = unsub;
+
+    peerConnections[viewers] = pc;
 
     // Manejar ICE candidates
     pc.onicecandidate = async (event) => {
       if (event.candidate) {
-        await candidateViewer(roomId, adminId, viewerId, event.candidate);
+        // Enviar a cada viewer individualmente
+        for (const viewerId of viewers) {
+
+        //registra candidates en tabla webrtc_signaling
+          try {
+            await sendSignal({
+            room_id: roomId,
+            from_user: adminId,
+            to_user: viewerId,
+            type: "ice-candidate",
+            payload: event.candidate,
+            });
+    
+          } catch (error) {
+              console.error(`Error enviando ICE candidate a ${viewerId}:`, error);
+          }
+        }
       }
     };
+
 
     // Crear y enviar oferta
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    await offerToViewer(roomId, adminId, viewerId, offer);
 
-    return pc;
+    // Registra oferta en webrtc_signaling
+    // Enviar a cada viewer
+    for (const viewerId of viewers) {
+      try {
+      await sendSignal({
+      room_id: roomId,
+      from_user: adminId,
+      to_user: viewerId,
+      type: "offer",
+      payload: offer
+    });
+     console.log(`Oferta enviada a viewer ${viewerId}`);
+      } catch (error) {
+        console.error(`Error enviando oferta a ${viewerId}:`, error);
+      }
+    }
+    return { pc, unsubscribe };
   } catch (error) {
+    if (unsubscribe) unsubscribe();
+    pc.close();
     console.error("Error al crear oferta:", error);
     throw error;
   }
 }
 
-// Viewer maneja oferta entrante
-export const handleOffer = async (offerData, localStream, viewerId) => {
-  const { from_user: adminId, room_id: roomId, payload: offer } = offerData;
-  
-  try {
-    const pc = new RTCPeerConnection(configuration);
-    peerConnections[adminId] = pc;
+// Escucha las answers a la offer que creó el admin
+export async function listenForAnswers(adminId) {
 
-    // Agregar local stream si es necesario (para comunicación bidireccional)
-    if (localStream) {
-      localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+  listenToSignals(adminId, async ({ from_user, type, payload }) => {
+    if (type === "answer") {
+      const pc = peerConnections[from_user];
+      await pc.setRemoteDescription(new RTCSessionDescription(payload));
+    } else {
+      console.log("No hay answer de usuarios");
     }
 
-    // Configurar manejo de ICE candidates
-    pc.onicecandidate = async (event) => {
-      if (event.candidate) {
-        await candidateAdmin(roomId, viewerId, adminId, event.candidate);
-      }
-    };
-
-    // Configurar stream remoto
-    pc.ontrack = (event) => {
-      remoteStream = event.streams[0];
-      const remoteVideo = document.getElementById('viewer-video');
-      if (remoteVideo) remoteVideo.srcObject = remoteStream;
-    };
-
-    // Procesar oferta y crear respuesta
-    await pc.setRemoteDescription(new RTCSessionDescription(offer));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    await answerToAdmin(roomId, viewerId, adminId, answer);
-
-    return pc;
-  } catch (error) {
-    console.error("Error al manejar oferta:", error);
-    throw error;
-  }
-};
-
-// Admin maneja respuesta del viewer
-export const handleAnswer = async ({ from_user: viewerId, payload: answer }) => {
-  const pc = peerConnections[viewerId];
-  if (pc) {
-    try {
-      await pc.setRemoteDescription(new RTCSessionDescription(answer));
-    } catch (error) {
-      console.error("Error al manejar respuesta:", error);
+    if (type === "ice-candidate") {
+      const pc = peerConnections[from_user];
+      await pc.addIceCandidate(new RTCIceCandidate(payload));
     }
-  }
+  });
 };
 
-// Manejar ICE candidates
-export const handleIceCandidate = async ({ from_user, payload: candidate }) => {
-  const pc = peerConnections[from_user];
-  if (pc && candidate) {
-    try {
-      await pc.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch (error) {
-      console.error("Error al agregar ICE candidate:", error);
-    }
-  }
-};
 

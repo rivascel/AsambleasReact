@@ -21,6 +21,7 @@ const RegisterOwner = ({ onRegister }) => {
         setMessage("Enlace enviado. Revisa tu correo.");
         onRegister?.(email); // si quieres avanzar al siguiente paso visual
         login(email);
+        // localStorage.setItem("userEmail", email); // Guardar el email en localStorage
         // login(email);
       } catch (error) {
         console.error(error);
