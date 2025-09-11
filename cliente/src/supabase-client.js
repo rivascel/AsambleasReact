@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { CHAR_CARRIAGE_RETURN } from 'picomatch/lib/constants';
 
 const SUPABASE_URL = 'https://hhmqduncjwddwptghsaj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhobXFkdW5jandkZHdwdGdoc2FqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE4ODQ0NTIsImV4cCI6MjA1NzQ2MDQ1Mn0.0IC33LEBv1O4QO9ctymNJu7nMjzXqk1P3Un9gf8WYds';
@@ -15,7 +16,6 @@ export async function registerViewer(roomId, viewerId ) {
   ]);
   if (error) console.error("Error registrando viewer:", error);
 }
-
 
 // Simulación para detectar viewers (desde tabla active_users)
 export const getAllViewersAndListen = async (roomId, onNewViewer) => {
@@ -65,7 +65,7 @@ export const getAllViewersAndListen = async (roomId, onNewViewer) => {
     }
   };
 }
-
+//=========================== send signal
 export async function sendSignal({ room_id, from_user, to_user, type, payload }) {
   try {
 
@@ -78,7 +78,10 @@ export async function sendSignal({ room_id, from_user, to_user, type, payload })
         from_user: from_user,
         to_user: to_user,
         type:type,
-        payload: typeof payload === 'string' ? payload : JSON.stringify(payload)
+        payload: typeof payload === 'string' ? payload : JSON.stringify({
+                          ...payload,
+                          sdpMLineIndex: Number(payload.sdpMLineIndex) || 0
+                        })
       },
     ]);
 
@@ -91,6 +94,7 @@ export async function sendSignal({ room_id, from_user, to_user, type, payload })
     console.error("🧨 Excepción:", e);
   }
 }
+
 //===================================================
 //El administrador escucha las señales de los viewers para emitir oferta
 export const listenToSignals = async (userId, callback) => {
@@ -104,7 +108,6 @@ return supabase
         schema: 'public',
         table: 'webrtc_signaling',
         filter: `to_user=eq.${userId}`
-
       },
       (payload) => {
         callback(payload.new)
@@ -113,36 +116,40 @@ return supabase
     .subscribe((status) => {
     console.log("Estado de suscripción:", status);
   });
-
 };
 
 //Los vieweres escuchan las señales del admin y envian la respuesta (answers)
-export const listenToSignalsToAdmin = async (userId, callback) => {
-  const responds = new Set(); // Usamos Set para evitar duplicados
+export const listenToSignalsFromAdmin = async (userId, callback) => {
+  // const responds = new Set(); // Usamos Set para evitar duplicados
 
-  const { data: currentResponds, error} = await supabase
-    .from("webrtc_signaling")
-    .select("*")
-    .eq("from_user",userId)
+  // const { data: currentResponds, error} = await supabase
+  //   .from("webrtc_signaling")
+  //   .select("*")
+  //   .eq("from_user",userId)
 
-    // console.log("currentResponds", currentResponds);
+  //   // console.log("currentResponds", currentResponds);
 
-     if (error) {
-      console.error("Error obteniendo responders:", error);
-      throw error;
-    }
+  //    if (error) {
+  //     console.error("Error obteniendo responders:", error);
+  //     throw error;
+  //   }
     
-    currentResponds?.forEach(({ from_user, to_user, type, payload, room_id })=>{
-      const key = `${from_user} ${to_user}-${type}-${payload}-${room_id}`;
+  //   currentResponds?.forEach(({ from_user, to_user, type, payload, room_id })=>{
+  //     const key = `${from_user} ${to_user}-${type}-${payload}-${room_id}`;
 
-       if (!responds.has(key)) {
-        responds.add(key);
-        // callback?.(responds); // o desestructura si prefieres
+  //      if (!responds.has(key)) {
+  //       responds.add(key);
+  //       // callback?.(responds); // o desestructura si prefieres
 
-      // const { to_user, from_user, payload: data } = respond.new;
-      callback({ from_user, to_user, type, payload, room_id });
-      };
-    });
+  //     // const { to_user, from_user, payload: data } = respond.new;
+  //     callback({ from_user, to_user, type, payload, room_id });
+  //     };
+  //   });
+
+    if (!userId) {
+      console.error("Usuario no definido aun"); 
+      return;
+    }
 
 
     const channel = supabase
@@ -162,101 +169,89 @@ export const listenToSignalsToAdmin = async (userId, callback) => {
     )
     .subscribe((status) => {
     console.log("Estado de suscripción:", status);
+
+    return {
+      removeChannel: () => supabase.removeChannel(channel)
+    }
   });
 
-  return {
-    responds : Array.from(responds),
-    unsubscribe: () => {
-      supabase.removeChannel(channel);
-    }
-  };
+  // return {
+  //   responds : Array.from(responds),
+  //   unsubscribe: () => {
+  //     supabase.removeChannel(channel);
+  //   }
+  // };
 };
 
+//Los vieweres escuchan las señales del admin y envian la respuesta (answers)
 
+export const listenToSignalsFromViewer = async (userId, callback) => {
+  // const responds = new Set(); // Usamos Set para evitar duplicados
 
-//=================================
+  // const { data: currentResponds, error} = await supabase
+  //   .from("webrtc_signaling")
+  //   .select("*")
+  //   .eq("to_user",userId)
 
+    // console.log("currentResponds", currentResponds);
 
-export const offerToViewer = async (roomId, fromUser, toUser, offer) => {
-  const { error } = await supabase.from('webrtc_signaling').insert([
-    {
-      room_id: roomId,
-      from_user: fromUser,
-      to_user: toUser,
-      type: 'offer',
-      payload: offer,
-      created_at: new Date().toISOString()
+    //  if (error) {
+    //   console.error("Error obteniendo responders:", error);
+    //   throw error;
+    // }
+    
+    // currentResponds?.forEach(({ from_user, to_user, type, payload, room_id })=>{
+    //   const key = `${from_user} ${to_user}-${type}-${payload}-${room_id}`;
+
+    //    if (!responds.has(key)) {
+    //     responds.add(key);
+    //     // callback?.(responds); // o desestructura si prefieres
+
+    //   // const { to_user, from_user, payload: data } = respond.new;
+    //   callback({ from_user, to_user, type, payload, room_id });
+    //   };
+    // });
+
+    if (!userId) {
+      console.error("Usuario no definido aun"); 
+      return;
     }
-  ]);
-  
-  if (error) throw new Error('Error sending offer: ' + error.message);
-};
 
-export const answerToAdmin = async (roomId, fromUser, toUser, answer) => {
-  const { error } = await supabase.from('webrtc_signaling').insert([
-    {
-      room_id: roomId,
-      from_user: fromUser,
-      to_user: toUser,
-      type: 'answer',
-      payload: answer,
-      created_at: new Date().toISOString()
-    }
-  ]);
-  
-  if (error) throw new Error('Error sending answer: ' + error.message);
-};
-
-export const candidatesToViewer = async (roomId, fromUser, toUser, candidate) => {
-  if (!candidate) return;
-  
-  const { error } = await supabase.from('webrtc_signaling').insert([
-    {
-      room_id: roomId,
-      from_user: fromUser,
-      to_user: toUser,
-      type: 'ice-candidate',
-      payload: candidate,
-      created_at: new Date().toISOString()
-    }
-  ]);
-  
-  if (error) throw new Error('Error sending ICE candidate: ' + error.message);
-};
-
-export const candidatesToAdmin = async (roomId, viewer, adminId, candidate) => {
-  if (!candidate) return;
-  
-  const { error } = await supabase.from('webrtc_signaling').insert([
-    {
-      room_id: roomId,
-      from_user: viewer,
-      to_user: adminId,
-      type: 'ice-candidate',
-      payload: candidate,
-      created_at: new Date().toISOString()
-    }
-  ]);
-  
-  if (error) throw new Error('Error sending ICE candidate: ' + error.message);
-};
-
-
-export const listenForIceCandidates = (userId, callback) => {
-  return supabase
-    .channel(`ice-${userId}`)
+    const channel = supabase
+    .channel(`Signals-${userId}`)
     .on(
       'postgres_changes',
       {
         event: 'INSERT',
         schema: 'public',
         table: 'webrtc_signaling',
-        filter: `to_user=eq.${userId},type=eq.ice-candidate`
+        filter: `to_user=eq.${userId}`
+
       },
-      payload => callback(payload.new)
+      (payload) => {
+        callback(payload.new)
+      }
     )
-    .subscribe();
+    .subscribe((status) => {
+    console.log("Estado de suscripción:", status);
+
+    return {
+      removeChannel: () => supabase.removeChannel(channel)
+    }
+
+  });
+
+
+  // return {
+  //   responds : Array.from(responds),
+  //   unsubscribe: () => {
+  //     supabase.removeChannel(channel);
+  //   }
+  // };
 };
+
+
+//=================================
 
 // Add these two new functions to your supabase-client.js file
 
@@ -281,21 +276,6 @@ export const sendJoinRequest = async (roomId, viewerId, adminId) => {
 /**
  * An admin listens for new viewers joining the room.
  */
-export const listenForJoinRequests = (adminId, callback) => {
-  return supabase
-    .channel(`joins-for-admin-${adminId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'webrtc_signaling',
-        filter: `to_user=eq.${adminId},type=eq.join` // Filter for 'join' messages to the admin
-      },
-      payload => callback(payload.new)
-    )
-    .subscribe();
-};
 
 export async function registerAdminIsActive(roomId, adminId) {
   try {
@@ -339,3 +319,103 @@ export async function getActiveAdmin(roomId){
     }
   return data?.user_id ?? null;
 }
+
+//==========================================
+
+// export const listenForJoinRequests = (adminId, callback) => {
+//   return supabase
+//     .channel(`joins-for-admin-${adminId}`)
+//     .on(
+//       'postgres_changes',
+//       {
+//         event: 'INSERT',
+//         schema: 'public',
+//         table: 'webrtc_signaling',
+//         filter: `to_user=eq.${adminId},type=eq.join` // Filter for 'join' messages to the admin
+//       },
+//       payload => callback(payload.new)
+//     )
+//     .subscribe();
+// };
+
+// export const offerToViewer = async (roomId, fromUser, toUser, offer) => {
+//   const { error } = await supabase.from('webrtc_signaling').insert([
+//     {
+//       room_id: roomId,
+//       from_user: fromUser,
+//       to_user: toUser,
+//       type: 'offer',
+//       payload: offer,
+//       created_at: new Date().toISOString()
+//     }
+//   ]);
+  
+//   if (error) throw new Error('Error sending offer: ' + error.message);
+// };
+
+// export const answerToAdmin = async (roomId, fromUser, toUser, answer) => {
+//   const { error } = await supabase.from('webrtc_signaling').insert([
+//     {
+//       room_id: roomId,
+//       from_user: fromUser,
+//       to_user: toUser,
+//       type: 'answer',
+//       payload: answer,
+//       created_at: new Date().toISOString()
+//     }
+//   ]);
+  
+//   if (error) throw new Error('Error sending answer: ' + error.message);
+// };
+
+// export const candidatesToViewer = async (roomId, fromUser, toUser, candidate) => {
+//   if (!candidate) return;
+  
+//   const { error } = await supabase.from('webrtc_signaling').insert([
+//     {
+//       room_id: roomId,
+//       from_user: fromUser,
+//       to_user: toUser,
+//       type: 'ice-candidate',
+//       payload: candidate,
+//       created_at: new Date().toISOString()
+//     }
+//   ]);
+  
+//   if (error) throw new Error('Error sending ICE candidate: ' + error.message);
+// };
+
+// export const candidatesToAdmin = async (roomId, viewer, adminId, candidate) => {
+//   if (!candidate) return;
+  
+//   const { error } = await supabase.from('webrtc_signaling').insert([
+//     {
+//       room_id: roomId,
+//       from_user: viewer,
+//       to_user: adminId,
+//       type: 'ice-candidate',
+//       payload: candidate,
+//       created_at: new Date().toISOString()
+//     }
+//   ]);
+  
+//   if (error) throw new Error('Error sending ICE candidate: ' + error.message);
+// };
+
+
+// export const listenForIceCandidates = (userId, callback) => {
+//   return supabase
+//     .channel(`ice-${userId}`)
+//     .on(
+//       'postgres_changes',
+//       {
+//         event: 'INSERT',
+//         schema: 'public',
+//         table: 'webrtc_signaling',
+//         filter: `to_user=eq.${userId},type=eq.ice-candidate`
+//       },
+//       payload => callback(payload.new)
+//     )
+//     .subscribe();
+// };
+

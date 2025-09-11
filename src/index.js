@@ -1,4 +1,4 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+// process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 require('dotenv').config({ path: '../.env' }); // ruta relativa al root del proyecto
 

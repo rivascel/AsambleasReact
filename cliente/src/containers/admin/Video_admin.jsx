@@ -2,13 +2,18 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
 import { startBroadcasting, stopLocalStream, 
-  // createOfferToViewer, 
-  listenForAnswers
+  listenForAnswers,
+  joinStreamAsAdmin,
+  getAdmin
  } from "../../hooks/webrtc-manager";
 
 const socket10 = io("https://localhost:3000", {
   withCredentials: true,
 });
+
+// const script = document.createElement("script");
+// script.src = "https://cdn.metered.ca/sdk/frame/1.4.3/sdk-frame.min.js";
+// document.body.appendChild(script);
 
 const VideoGeneral = () => {
 
@@ -18,13 +23,32 @@ const VideoGeneral = () => {
   const { email } = useContext(UserContext);
   const roomId="main-room";
 
+  const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
+
+  useEffect(() => {
+    const fetchAdmin = async () => {
+    const admin = await getAdmin(roomId);
+    // console.log("Admin",admin);
+
+    // if (remoteRef.current) {
+    //   remoteRef.current.srcObject = new MediaStream();
+    // }
+
+    if (admin) {
+      // console.log(`email ${ownerInfo.email}, adminId: ${admin}, roomId: ${roomId}`);
+      joinStreamAsAdmin(roomId, ownerInfo.email, admin, remoteRef.current);
+    }
+      };
+    fetchAdmin();
+  },[remoteRef.current?.srcObject]);
+
+
     const openBroadcasting = async () => {
       try {
         // 1. Obtener stream local
         await startBroadcasting(roomId, email, localRef.current);
         //Funcion que escucha las respuestas 
 
-        // await createOfferToViewer(roomId, email );
         await listenForAnswers(email);
 
         setIsBroadcasting(true);
@@ -45,6 +69,8 @@ const VideoGeneral = () => {
   
   return (
     <div className="space-y-6">
+{/* 
+
       {/* Transmisión en vivo */}
       <div className="bg-white p-4 rounded shadow-md">
         <h3 className="text-lg font-medium mb-2">Transmisión de Asamblea</h3>

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
-import { getAdmin, joinStreamAsViewer, startLocalStream, 
+import { getAdmin, joinStreamAsViewer, startLocalStream,
   stopLocalStream, 
-  receivingStream
-   } from '../../hooks/webrtc-client';
+  listenForAnswers
+     } from '../../hooks/webrtc-client';
 
 const socket11 = io("https://localhost:3000", {
   withCredentials: true,
@@ -31,43 +31,29 @@ const VideoGeneral = () => {
     // console.log("Admin",admin);
     setAdminId(admin);
 
+    // if (remoteRef.current) {
+    //   remoteRef.current.srcObject = new MediaStream();
+    // }
+
     if (admin) {
       // console.log(`email ${ownerInfo.email}, adminId: ${admin}, roomId: ${roomId}`);
-      joinStreamAsViewer(roomId, ownerInfo.email, admin);
+      joinStreamAsViewer(roomId, ownerInfo.email, admin, remoteRef.current);
     }
      };
     fetchAdmin();
-  },[]);
-
-  useEffect(() => {
-  if (remoteRef.current) {
-      remoteRef.current.srcObject = new MediaStream();
-    }
-  }, []); // se ejecuta solo una vez al montar
-
-  useEffect(()=>{
-    // console.log('Effect running - ref value:', remoteRef.current);
-    // console.log('Other dependencies:', { roomId, email: ownerInfo?.email, adminId });
-
-    //  if (!remoteRef.current || !ownerInfo?.email || !roomId || !adminId) {
-      // console.log('Skipping due to missing dependencies');
-      // return};
-
-     // Ensure the ref is actually pointing to a video element
-  // if (!(remoteRef.current instanceof HTMLVideoElement)) {
-  //    console.error('Ref is not attached to a video element!');
-  //   return;
-  // }
-
-    receivingStream(roomId, ownerInfo.email, adminId, remoteRef.current);
-
-
-// 2. Dependency Array: Only re-run the effect if these values change.
-  },[roomId, ownerInfo?.email, adminId]);
+   
+  },[remoteRef.current?.srcObject]);
 
   const openCall = async () => {
-    startLocalStream(localRef.current);
-    setIsAllowed(true);
+    try {
+      const adminId = await getAdmin(roomId);
+      await startLocalStream(roomId, ownerInfo.email, localRef.current);
+      // await createOfferToAdmin(roomId, ownerInfo.email, pc);
+      listenForAnswers(ownerInfo.email); 
+      setIsAllowed(true);
+    } catch (error) {
+        console.error("Error al iniciar llamada:", error);
+    }
   }
 
   const closeCall = () => {
@@ -79,14 +65,13 @@ const VideoGeneral = () => {
     <div className="space-y-6">
       {/* Transmisión en vivo */}
       <div className="bg-white p-4 rounded shadow-md">
+
         <h2 className="text-xl font-semibold mb-2">Asamblea en vivo</h2>
-        <video
-          ref={remoteRef} autoPlay playsInline className="w-full rounded border"
+        <video ref={remoteRef} autoPlay playsInline className="w-full rounded border"
         ></video>
 
         <h2 className="text-xl font-semibold mb-2">Intervención del copropietario</h2>
-        <video
-          ref={localRef} autoPlay playsInline className="w-full rounded border"
+        <video ref={localRef} autoPlay playsInline className="w-full rounded border"
         ></video>
 
         <div className="controls">
@@ -107,7 +92,6 @@ const VideoGeneral = () => {
           )
         }
         </div>
-
       </div>
     </div>
     )
