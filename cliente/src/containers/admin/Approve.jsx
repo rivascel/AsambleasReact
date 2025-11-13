@@ -12,7 +12,7 @@ const AttendeesList = () => {
   const [loading, setLoading] = useState(true);
   const [pendingUsers, setPendingUsers] = useState(null);
   const [isApproved, setIsApproved] = useState(null);
-  // const [error, setError] = useState(null);
+  const [check, setCheck] = useState(false);
 
   useEffect( ()=>{
     const fetchUsers = async () =>  {
@@ -51,7 +51,10 @@ const AttendeesList = () => {
   },[]);
 
     const handleApprove = async (userId) => {
-      try {
+    // Emitir evento de aprobación al servidor en tiempo real
+    // socket5.emit("approve", userId);
+  
+    try {
           const response = await fetch("https://localhost:3000/api/approved-users",
             { 
                 method: 'POST',
@@ -62,11 +65,6 @@ const AttendeesList = () => {
             setPendingUsers(prev => prev.filter(user => user.user_id !== userId));
             setIsApproved(prev => [...prev, userId]);
 
-          // if (!error) {
-          // setUsers(prev => 
-          //   prev.map(u => 
-          //     u.user_id === userId ? { ...u, status: 'approved' } : u));
-          // }
       } catch (err) {
       console.error(err);
       console.log("Error al enviar la solicitud.");
@@ -84,13 +82,7 @@ const AttendeesList = () => {
 
           // Actualiza los estados localmente
           setIsApproved(prev => prev.filter(id => id !== email));
-          // setPendingUsers(prev => [...prev, { user_id: email }]);
               
-        // if (!error) {
-        // setUsers(prev => 
-        //   prev.map(u => 
-        //     u.user_id === email ? { ...u, status: 'cancel' } : u));
-        // }
     } catch (err) {
     console.error(err);
     console.log("Error al enviar la solicitud.");

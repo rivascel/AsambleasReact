@@ -10,6 +10,7 @@ const { approveUser }= require("../utils/js/webrtc/supabase");
 const { ApprovedUserQuery }= require("../utils/js/webrtc/supabase");
 const { deleteCandidate }= require("../utils/js/webrtc/supabase");
 const { getPendingRequestById }= require("../utils/js/webrtc/supabase");
+const { getApprovedUserById }= require("../utils/js/webrtc/supabase");
 const { offers }= require("../utils/js/webrtc/supabase");
 const { addViewerToBroadcast }= require("../utils/js/webrtc/supabase");
 
@@ -237,11 +238,20 @@ router.post('/recover-users-id', async (req, res) => {
   try {
     const { roomId, userId } = req.body;
 
-    if (!roomId) return res.status(400).json({ error: 'roomId requerido' });
+    if (!roomId || !userId) return res.status(400).json({ error: 'roomId/userId y userId son requeridos' });
 
     const pendingUsersById = await getPendingRequestById(roomId, userId);
+    const approvedUsersById = await getApprovedUserById(roomId, userId);
+
     // console.log("usuarios pendientes",pendingUsers);
-    res.status(200).json({ pendingUsersById});
+    res.status(200).json({ 
+      pendingUsersById, 
+      approvedUsersById
+    });
+
+    // const approvedUsersById = await approveUser(roomId, userId);
+    // console.log("usuarios pendientes",pendingUsers);
+    // res.status(200).json({ approvedUsersById});
 
     // res.status(200).json({ message: 'Solicitantes enviados' });
   } catch (err) {
@@ -249,6 +259,26 @@ router.post('/recover-users-id', async (req, res) => {
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
+
+router.post('/searched-users-approved', async (req, res) => {
+    
+  try {
+    const { roomId } = req.body;
+    // console.log('Request recibido con roomId:', roomId); // Debug 1
+
+    if (!roomId) return res.status(400).json({ error: 'roomId requerido' });
+    const data = await ApprovedUserQuery(roomId);
+    // console.log('Datos obtenidos de Supabase:', data); // Debug 2
+
+    res.status(200).json({ 
+        success: true,
+        approvedUsers: data });
+  } catch (err) {
+    console.error("Error al procesar solicitud:", err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 
 //recupera los que piden la palabra de supabase
 router.post('/recover-users', async (req, res) => {
@@ -268,6 +298,7 @@ router.post('/recover-users', async (req, res) => {
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
+
 
 router.post('/approved-users', async (req, res) => {
     
@@ -308,25 +339,6 @@ router.post('/answer', async (req, res) => {
     await offersAnswer(answer);
 
     res.status(200).json({ message: 'Solicitante aprobado' });
-  } catch (err) {
-    console.error("Error al procesar solicitud:", err);
-    res.status(500).json({ error: 'Error del servidor' });
-  }
-});
-
-router.post('/searched-users-approved', async (req, res) => {
-    
-  try {
-    const { roomId } = req.body;
-    // console.log('Request recibido con roomId:', roomId); // Debug 1
-
-    if (!roomId) return res.status(400).json({ error: 'roomId requerido' });
-    const data = await ApprovedUserQuery(roomId);
-    // console.log('Datos obtenidos de Supabase:', data); // Debug 2
-
-    res.status(200).json({ 
-        success: true,
-        approvedUsers: data });
   } catch (err) {
     console.error("Error al procesar solicitud:", err);
     res.status(500).json({ error: 'Error del servidor' });

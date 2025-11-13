@@ -81,6 +81,11 @@ module.exports = httpServer =>{
                 socket.on("request-update-cancel", (userId, status, timeStamp) => {
                     socket.broadcast.emit("request-update", (userId, status, timeStamp));
                 });
+
+                   // ===================== ENVIA APROBACION PARA EMITIR =======
+                socket.on("approve", (userId) => {
+                    socket.broadcast.emit("approve", (userId));
+                });
         
                
             }

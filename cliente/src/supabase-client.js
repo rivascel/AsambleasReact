@@ -6,6 +6,11 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export async function registerViewer(roomId, viewerId ) {
+
+  if (!viewerId) {
+    console.error("viewerId es null, no se puede registrar");
+    return;
+  }
   const { error } = await supabase.from("active_users").upsert([
     {
       user_id: viewerId,
@@ -16,6 +21,7 @@ export async function registerViewer(roomId, viewerId ) {
   ]);
   if (error) console.error("Error registrando viewer:", error);
 }
+
 
 // Simulación para detectar viewers (desde tabla active_users)
 export const getAllViewersAndListen = async (roomId, onNewViewer) => {
@@ -72,34 +78,129 @@ export async function sendSignal({ room_id, from_user, to_user, type, payload })
     if (!from_user || !room_id) {
       throw new Error("from_user o roomId es requerido");
     }
+
+    // Aseguramos que payload sea un objeto JSON válido
+    const jsonPayload = typeof payload === "string" ? JSON.parse(payload) : payload;
+
     const { error } = await supabase.from("webrtc_signaling").insert([
       {
-        room_id: room_id,
-        from_user: from_user,
-        to_user: to_user,
-        type:type,
-        payload: typeof payload === 'string' ? payload : JSON.stringify({
-                          ...payload,
-                          sdpMLineIndex: Number(payload.sdpMLineIndex) || 0
-                        })
+        room_id,
+        from_user,
+        to_user,
+        type  ,
+        payload: {
+                  ...jsonPayload,
+                  sdpMLineIndex: Number(jsonPayload.sdpMLineIndex) || 0
+                }
       },
     ]);
 
     if (error) { 
       console.error("❌ Error al insertar señal:", error);
     } else {
-      console.log("✅ Señal enviada con éxito", from_user);
+      // console.log(`✅ Señal (${type}) enviada de ${from_user} → ${to_user}`);
     }
   } catch (e){
     console.error("🧨 Excepción:", e);
   }
 }
 
-//===================================================
-//El administrador escucha las señales de los viewers para emitir oferta
-export const listenToSignals = async (userId, callback) => {
+export const listenToApprovals = async (room, onNewViewer) => {
 
-return supabase
+  const approvers = new Set(); // Usamos Set para evitar duplicados
+
+  const { data: currentApprovers, error} = await supabase
+    .from("requests")
+    .select("*")
+    .eq("room_id",room)
+    .eq("status","approved")
+
+     if (error) {
+      console.error("Error obteniendo approvers:", error);
+      throw error;
+    }
+
+    currentApprovers?.forEach((approver)=>{
+      approvers.add(approver.user_id);
+      onNewViewer?.(approver);
+    });
+    
+
+  const channel = supabase
+    .channel(`Signals-${room}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'requests',
+        filter: `room_id=eq.${room}`,
+        filter: `status=eq.approved`
+
+      },
+      (payload) => {
+        const newApprover = payload.new;
+        if (!approvers.has(newApprover.user_id)) {
+          approvers.add(newApprover.user_id);
+          onNewViewer?.(newApprover);
+        }
+      }
+    )
+    .subscribe((status) => {
+      console.log("Estado de suscripción:", status);
+    });
+
+    return {
+          // () => channel.unsubscribe();
+    
+      // return  () => channel.unsubscribe();
+      approvers: Array.from(approvers), // Convertimos a array para facilidad de uso
+      
+      // removeChannel: () => supabase.removeChannel(channel),
+      unsubscribe: () => supabase.unsubscribe(channel)
+    };
+
+};
+
+
+//===================================================
+//Permite escuchar las señales como ofertas 
+// const activeChannels = {};
+// export const listenToSignals = (userId, callback) => {
+//   if (!userId) return;
+
+//   if (activeChannels[userId]) {
+//     console.log(`🔁 Reusando canal Signals-${userId}`);
+//     return activeChannels[userId];
+//   }
+
+//   console.log(`🟢 Escuchando señales desde tabla para: ${userId}`);
+//   const channel = supabase
+//     .channel(`Signals-${userId}`)
+//     .on(
+//       'postgres_changes',
+//       {
+//         event: 'INSERT',
+//         schema: 'public',
+//         table: 'webrtc_signaling',
+//         filter: `to_user=eq.${userId}`,
+//       },
+//       (payload) => {
+//         console.log("🔔 Señal detectada en tabla:", payload.new);
+//         callback(payload.new);
+//       }
+//     )
+//     .subscribe((status) => {
+//       console.log(`Estado de suscripción Signals-${userId}:`, status);
+//     });
+
+//   activeChannels[userId] = channel;
+// };
+
+export const listenToSignals = (userId, callback) => {
+  if (!userId) return;
+
+  const channel = supabase
     .channel(`Signals-${userId}`)
     .on(
       'postgres_changes',
@@ -107,116 +208,26 @@ return supabase
         event: 'INSERT',
         schema: 'public',
         table: 'webrtc_signaling',
-        filter: `to_user=eq.${userId}`
+        filter: `to_user=eq.${userId}`,
       },
       (payload) => {
-        callback(payload.new)
+        console.log("🔔 Señal detectada en tabla:", payload.new);
+        callback(payload.new);
       }
     )
     .subscribe((status) => {
-    console.log("Estado de suscripción:", status);
-  });
+      console.log(`Estado de suscripción Signals-${userId}:`, status);
+    });
+
 };
 
 //Los vieweres escuchan las señales del admin y envian la respuesta (answers)
 export const listenToSignalsFromAdmin = async (userId, callback) => {
-  // const responds = new Set(); // Usamos Set para evitar duplicados
-
-  // const { data: currentResponds, error} = await supabase
-  //   .from("webrtc_signaling")
-  //   .select("*")
-  //   .eq("from_user",userId)
-
-  //   // console.log("currentResponds", currentResponds);
-
-  //    if (error) {
-  //     console.error("Error obteniendo responders:", error);
-  //     throw error;
-  //   }
-    
-  //   currentResponds?.forEach(({ from_user, to_user, type, payload, room_id })=>{
-  //     const key = `${from_user} ${to_user}-${type}-${payload}-${room_id}`;
-
-  //      if (!responds.has(key)) {
-  //       responds.add(key);
-  //       // callback?.(responds); // o desestructura si prefieres
-
-  //     // const { to_user, from_user, payload: data } = respond.new;
-  //     callback({ from_user, to_user, type, payload, room_id });
-  //     };
-  //   });
 
     if (!userId) {
       console.error("Usuario no definido aun"); 
       return;
     }
-
-
-    const channel = supabase
-    .channel(`Signals-${userId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'webrtc_signaling',
-        filter: `from_user=eq.${userId}`
-
-      },
-      (payload) => {
-        callback(payload.new)
-      }
-    )
-    .subscribe((status) => {
-    console.log("Estado de suscripción:", status);
-
-    return {
-      removeChannel: () => supabase.removeChannel(channel)
-    }
-  });
-
-  // return {
-  //   responds : Array.from(responds),
-  //   unsubscribe: () => {
-  //     supabase.removeChannel(channel);
-  //   }
-  // };
-};
-
-//Los vieweres escuchan las señales del admin y envian la respuesta (answers)
-
-export const listenToSignalsFromViewer = async (userId, callback) => {
-  // const responds = new Set(); // Usamos Set para evitar duplicados
-
-  // const { data: currentResponds, error} = await supabase
-  //   .from("webrtc_signaling")
-  //   .select("*")
-  //   .eq("to_user",userId)
-
-    // console.log("currentResponds", currentResponds);
-
-    //  if (error) {
-    //   console.error("Error obteniendo responders:", error);
-    //   throw error;
-    // }
-    
-    // currentResponds?.forEach(({ from_user, to_user, type, payload, room_id })=>{
-    //   const key = `${from_user} ${to_user}-${type}-${payload}-${room_id}`;
-
-    //    if (!responds.has(key)) {
-    //     responds.add(key);
-    //     // callback?.(responds); // o desestructura si prefieres
-
-    //   // const { to_user, from_user, payload: data } = respond.new;
-    //   callback({ from_user, to_user, type, payload, room_id });
-    //   };
-    // });
-
-    if (!userId) {
-      console.error("Usuario no definido aun"); 
-      return;
-    }
-
     const channel = supabase
     .channel(`Signals-${userId}`)
     .on(
@@ -226,7 +237,6 @@ export const listenToSignalsFromViewer = async (userId, callback) => {
         schema: 'public',
         table: 'webrtc_signaling',
         filter: `to_user=eq.${userId}`
-
       },
       (payload) => {
         callback(payload.new)
@@ -238,26 +248,53 @@ export const listenToSignalsFromViewer = async (userId, callback) => {
     return {
       removeChannel: () => supabase.removeChannel(channel)
     }
-
   });
 
-
-  // return {
-  //   responds : Array.from(responds),
-  //   unsubscribe: () => {
-  //     supabase.removeChannel(channel);
-  //   }
-  // };
 };
 
 
-//=================================
+//Los vieweres escuchan las señales del admin y envian la respuesta (answers)
 
-// Add these two new functions to your supabase-client.js file
+export const listenToSignalsFromViewer = async (userId, callback) => {
 
-/**
- * A viewer sends this request to an admin to initiate a video stream.
- */
+  if (!userId) {
+    console.error("Usuario no definido aun"); 
+    return;
+  }
+
+  const channel = supabase
+  .channel(`Signals-${userId}`)
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'webrtc_signaling',
+      filter: `to_user=eq.${userId}`
+
+    },
+    (payload) => {
+      const signal = payload.new;
+      if (!signal) return;
+      // callback(payload.new)
+
+       // Solo procesar señales que vayan al admin
+        if (signal.to_user === userId && (signal.type === "offer" || signal.type === "ice-candidate")) {
+          console.log("📩 Señal de viewer -> admin:", signal.type, "de", signal.from_user);
+          callback(signal);
+        }
+
+    }
+  )
+  .subscribe((status) => {
+  console.log("Estado de suscripción:", status);
+
+  return {
+    removeChannel: () => supabase.removeChannel(channel)
+  }
+  });
+};
+
 export const sendJoinRequest = async (roomId, viewerId, adminId) => {
   const { error } = await supabase.from('webrtc_signaling').upsert([
     {
@@ -272,10 +309,6 @@ export const sendJoinRequest = async (roomId, viewerId, adminId) => {
 
   if (error) throw new Error('Error sending join request: ', error.message);
 };
-
-/**
- * An admin listens for new viewers joining the room.
- */
 
 export async function registerAdminIsActive(roomId, adminId) {
   try {
@@ -319,103 +352,4 @@ export async function getActiveAdmin(roomId){
     }
   return data?.user_id ?? null;
 }
-
-//==========================================
-
-// export const listenForJoinRequests = (adminId, callback) => {
-//   return supabase
-//     .channel(`joins-for-admin-${adminId}`)
-//     .on(
-//       'postgres_changes',
-//       {
-//         event: 'INSERT',
-//         schema: 'public',
-//         table: 'webrtc_signaling',
-//         filter: `to_user=eq.${adminId},type=eq.join` // Filter for 'join' messages to the admin
-//       },
-//       payload => callback(payload.new)
-//     )
-//     .subscribe();
-// };
-
-// export const offerToViewer = async (roomId, fromUser, toUser, offer) => {
-//   const { error } = await supabase.from('webrtc_signaling').insert([
-//     {
-//       room_id: roomId,
-//       from_user: fromUser,
-//       to_user: toUser,
-//       type: 'offer',
-//       payload: offer,
-//       created_at: new Date().toISOString()
-//     }
-//   ]);
-  
-//   if (error) throw new Error('Error sending offer: ' + error.message);
-// };
-
-// export const answerToAdmin = async (roomId, fromUser, toUser, answer) => {
-//   const { error } = await supabase.from('webrtc_signaling').insert([
-//     {
-//       room_id: roomId,
-//       from_user: fromUser,
-//       to_user: toUser,
-//       type: 'answer',
-//       payload: answer,
-//       created_at: new Date().toISOString()
-//     }
-//   ]);
-  
-//   if (error) throw new Error('Error sending answer: ' + error.message);
-// };
-
-// export const candidatesToViewer = async (roomId, fromUser, toUser, candidate) => {
-//   if (!candidate) return;
-  
-//   const { error } = await supabase.from('webrtc_signaling').insert([
-//     {
-//       room_id: roomId,
-//       from_user: fromUser,
-//       to_user: toUser,
-//       type: 'ice-candidate',
-//       payload: candidate,
-//       created_at: new Date().toISOString()
-//     }
-//   ]);
-  
-//   if (error) throw new Error('Error sending ICE candidate: ' + error.message);
-// };
-
-// export const candidatesToAdmin = async (roomId, viewer, adminId, candidate) => {
-//   if (!candidate) return;
-  
-//   const { error } = await supabase.from('webrtc_signaling').insert([
-//     {
-//       room_id: roomId,
-//       from_user: viewer,
-//       to_user: adminId,
-//       type: 'ice-candidate',
-//       payload: candidate,
-//       created_at: new Date().toISOString()
-//     }
-//   ]);
-  
-//   if (error) throw new Error('Error sending ICE candidate: ' + error.message);
-// };
-
-
-// export const listenForIceCandidates = (userId, callback) => {
-//   return supabase
-//     .channel(`ice-${userId}`)
-//     .on(
-//       'postgres_changes',
-//       {
-//         event: 'INSERT',
-//         schema: 'public',
-//         table: 'webrtc_signaling',
-//         filter: `to_user=eq.${userId},type=eq.ice-candidate`
-//       },
-//       payload => callback(payload.new)
-//     )
-//     .subscribe();
-// };
 
