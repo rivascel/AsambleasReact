@@ -1,27 +1,67 @@
 import { createClient } from '@supabase/supabase-js';
-import { CHAR_CARRIAGE_RETURN } from 'picomatch/lib/constants';
 
 const SUPABASE_URL = 'https://hhmqduncjwddwptghsaj.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhobXFkdW5jandkZHdwdGdoc2FqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE4ODQ0NTIsImV4cCI6MjA1NzQ2MDQ1Mn0.0IC33LEBv1O4QO9ctymNJu7nMjzXqk1P3Un9gf8WYds';
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-export async function registerViewer(roomId, viewerId ) {
+const channels = {};
 
-  if (!viewerId) {
-    console.error("viewerId es null, no se puede registrar");
-    return;
+export function getOrCreateChannel(userId) {
+  if (!userId) throw new Error("userId requerido para crear canal");
+  if (!channels[userId]) {
+  const channel = supabase.channel(`Signals-${userId}`);
+  channel.subscribe();
+  channels[userId] = channel;
   }
-  const { error } = await supabase.from("active_users").upsert([
-    {
-      user_id: viewerId,
-      room_id: roomId,
-      is_admin:false,
-      created_at: new Date().toISOString(),
-    },
-  ]);
-  if (error) console.error("Error registrando viewer:", error);
+  return channels[userId];
 }
 
+// callback recibirá el objeto que enviaste en payload (ver sendSignal)
+export function subscribeToSignals(userId, callback) {
+  const channel = getOrCreateChannel(userId);
+  channel.on("broadcast", { event: "signal" }, (msg) => {
+  // msg.payload es lo que enviamos en sendSignal
+    try {
+      callback(msg.payload);
+    } catch (err) {
+      console.error("Error en callback subscribeToSignals:", err);
+    }
+  });
+  return channel;
+}
+
+// export function sendSignal(toUser, fromUser, type, payload, { persistToTable = false } = {}) {
+  // const channel = getOrCreateChannel(toUser);
+  // const jsonPayload = typeof payload === "string" ? JSON.parse(payload) : payload;
+  // const message = {
+  //   type,
+  //   from_user: fromUser,
+  //   to_user: toUser,
+  //   payload:{
+  //           ...jsonPayload,
+  //           sdpMLineIndex: Number(jsonPayload.sdpMLineIndex) || 0
+  //           },
+  //   ts: Date.now(),
+  // };
+  // channel.send({
+  //   type: "broadcast",
+  //   event: "signal",
+  //   payload: message,
+  // }).catch(err => console.error('sendSignal error', err));
+
+
+// Opcional: persistir la señal en una tabla (para auditoría o reconexión)
+//   if (persistToTable) {
+//     // idea: insertar en "webrtc_signaling"
+//     supabase.from('webrtc_signaling').insert([{
+//       from_user: fromUser,
+//       to_user: toUser,
+//       type,
+//       payload: JSON.stringify(payload),
+//       created_at: new Date().toISOString()
+//     }]).catch(e => console.warn('persist signal error', e));
+//   }
+// }
 
 // Simulación para detectar viewers (desde tabla active_users)
 export const getAllViewersAndListen = async (roomId, onNewViewer) => {
@@ -31,7 +71,8 @@ export const getAllViewersAndListen = async (roomId, onNewViewer) => {
     .from("active_users")
     .select("*")
     .eq("room_id",roomId)
-    .eq("is_admin",false)
+    .eq
+    ("is_admin",false)
 
      if (error) {
       console.error("Error obteniendo viewers:", error);
@@ -105,6 +146,8 @@ export async function sendSignal({ room_id, from_user, to_user, type, payload })
   }
 }
 
+
+
 export const listenToApprovals = async (room, onNewViewer) => {
 
   const approvers = new Set(); // Usamos Set para evitar duplicados
@@ -127,7 +170,7 @@ export const listenToApprovals = async (room, onNewViewer) => {
     
 
   const channel = supabase
-    .channel(`Signals-${room}`)
+    .channel(`Signals from Approved-${room}`)
     .on(
       'postgres_changes',
       {
@@ -161,7 +204,6 @@ export const listenToApprovals = async (room, onNewViewer) => {
     };
 
 };
-
 
 //===================================================
 //Permite escuchar las señales como ofertas 
@@ -218,7 +260,7 @@ export const listenToSignals = (userId, callback) => {
     .subscribe((status) => {
       console.log(`Estado de suscripción Signals-${userId}:`, status);
     });
-
+  return channel;
 };
 
 //Los vieweres escuchan las señales del admin y envian la respuesta (answers)
@@ -229,7 +271,7 @@ export const listenToSignalsFromAdmin = async (userId, callback) => {
       return;
     }
     const channel = supabase
-    .channel(`Signals-${userId}`)
+    .channel(`Signals from Admin-${userId}`)
     .on(
       'postgres_changes',
       {
@@ -263,7 +305,7 @@ export const listenToSignalsFromViewer = async (userId, callback) => {
   }
 
   const channel = supabase
-  .channel(`Signals-${userId}`)
+  .channel(`Signals from Viewer-${userId}`)
   .on(
     'postgres_changes',
     {
@@ -327,13 +369,87 @@ export async function registerAdminIsActive(roomId, adminId) {
   }  
 }
 
-export async function deleteAdmin(adminId) {
+export async function setAdminIsStreaming(roomId) {
+  try {
+    const { error } = await supabase.from('rooms').upsert([
+      {
+        room_id: roomId,
+        is_active: true,
+        created_at: new Date().toISOString(),
+      }
+    ]);
+    if (error) {console.error("Error registering streaming in room:", error)}
+    else {console.log("✅ Streaming");};
+  } catch (error) {
+    console.error("❌ Excepción en register streaming is Active:", error);
+  }  
+}
+
+export async function getAdminStreaming(roomId) {
+  try{
+    const { data, error} = await supabase
+      .from("rooms")
+      .select("is_active")
+      .eq("room_id",roomId)
+      .single();
+
+      if (error) {
+        console.error("Error obteniendo datos:", error);
+        return false;
+      }
+      return data?.is_active === true;
+      } catch (error){
+        console.error("❌ Excepción en adminIsStreaming:", err);
+    return false;
+    }
+};
+
+export async function setViewerIsStreaming(userId) {
+  try {
+    const { error } = await supabase.from('active_users').upsert([
+      {
+        user_id: userId,
+        is_streaming: true,
+        created_at: new Date().toISOString(),
+      }
+    ]);
+    if (error) {console.error("Error registering streaming to user:", error)}
+    else {console.log("✅ Streaming user");};
+  } catch (error) {
+    console.error("❌ Excepción en register streaming is Active:", error);
+  }  
+}
+
+export async function getViewerStreaming() {
+  try{
+    const { data, error} = await supabase
+      .from("active_users")
+      .select("is_streaming")
+      .eq("is_streaming",true)
+      .single();
+
+      if (error) {
+        console.error("Error obteniendo datos:", error);
+        return false;
+      }
+      console.log("data viewer streaming", data.user_id);
+
+      return data?.is_streaming == true;
+      } catch (error){
+        console.error("❌ Excepción en adminIsStreaming:", err);
+    return false;
+    }
+};
+
+
+
+export async function deleteUser(userId) {
   const { error } = await supabase
     .from('active_users')
     .delete()
-    .eq('user_id', adminId);
+    .eq('user_id', userId);
   if (error) {console.error("Error deleting admin:", error)}
-  else {console.log("✅ Admin eliminado");};
+  else {console.log("✅ eliminado a", userId);};
 }
 
 export async function getActiveAdmin(roomId){
@@ -353,3 +469,19 @@ export async function getActiveAdmin(roomId){
   return data?.user_id ?? null;
 }
 
+export async function registerViewer(roomId, viewerId ) {
+
+  if (!viewerId) {
+    console.error("viewerId es null, no se puede registrar");
+    return;
+  }
+  const { error } = await supabase.from("active_users").upsert([
+    {
+      user_id: viewerId,
+      room_id: roomId,
+      is_admin:false,
+      created_at: new Date().toISOString(),
+    },
+  ]);
+  if (error) console.error("Error registrando viewer:", error);
+}

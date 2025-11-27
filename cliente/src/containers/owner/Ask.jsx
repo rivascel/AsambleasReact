@@ -20,11 +20,15 @@ const AskToParticipate = () => {
     if (!email) return;
     let unsubscribe;
     const channel = listenToApprovals(roomId, (set) => {
-      if (set.user_id === email) {
+      if (set.user_id === email && set.status === 'approved') {
         setReq(false);
-      } else {
+        setIsApproved(true);
+      } else if (set.user_id === email && set.status === 'pending') {
         setReq(true);
+      } else {
+        setReq(false);
       }
+
     });  
     // return () => {
     //   channel.unsubscribe();

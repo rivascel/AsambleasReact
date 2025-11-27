@@ -28,8 +28,22 @@ const { requireAuth } = require('../middlewares/auth');
 router.get('/owner-data', requireAuth, (req, res) => {
     // Este endpoint solo devuelve datos si la cookie está presente
     const email = req.cookies.username;
-    res.json({ email, dashboardData: "Aquí van tus datos" });
+    res.json({ email, user: "owner", dashboardData: "Aquí van tus datos" });
 });
+
+router.get('/admin-data', requireAuth, (req, res) => {
+    // Este endpoint solo devuelve datos si la cookie está presente
+    const email = req.cookies.username;
+    res.json({ email, user: "administrador", dashboardData: "Aquí van tus datos" });
+});
+
+router.post("/logout", (req, res) => {
+  res.clearCookie("username");
+  res.json({ message: "Sesión cerrada" });
+});
+
+
+
 
 router.get("/file", (req, res)=>{
     const filePath = path.join(__dirname,'data','votacion.txt'); // Ruta segura al archivo
@@ -393,31 +407,7 @@ router.get('/webrtc-config', (req, res) => {
   res.json({
     iceServers: [
       { urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'] },
-
-      // Servidor TURN (más lento, como plan B para casos difíciles)
-      // {
-      //   urls: 'turn:mi-servidor-turn.com:19403', // URL de tu servidor TURN
-      //   username: 'rivascel@gmail.com',                // Usuario para autenticación
-      //   credential: 'J3susg0d!'            // Contraseña o token
-      // },
-      //  {
-      //   urls: "stun:stun.relay.metered.ca:80",
-      // },
-      // {
-      //   urls: "turn:standard.relay.metered.ca:80",
-      //   username: "6e91ed4ca990de235a21a66f",
-      //   credential: "mqzh0ARtqA3rjU6e",
-      // },
-      // {
-      //   urls: "turn:standard.relay.metered.ca:80?transport=tcp",
-      //   username: "6e91ed4ca990de235a21a66f",
-      //   credential: "mqzh0ARtqA3rjU6e",
-      // },
-      // {
-      //   urls: "turn:standard.relay.metered.ca:443",
-      //   username: "6e91ed4ca990de235a21a66f",
-      //   credential: "mqzh0ARtqA3rjU6e",
-      // },
+     
       {
         urls: "turns:standard.relay.metered.ca:443?transport=tcp",
         username: "6e91ed4ca990de235a21a66f",

@@ -6,7 +6,8 @@ import {
   sendJoinRequest, // Import the new sender function
   sendSignal,
   listenToSignalsFromAdmin,
-  listenToSignals
+  listenToSignals,
+  setViewerIsStreaming
  
 } from "../../src/supabase-client";
 
@@ -48,6 +49,7 @@ function closePeerConnection(viewer) {
 
 
 export async function startLocalStream(roomId, email, localVideoElement) {
+  setViewerIsStreaming(email);
   try{
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     localVideoElement.srcObject = localStream;
@@ -135,7 +137,7 @@ export async function createOfferToAdmin(roomId, viewerId /*, pc*/) {
       };
     });
 
-    // Manejar ICE candidates
+    // Manejar ICE candidates - envio al admin
     adminPc.onicecandidate = async (event) => {
       if (event.candidate) {
         iceCandidates.push(event.candidate);
@@ -199,7 +201,7 @@ export async function createOfferToAdmin(roomId, viewerId /*, pc*/) {
 export async function listenForAnswers(viewerId) {
   //Viene del video_owner.jsx con el usuario adminId
   // const subscription = 
-  listenToSignals(viewerId, async ( signal ) => { 
+  const channel = listenToSignals(viewerId, async ( signal ) => { 
     const adminId = signal.from_user;
     const pcAdmin = peerConnections[adminId];
 
@@ -213,7 +215,7 @@ export async function listenForAnswers(viewerId) {
 
       console.log("Estado actual de señalización:", pcAdmin.signalingState);
 
-      console.log("📦 Payload recibido del answer:", signal.payload);
+      console.log("📦 Payload recibido del answer:");
 
       const answer = typeof signal.payload === "string" ? JSON.parse(signal.payload) : signal.payload;
 
@@ -221,8 +223,18 @@ export async function listenForAnswers(viewerId) {
       console.log("Estado actual de señalización:", pcAdmin.signalingState);
       
       if (pcAdmin.signalingState === "have-local-offer") {
-          await pcAdmin.setRemoteDescription(answer);
-          console.log(`✅ Answer aplicado para ${viewerId}`);
+          try{
+            await pcAdmin.setRemoteDescription(answer);
+            console.log(`✅ Answer aplicado para ${viewerId}`);
+          } catch (error) { 
+             if (error.toString().includes('ufrag')) {
+                console.warn('Skipping queued candidate with ufrag mismatch');
+              } 
+              // else {
+              //   errors.push(error);
+              // }
+          };
+
       } else {
         console.warn(`⚠️ Estado inesperado: ${pcAdmin.signalingState} para ${viewerId}`);
       }
@@ -293,6 +305,8 @@ export async function listenForAnswers(viewerId) {
       appliedAnswers.add(key);
 
     }
+
+    return channel;
   });
   // return subscription;
 };
@@ -431,8 +445,7 @@ export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
         });
         console.log("Answer sent to admin");
 
-      } 
-      if (type === "ice-candidate" && payload) {
+      } else if (type === "ice-candidate" && payload) {
 
         try {
             const parsed = typeof payload === "string" ? JSON.parse(payload) : payload;

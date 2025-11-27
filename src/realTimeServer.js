@@ -82,11 +82,21 @@ module.exports = httpServer =>{
                     socket.broadcast.emit("request-update", (userId, status, timeStamp));
                 });
 
-                   // ===================== ENVIA APROBACION PARA EMITIR =======
+                // ===================== ENVIA APROBACION PARA EMITIR =======
                 socket.on("approve", (userId) => {
                     socket.broadcast.emit("approve", (userId));
                 });
-        
+
+                //============== ENVIA SOLICITUD PARA UNIRSE AL STREAM
+                socket.on("admin-ready", () =>{
+                    console.log("transmisión del admin");
+                    socket.broadcast.emit("stream-ready");
+                });
+
+                socket.on("user-ready", (userId, roomId) =>{
+                    console.log("transmisión del user",userId, roomId);
+                    socket.broadcast.emit("stream-ready-user",userId, roomId);
+                });
                
             }
             // ===============CONEXION VIDEO ===================================

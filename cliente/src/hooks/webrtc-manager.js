@@ -2,8 +2,10 @@
 import { 
   getActiveAdmin, registerAdminIsActive, getAllViewersAndListen,
   listenToSignals, sendSignal, listenToSignalsFromViewer,
-  listenToApprovals
+  listenToApprovals, setAdminIsStreaming
 } from "../../src/supabase-client";
+
+import { getPeerConnection, createPeerConnection, closePeerConnection } from "./peer-manager.js";
 
 // import { handleIncomingICECandidate, processCandidateQueue } from "./webrtc-utilities.js";
 
@@ -12,47 +14,18 @@ let localStream;
 let candidateQueue = [];
 let remoteStream;
 
-let configuration;
-// Obtener configuración del servidor
-(async () => {  
-  const response = await fetch('https://localhost:3000/api/webrtc-config');
-  configuration = await response.json();
-})();
 
-  export async function getAdmin(roomId) {
-    return await getActiveAdmin(roomId);
+
+export function getAdmin(roomId) {
+    return getActiveAdmin(roomId);
   };
 
-function createPeerConnection(viewerId) {
-  const pc = new RTCPeerConnection(configuration);
-  peerConnections[viewerId] = pc;
-  return pc;
-}
-
-function getPeerConnection(viewerId) {
-  return peerConnections[viewerId];
-}
-
-function closePeerConnection(viewer) {
-  const pc = peerConnections[viewer];
-  if (pc) {
-    pc.close();
-    delete peerConnections[viewer];
-    console.log(`✅ PeerConnection de ${viewer} cerrada`);
-  }
-}
-
-
 export async function startBroadcasting(roomId, adminId, localVideoElement) {
-  // Obtener configuración del servidor
-  // const pc = new RTCPeerConnection(configuration);
 
   try {
-    // await registerAdminIsActive(roomId, adminId);
-
-    // 1. Start the admin's local video stream
+    await setAdminIsStreaming(roomId);
     await startLocalStream(roomId, adminId, localVideoElement /*, pc*/);
-   
+    
   } catch (error) {
     console.error("Failed to start broadcast:", error);
   }
@@ -63,13 +36,10 @@ export async function startLocalStream(roomId, adminId, localVideoElement /*, pc
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     localVideoElement.srcObject = localStream;
     
-    // Agregar tracks del local stream
-    // localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
-
-    await createOfferToViewer(roomId, adminId /*, pc*/);
-    // await receivingStream(roomId, viewerId, adminId, streamTarget);
-
+    await createOfferToViewer(roomId, adminId);
+   
     return localStream;
+
   } catch (error) {
     console.error("Error al obtener el stream local:", error);
     throw error;
@@ -105,9 +75,9 @@ export async function joinStreamAsAdmin(roomId, adminId, /*viewerId,*/ streamTar
 
 // Admin crea y envía oferta a un viewer
 export async function createOfferToViewer(roomId, adminId) {
-  if (!adminId)  {
-    throw new Error("adminId y roomId es requerido");
-  }
+  // if (!adminId)  {
+  //   throw new Error("adminId y roomId es requerido");
+  // }
   if (!roomId)  {
     throw new Error("roomId es requerido");
   } 
@@ -121,8 +91,6 @@ export async function createOfferToViewer(roomId, adminId) {
       console.log("Nuevo viewer ", newViewerId);
       viewerId=newViewerId;
       console.log("viewer encontrado para oferta:", viewerId);
-        // Aquí podrías enviar una nueva oferta al viewer si es necesario
-
         // Aquí podrías enviar una nueva oferta al viewer si es necesario
     });
     unsubscribe = unsub;
@@ -148,15 +116,14 @@ export async function createOfferToViewer(roomId, adminId) {
         return;
       }
 
-
       // Envio ICE candidates
-      viewerPc.onicecandidate = async (event) => {
+      viewerPc.onicecandidate =  (event) => {
         if (event.candidate) {
           // Enviar a cada viewer individualmente
 
           //registra candidates en tabla webrtc_signaling
             try {
-              await sendSignal({
+              sendSignal({
               room_id: roomId,
               from_user: adminId,
               to_user: viewerId,
@@ -182,27 +149,26 @@ export async function createOfferToViewer(roomId, adminId) {
         // Guarda o actualiza el peerConnection
         // savePeerConnection(viewerId, viewerPc);
 
-        // Crear y enviar oferta
-        const offer = await viewerPc.createOffer();
-        await viewerPc.setLocalDescription(offer);
+      // Crear y enviar oferta
+      const offer = await viewerPc.createOffer();
+      await viewerPc.setLocalDescription(offer);
 
-        // Registra oferta en webrtc_signaling
-        // Enviar a cada viewer
-        await sendSignal({
-          room_id: roomId,
-          from_user: adminId,
-          to_user: viewerId,
-          type: "offer",
-          payload: offer
-        });
+      // Registra oferta en webrtc_signaling
+      // Enviar a cada viewer
+      await sendSignal({
+        room_id: roomId,
+        from_user: adminId,
+        to_user: viewerId,
+        type: "offer",
+        payload: offer
+      });
 
-        console.log(`Oferta enviada a viewer ${viewerId}`);
-       
+      console.log(`Oferta enviada a viewer ${viewerId}`);
     }
 
-    return { viewers, unsubscribe };
+    // return { viewers, unsubscribe };
   } catch (error) {
-    if (unsubscribe) unsubscribe();
+    // if (unsubscribe) unsubscribe();
     viewerPc.close(); 
     console.error("Error al crear oferta:", error);
     throw error;
@@ -226,7 +192,10 @@ export function listenForAnswers(adminId) {
   // const subscription = 
   return listenToSignals(adminId, async ({ from_user, type, payload }) => { 
     const viewerId = from_user;
-    const pc = peerConnections[viewerId];
+
+    const pc = getPeerConnection(viewerId);
+    if (!pc) pc=createPeerConnection(viewerId);
+    // const pc = peerConnections[viewerId];
     console.log(`📨 Señal enviada a ${adminId}:`, type);
 
     if (!pc) {
@@ -265,9 +234,7 @@ export function listenForAnswers(adminId) {
       } catch (error) {
       console.error(`❌ Error al aplicar la respuesta de ${viewerId}:`, error);
       }
-    }
-
-    if (type === "ice-candidate") {
+    } else if (type === "ice-candidate") {
       try {
         const parsed = typeof payload === "string" ? JSON.parse(payload) : payload;
         console.log("📦 Payload ICE recibido:", parsed); // Debug detallado
@@ -389,17 +356,17 @@ export async function receivingStream(roomId, adminId, /*ApprovedViewer,*/ strea
           console.warn("⚠️ Evento track sin streams");
         }
     }
-        // Manejar ICE candidates
+        // Manejar ICE candidates (envio al viewer)
     approvedViewervPc.onicecandidate = async (event) => {
-      console.log("❄️ ICE candidate GENERADO (admin):", event.candidate ? "Tiene candidato" : "null (fin de candidatos)");
+      console.log("❄️ ICE candidate DETALLADO:", event.candidate);
 
       if (event.candidate) {
         // Enviar a cada viewer individualmente
           try {
               await sendSignal({
               room_id: roomId,  
-              from_user: ApprovedViewer,  //De mi (viewer)
-              to_user: adminId,     //Para el admin 
+              from_user: adminId,  //Quien envia los ice.candidate
+              to_user: ApprovedViewer,     //Para el viewer
               type: "ice-candidate",
               payload: {
                 candidate: event.candidate.candidate,        // ← Esto es crucial

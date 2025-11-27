@@ -5,7 +5,9 @@ import { getAdmin, joinStreamAsViewer, startLocalStream,
   stopLocalStream, 
   listenForAnswers
      } from '../../hooks/webrtc-client';
-import { listenToSignalsFromAdmin, listenToSignals } from '../../supabase-client';
+import { listenToSignalsFromAdmin, listenToSignals, registerViewer, listenToApprovals, getAdminStreaming
+
+ } from '../../supabase-client';
 
 const socket11 = io("https://localhost:3000", {
   withCredentials: true,
@@ -31,6 +33,9 @@ const localRef = useRef();
   // socket11.on("approve",userId => {
   //   console.log("Usuario aprobado:", userId);
   // });
+
+  socket11.emit("request-stream", email, roomId);
+
 
   useEffect(() => {
     // 1️⃣ Validación temprana
@@ -77,61 +82,71 @@ const localRef = useRef();
 
 //Corresponde cuando el viewer recibe la trasmision del admin
   useEffect(() => {
-    // 1️⃣ Validación temprana
-    if (!ownerInfo?.email|| !roomId) {
-      console.warn("Esperando datos para fetch...");
-      return;
-    }
-    if (hasSubscribed.current) {
-      console.log("✅ Suscripción ya establecida, no se repite.");
-      return; // ✅ evita dobles suscripciones (estricto o re-render)
-    }
-    hasSubscribed.current = true;
+    let subscribe=true;
      
     const init= async () => {
+      if (!ownerInfo?.email|| !roomId) return
+
       const admin = await getAdmin(roomId);
-      console.log("Viewer listo para recibir stream del admin:", ownerInfo.email);
-        joinStreamAsViewer(roomId, ownerInfo.email, admin, remoteRef.current);
-        // setSignalreceived(true);
-        // setListen(true);
+      await registerViewer(roomId,email);
+      const isStreaming = await getAdminStreaming(roomId);
+
+      if (isStreaming) {
+        await joinStreamAsViewer(roomId, ownerInfo.email, admin, remoteRef.current);
+      }; 
+
+      socket11.on("stream-ready", async ()=>{
+        if (!subscribe) return;
+        console.log(`El admin comenzó transmisión`);
+        windoow.alert("El administrador ha iniciado la transmisión.");
+        // joinStreamAsViewer(roomId, ownerInfo.email, admin, remoteRef.current);
+      });
     };
     init();
-        
-  
-  // const fetchData = async () => {
-    // const channel = listenToSignals(ownerInfo.email, async (payload) => {
-    //   if (payload.to_user === ownerInfo.email && payload?.type === "offer") {
-    //     console.log("📡 Oferta recibida del admin:", payload);
+    return () => {
+      subscribe = false;
+    }
+    
+  },[roomId, ownerInfo?.email]);
 
-    //     // const admin = await getAdmin(roomId);
-    //     // joinStreamAsViewer(roomId, ownerInfo.email, admin, remoteRef.current);
-    //     // setSignalreceived(true);
-    //     // setListen(true);
-        
-    //   };
-    // });
-    //   return () => {
-    //     // console.log("❌ Cancelando suscripción");
-    //     channel?.unsubscribe?.();
-    //   };
-  // };
-  // fetchData();
-  },[roomId, email]);
 
-  useEffect(()=>{
+  useEffect(() => {
+    const init = async () => {
+      const { unsubscribe} = listenToApprovals(roomId, (from_user)=>{
+        console.log("👂 recibe offer y ice-candidates:", from_user );
+      });
+      // await listenForAnswers(ownerInfo.email); 
+      return () => {
+      unsubscribe?.();
+    }
+  };
 
-    listenForAnswers(ownerInfo.email); 
+  init();
+}, [email]);
 
-  },[roomId, email])
+//   useEffect(() => {
+//   if (!roomId) return;
 
+//   const channel = subscribeToSignals(roomId, (payload) => {
+//     handleSignal(payload);
+//   });
+
+//   return () => channel.unsubscribe();
+// }, [roomId]);
+
+// useEffect(() => {
+// if (!adminId) return;
+//   const channel = subscribeToSignals(adminId, (message) => handleSignal(message, 'admin'));
+//   return () => channel.unsubscribe();
+// }, [adminId]);
 
 
   const openCall = async () => {
     try {
-      const adminId = await getAdmin(roomId);
+      await listenForAnswers(ownerInfo.email); 
       await startLocalStream(roomId, ownerInfo.email, localRef.current);
-      // await createOfferToAdmin(roomId, ownerInfo.email, pc);
-      // await listenForAnswers(ownerInfo.email); 
+      socket11.emit("user-ready", ownerInfo.email, roomId);
+      
       setIsAllowed(true);
     } catch (error) {
         console.error("Error al iniciar llamada:", error);

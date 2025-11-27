@@ -11,28 +11,22 @@ import React, { useContext } from "react";
 import UserProvider, { UserContext } from "../components/UserContext";
 import AdminRegister from '../containers/admin/AdminRegister';
 import Home from '../pages/Home';
+import ProtectedRoute from '../containers/ProtectedRoute';
 
 function App() {
   const initialState = useInitialState();	
-
-  const AuthRedirect  = () => {
-    const { isAuthenticated } = useContext(UserContext);
-
-    return isAuthenticated ? <OwnerDashBoard /> : <OwnerRegister />;
-  };
 
   return (
     <AppContext.Provider value={initialState}>
       <UserProvider>
         <BrowserRouter>
-              <Routes>
-                  <Route path="/" element={<Home/>}/> 
-                  <Route path="/admin" element={<AdminRegister/>}/>
-                  <Route path="/admin/dashboard" element={<AdminDashBoard/>}/>
-                  <Route path="/owner" element={<Layout><OwnerDashBoard/></Layout>}/>
-                  <Route path="/magic-link" element={<MagicLinkVerification />} />
-                  <Route path="/auth-redirect" element={<AuthRedirect />} />
-              </Routes>
+            <Routes>
+              <Route path="/" element={<Home/>}/> 
+              <Route path="/admin" element={<AdminRegister/>}/>
+              <Route path="/admin/dashboard" element={<ProtectedRoute><Layout><AdminDashBoard/></Layout></ProtectedRoute>}/>
+              <Route path="/owner" element={<ProtectedRoute><Layout><OwnerDashBoard/></Layout></ProtectedRoute>}/>
+              <Route path="/magic-link" element={<MagicLinkVerification />} />
+            </Routes>
         </BrowserRouter>
       </UserProvider>
     </AppContext.Provider>

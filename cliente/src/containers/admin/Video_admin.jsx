@@ -5,9 +5,14 @@ import { startBroadcasting, stopLocalStream,
   listenForAnswers,
   joinStreamAsAdmin,
   getAdmin,
-  listenForApprovals
+  listenForApprovals,
+  createOfferToViewer,
+  // handleSignal
  } from "../../hooks/webrtc-manager";
-import { listenToApprovals, listenToSignals } from '../../supabase-client';
+import { listenToApprovals, listenToSignals, getAllViewersAndListen, subscribeToSignals, getViewerStreaming
+
+ } from '../../supabase-client';
+import { message } from "statuses";
 
 const socket10 = io("https://localhost:3000", {
   withCredentials: true,
@@ -25,15 +30,27 @@ const VideoGeneral = () => {
   const roomId="main-room";
   const listeningRef = useRef(false);
   const [remote, setRemote] = useState(false);
+  // const [newViewer, setNewViewer] = useState(null);
+  const [userId, setUserId] = useState(null);
+  
 
   const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
-  let admin;
+
+  socket10.on("request-stream-approved", (viewer, roomId)=>{
+    console.log(`un nuevo viewer ${viewer} en el cuarto ${roomId}`);
+    // setUserId(viewer);
+  });
+
+  socket10.on("stream-ready-user", async (userId, roomId)=>{
+    console.log(`El usuario ${userId} comenzó transmisión en ${roomId}`);
+    setUserId(userId);
+  });
 
 
   // Corresponde cuando el admin escucha las transmisiones de los viewers aprobados
   useEffect(() => {
     if (!roomId) return;
-    let channel;
+    let suscribe;
 
     const init = async () => {
       try{
@@ -43,95 +60,94 @@ const VideoGeneral = () => {
         const exists = await listenForApprovals(roomId);
         if (exists) {
           setRemote(true);
+        } else {
+          return;
         };
-        await joinStreamAsAdmin(roomId, admin /*, viewerId,*/, remoteRef.current);
-        console.log("✅ Admin listo para recibir streams y 👂 Escuchando transmisiones de viewers aprobados");
 
-        // channel = listenToSignals(admin, async (signal) => {
-        // }
-        //   // console.log("📩 Señal recibida completa:", signal);
-
-        //   if (signal.type === "offer") {
-        //     console.log("Oferta recibida de viewer aprobado:", signal.from_user);
-        //     let viewerId = signal.from_user;
-        //     if (admin) {
-        //       if (!remoteRef.current) {
-        //         console.warn("remoteRef.current todavía NO está listo");
-        //         return;
-        //       }
-        //       // console.log(`email ${ownerInfo.email}, adminId: ${admin}, roomId: ${roomId}`);
-        //       await listenForApprovals(roomId);
-        //       await joinStreamAsAdmin(roomId, admin, viewerId, remoteRef.current);
-        //       console.log("✅ Admin listo para recibir streams y 👂 Escuchando transmisiones de viewers aprobados");
-        //     }
-        //   }
-
-        //   if (signal.type === "answer") {
-        //     console.log("💬 Respuesta (answer) recibida:", signal.payload);
-        //   }
-
-        //   if (signal.type === "ice-candidate") {
-        //     console.log("❄️ ICE Candidate recibido:", signal.payload);
-        //   }
-
-        // });  
-
-        } catch (error) {
+        const userStreaming = await getViewerStreaming(userId);
+        if (userStreaming) {
+          await joinStreamAsAdmin(roomId, admin /*, viewerId,*/, remoteRef.current);
+          console.log("✅ Admin listo para recibir streams y 👂 Escuchando transmisiones de viewers aprobados");
+        };
+      } catch (error) {
         console.error("❌ Error inicializando listener de señales:", error);
-        }
       }
-      init();
       return () => {
-      if (channel) {
-        console.log("🧹 Cerrando canal de señales de admin");
-        if (channel) channel.unsubscribe();
+        suscribe=false;
       }
-    };
-  },[roomId, email]);
+    }
+    init();
+
+  },[roomId, userId]);
   
   useEffect(() => {
       
     const init = async () => {
-      admin = await getAdmin(roomId);
+      const admin = await getAdmin(roomId);
       console.log("email del admin:", email);
 
       if (stream && localRef.current) {
+        // const { unsubscribe} = listenToSignals(admin, (from_user)=>{
+        //   console.log("👂 Se conecto:", from_user );
+        // });
         await startBroadcasting(roomId, email, localRef.current);
-        listenForAnswers(admin);
+        socket10.emit("admin-ready", admin, roomId);
+
+        const subscription = listenForAnswers(email);
+        console.log("👂 Escuchando ofertas y ices :", email );
+        return () => {
+            unsubscribe?.();
+          if (subscription.unsubscribe) {
+            console.log("🧹 Cancelando suscripción answers de:", email);
+            subscription.unsubscribe();
+          }
+        };
       }
     };
 
     init();
   }, [stream]);
 
-  
-  useEffect( () => {
-    
-    if (!admin) return;
+  useEffect(() => {
+     if (!userId) return;
 
-    // Evita múltiples listeners
-    if (listeningRef.current) return;
-    listeningRef.current = true;
-
-    const init = async () => {
-      admin = getAdmin(roomId);
-      console.log("email del admin:", email);
-
-      console.log("👂 Iniciando listener global de respuestas para admin:", admin);
-
-      // const subscription = 
-      listenForAnswers(admin);
-
+    const init = () => {
+      const subscription = listenForAnswers(email);
+      console.log("👂 Escuchando ofertas y ices :", email );
       return () => {
-        // console.log("🧹 Limpiando listener de respuestas");
-        // if (subscription && subscription.unsubscribe) {
-        //   subscription.unsubscribe();
-        // }
-        listeningRef.current = false;
+        if (subscription.unsubscribe) {
+          console.log("🧹 Cancelando suscripción answers de:", email);
+          subscription.unsubscribe();
+        }
       };
     }
     init();
-  }, [admin]);
+  }, [roomId, email]);
+
+  // escuchar viewer y enviarles ofertas
+  useEffect(() => {
+
+    // const { unsubscribe } = getAllViewersAndListen(roomId, async (viewer) => {
+    //   console.log("👂 Viewer que se conecta", viewer );
+    //   await createOfferToViewer(roomId, viewer);
+ 
+    // });
+    // return () => {
+    //   unsubscribe?.();
+    // };
+    // createOfferToViewer(roomId, userId);
+
+  }, [userId]);
+
+//   useEffect(() => {
+//   if (!userId) return;
+
+//   const channel = subscribeToSignals(userId, (payload) => {
+//     handleSignal(payload, role);
+//   });
+
+//   return () => channel.unsubscribe();
+// }, [userId, role]);
 
 
     const openBroadcasting = async () => {
@@ -153,7 +169,7 @@ const VideoGeneral = () => {
     const hangUpBroadcasting = async () => {
       try {
         setStream(false);
-        stopLocalStream(localRef.current, admin);
+        stopLocalStream(localRef.current);
         setIsBroadcasting(false);
       } catch (error) {
         console.error("Error al colgar llamada:", error);
