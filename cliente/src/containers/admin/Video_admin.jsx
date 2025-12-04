@@ -120,7 +120,8 @@ const VideoGeneral = () => {
     init();
   }, [roomId, email]);
 
-    const openBroadcasting = async () => {
+
+  const openBroadcasting = async () => {
       try {
         // 1. Obtener stream local
         // await startBroadcasting(roomId, email, localRef.current);
