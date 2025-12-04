@@ -54,9 +54,6 @@ export async function startLocalStream(roomId, email, localVideoElement) {
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     localVideoElement.srcObject = localStream;
 
-    // Agregar tracks del local stream
-    // localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
-   
     await createOfferToAdmin(roomId, email /*, pc*/);
 
     return localStream;
@@ -85,7 +82,7 @@ export async function joinStreamAsViewer(roomId, viewerId, adminId, streamTarget
   }
     await registerViewer(roomId, viewerId);
 
-    await sendJoinRequest(roomId, viewerId, adminId);
+    // await sendJoinRequest(roomId, viewerId, adminId);
 
     await receivingStream(roomId, viewerId, adminId, streamTarget);
     

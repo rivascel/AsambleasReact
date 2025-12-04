@@ -9,32 +9,45 @@ const socket7 = io("https://localhost:3000", {
 });
 
 const AskToParticipate = () => {
-    const roomId = 'main-room';
+  const roomId = 'main-room';
   const [loading, setLoading] = useState(true);
   const { email, setCheckApprove } = useContext(UserContext);
   const [req, setReq] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
+  const [requestStatus , setRequestStatus] = useState('none');
 
 
   useEffect(() => {
     if (!email) return;
-    let unsubscribe;
-    const channel = listenToApprovals(roomId, (set) => {
-      if (set.user_id === email && set.status === 'approved') {
-        setReq(false);
-        setIsApproved(true);
-      } else if (set.user_id === email && set.status === 'pending') {
-        setReq(true);
+    const channel = listenToApprovals(roomId, email, (set) => {
+      console.log("Aprobaciones recibidas en tiempo real:", set);
+
+      if (set._deleted) {
+        console.log("🗑️ _deleted detectado, datos completos:", set);
+        console.log("🗑️ user_id:", set.user_id, "email:", email);
+
+        if (set.user_id === email) {
+          console.log("📛 DELETE detectado");
+          setRequestStatus('none');
+        } else {
+          console.log("❌ No coincide user_id");
+        }
+        return;
+      }
+
+      if (set.user_id === email) {
+        setRequestStatus(set.status); // 'pending' o 'approved'
+        console.log("✅ Solicitud actualizada a:", set.status);
       } else {
-        setReq(false);
+        setRequestStatus('none');
       }
 
     });  
-    // return () => {
-    //   channel.unsubscribe();
-    // }
+    return () => {
+      channel.unsubscribe();
+    }
     
-  }, [email]);
+  }, [email, roomId /*, requestStatus*/]);
 
 
   useEffect( ()=>{
@@ -60,10 +73,12 @@ const AskToParticipate = () => {
         const approvedUsersById = pendingData.approvedUsersById || [];
 
         if (Array.isArray(pendingUsersById) && pendingUsersById.includes(email)) {
-          setReq(true);
+          // setReq(true);
+          // setRequestStatus('pending');
         } else if (Array.isArray(approvedUsersById) && approvedUsersById.includes(email)) {
-          setIsApproved(true);
-          setCheckApprove(true);
+          // setIsApproved(true);
+          // setCheckApprove(true);
+          // setRequestStatus('approved');
         }
 
         return { pendingUsersById, approvedUsersById /*, approvedUsers*/};
@@ -88,7 +103,8 @@ const AskToParticipate = () => {
         withCredentials: true, // si usas cookies seguras
       });
       
-      // setSent(false);
+      // setReq(true);
+      setRequestStatus('pending');
 
     } catch (err) {
       console.error(err);
@@ -103,7 +119,8 @@ const AskToParticipate = () => {
         { roomId: "main-room", userId:email }, 
         {withCredentials: true} // si usas cookies seguras
       );
-      // setSent(true);
+      setRequestStatus('none');
+      // setReq(false);
 
     } catch (err) {
       console.error(err);
@@ -118,32 +135,76 @@ const AskToParticipate = () => {
       {loading ? (
         <p> Cargando </p>
         ): 
-        // req.find((r) => r.user_id === email) ? (
-        req ? (
-                <>
-                  <p className="text-gray-600 mb-2">Tu solicitud ({email}) está pendiente de aprobación.</p>
-                  <button
-                    onClick={cancelRequest}
-                    className="bg-blue-600 text-black px-6 py-2 rounded hover:bg-blue-700">
-                    Cancelar participación
-                  </button>
-                </>
-              ) :  isApproved ? (
-                    <>
-                    <p className="text-green-600 font-medium">¡Tu solicitud ha sido aprobada! Puedes activar la cámara</p>
+        //   requestStatus === 'none' ? (
+        //   <>
+        //     <p className="text-gray-600 mb-2">No has enviado ninguna solicitud.</p>
+        //     <button onClick={handleRequest} className="bg-blue-600 text-black px-6 py-2 rounded hover:bg-blue-700">
+        //       Solicitar participación
+        //     </button>
+        //   </>
+        // ) : requestStatus === 'pending' ? (
+        //   <>
+        //     <p className="text-gray-600 mb-2">Tu solicitud ({email}) está pendiente de aprobación.</p>
+        //     <button onClick={cancelRequest} className="bg-blue-600 text-black px-6 py-2 rounded hover:bg-blue-700">
+        //       Cancelar participación
+        //     </button>
+        //   </>
+        // ) : requestStatus === 'approved' ? (
+        //   <>
+        //     <p className="text-green-600 font-medium">¡Tu solicitud ha sido aprobada! Puedes activar la cámara</p>
+        //   </>
+        // ) : (
+        //   <>
+        //     <p className="text-gray-600 mb-2">No has enviado ninguna solicitud.</p>
+            
+        //   </>
+        //   )
 
-                    </>
-              ) : (
-                <>
-                  <p className="text-gray-600 mb-2">No has enviado ninguna solicitud.</p>
-                  <button
-                        onClick={handleRequest}
-                        className="bg-blue-600 text-black px-6 py-2 rounded hover:bg-blue-700"
-                      >
-                        Solicitar participación
-                  </button>
-                </> 
-              )
+        (() => 
+          {
+            switch (requestStatus) {
+              case 'none':
+                return (
+                  <>
+                    <p className="text-gray-600 mb-2">No has enviado ninguna solicitud.</p>
+                    <button 
+                      onClick={handleRequest} 
+                      className="bg-blue-600 text-black px-6 py-2 rounded hover:bg-blue-700"
+                    >
+                      Solicitar participación
+                    </button>
+                  </>
+                );
+              
+              case 'pending':
+                return (
+                  <>
+                    <p className="text-gray-600 mb-2">Tu solicitud ({email}) está pendiente de aprobación.</p>
+                    <button 
+                      onClick={cancelRequest} 
+                      className="bg-blue-600 text-black px-6 py-2 rounded hover:bg-blue-700"
+                    >
+                      Cancelar participación
+                    </button>
+                  </>
+                );
+              
+              case 'approved':
+                return (
+                  <>
+                    <p className="text-green-600 font-medium">¡Tu solicitud ha sido aprobada! Puedes activar la cámara</p>
+                  </>
+                );
+              
+              default:
+                return (
+                  <>
+                    <p className="text-gray-600 mb-2">No has enviado ninguna solicitud.</p>
+                  </>
+                );
+            }
+          }
+        )()
       }
     </div>
   );

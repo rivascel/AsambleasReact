@@ -25,17 +25,9 @@ const localRef = useRef();
   // const [viewerReady, setViewerReady] = useState(checkApprove);
   const [viewerReady, setViewerReady] = useState(false);
   const [signalreceived, setSignalreceived] = useState(false);
-  
   const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
 
-
-  // let userId;
-  // socket11.on("approve",userId => {
-  //   console.log("Usuario aprobado:", userId);
-  // });
-
   socket11.emit("request-stream", email, roomId);
-
 
   useEffect(() => {
     // 1️⃣ Validación temprana
@@ -98,8 +90,7 @@ const localRef = useRef();
       socket11.on("stream-ready", async ()=>{
         if (!subscribe) return;
         console.log(`El admin comenzó transmisión`);
-        windoow.alert("El administrador ha iniciado la transmisión.");
-        // joinStreamAsViewer(roomId, ownerInfo.email, admin, remoteRef.current);
+        windows.alert("El administrador ha iniciado la transmisión.");
       });
     };
     init();
@@ -113,9 +104,7 @@ const localRef = useRef();
   useEffect(() => {
     const init = async () => {
       const { unsubscribe} = listenToApprovals(roomId, (from_user)=>{
-        console.log("👂 recibe offer y ice-candidates:", from_user );
       });
-      // await listenForAnswers(ownerInfo.email); 
       return () => {
       unsubscribe?.();
     }

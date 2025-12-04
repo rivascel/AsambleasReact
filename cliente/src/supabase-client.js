@@ -64,6 +64,7 @@ export function subscribeToSignals(userId, callback) {
 // }
 
 // Simulación para detectar viewers (desde tabla active_users)
+
 export const getAllViewersAndListen = async (roomId, onNewViewer) => {
   const viewers = new Set(); // Usamos Set para evitar duplicados
 
@@ -146,28 +147,7 @@ export async function sendSignal({ room_id, from_user, to_user, type, payload })
   }
 }
 
-
-
-export const listenToApprovals = async (room, onNewViewer) => {
-
-  const approvers = new Set(); // Usamos Set para evitar duplicados
-
-  const { data: currentApprovers, error} = await supabase
-    .from("requests")
-    .select("*")
-    .eq("room_id",room)
-    .eq("status","approved")
-
-     if (error) {
-      console.error("Error obteniendo approvers:", error);
-      throw error;
-    }
-
-    currentApprovers?.forEach((approver)=>{
-      approvers.add(approver.user_id);
-      onNewViewer?.(approver);
-    });
-    
+export const listenToApprovals = (room, email, onChange) => {
 
   const channel = supabase
     .channel(`Signals from Approved-${room}`)
@@ -177,32 +157,113 @@ export const listenToApprovals = async (room, onNewViewer) => {
         event: 'INSERT',
         schema: 'public',
         table: 'requests',
-        filter: `room_id=eq.${room}`,
-        filter: `status=eq.approved`
-
+        filter: `room_id=eq.${room}`
       },
       (payload) => {
-        const newApprover = payload.new;
-        if (!approvers.has(newApprover.user_id)) {
-          approvers.add(newApprover.user_id);
-          onNewViewer?.(newApprover);
+        console.log("📡 INSERT recibido:", payload);
+        onChange?.(payload.new);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'requests',
+        filter: `room_id=eq.${room}`
+      },
+      (payload) => {
+        console.log("📡 UPDATE recibido:");
+        onChange?.(payload.new);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'requests'
+      },
+      (payload) => {
+        console.log("📡 DELETE recibido en Supabase listener:", payload.old);
+      // Verifica TODOS los campos disponibles
+          console.log("📡 Todos los campos de payload.old:", Object.keys(payload.old));
+          
+        // Filtra por user_id en lugar de room_id
+        if (payload.old.user_id === email) {
+          console.log("✅ DELETE del usuario actual");
+          onChange?.({...payload.old, _deleted: true });
         }
       }
     )
-    .subscribe((status) => {
-      console.log("Estado de suscripción:", status);
-    });
+    .subscribe();
 
-    return {
-          // () => channel.unsubscribe();
-    
-      // return  () => channel.unsubscribe();
-      approvers: Array.from(approvers), // Convertimos a array para facilidad de uso
-      
-      // removeChannel: () => supabase.removeChannel(channel),
-      unsubscribe: () => supabase.unsubscribe(channel)
-    };
+    return channel;
 
+};
+
+export const listenToRequests = (room, filterUser, onChange) => {
+
+  const channel = supabase
+    .channel(`Signals from Requests-${room}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'requests',
+        filter: `room_id=eq.${room}`
+      },
+      (payload) => {
+        console.log("📡 INSERT requests:");
+        onChange?.(payload.new);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'requests',
+        filter: `room_id=eq.${room},status=eq.approved`
+      },
+      (payload) => {
+        console.log("📡 UPDATE requests:");
+        onChange?.(payload.new);
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'requests'
+      },
+      (payload) => {
+        // const data = payload.old; 
+        console.log("📡 DELETE requests en Supabase listener:", payload.old);
+      // Verifica TODOS los campos disponibles
+          console.log("📡 Todos los campos de payload.old:", Object.keys(payload.old));
+          
+        // Filtra por user_id en lugar de room_id
+        if (Array.isArray(filterUser)) {
+          if (!filterUser.includes(payload.old.user_id)) {
+            return; // No es un usuario que nos interesa
+          } else {           
+            console.log("✅ DELETE del usuario actual");
+            onChange?.({...payload.old, _deleted: true });
+          }
+        };
+
+        if (payload.old.user_id === email) {
+          console.log("✅ DELETE del usuario actual");
+          onChange?.({...payload.old, _deleted: true });
+        }
+      }
+    )
+    .subscribe();
+
+    return channel;
 };
 
 //===================================================
@@ -296,7 +357,6 @@ export const listenToSignalsFromAdmin = async (userId, callback) => {
 
 
 //Los vieweres escuchan las señales del admin y envian la respuesta (answers)
-
 export const listenToSignalsFromViewer = async (userId, callback) => {
 
   if (!userId) {

@@ -87,9 +87,6 @@ const VideoGeneral = () => {
       console.log("email del admin:", email);
 
       if (stream && localRef.current) {
-        // const { unsubscribe} = listenToSignals(admin, (from_user)=>{
-        //   console.log("👂 Se conecto:", from_user );
-        // });
         await startBroadcasting(roomId, email, localRef.current);
         socket10.emit("admin-ready", admin, roomId);
 
@@ -113,7 +110,6 @@ const VideoGeneral = () => {
 
     const init = () => {
       const subscription = listenForAnswers(email);
-      console.log("👂 Escuchando ofertas y ices :", email );
       return () => {
         if (subscription.unsubscribe) {
           console.log("🧹 Cancelando suscripción answers de:", email);
@@ -123,32 +119,6 @@ const VideoGeneral = () => {
     }
     init();
   }, [roomId, email]);
-
-  // escuchar viewer y enviarles ofertas
-  useEffect(() => {
-
-    // const { unsubscribe } = getAllViewersAndListen(roomId, async (viewer) => {
-    //   console.log("👂 Viewer que se conecta", viewer );
-    //   await createOfferToViewer(roomId, viewer);
- 
-    // });
-    // return () => {
-    //   unsubscribe?.();
-    // };
-    // createOfferToViewer(roomId, userId);
-
-  }, [userId]);
-
-//   useEffect(() => {
-//   if (!userId) return;
-
-//   const channel = subscribeToSignals(userId, (payload) => {
-//     handleSignal(payload, role);
-//   });
-
-//   return () => channel.unsubscribe();
-// }, [userId, role]);
-
 
     const openBroadcasting = async () => {
       try {

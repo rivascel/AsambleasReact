@@ -27,7 +27,7 @@ async function requestToJoinRoom(roomId, userId) {
       return;
     }
   
-    console.log(`Request sent for room: ${roomId}. Waiting for admin approval.`);
+    // console.log(`Request sent for room: ${roomId}. Waiting for admin approval.`);
   }
   
 async function getPendingRequest(roomId) {
@@ -195,7 +195,7 @@ async function deleteCandidate(userId, roomId = 'main-room') {
 
     if (deleteError) throw deleteError;
 
-    console.log(`Request del usuario ${userId} eliminado correctamente de la sala ${roomId}.`);
+    // console.log(`Request del usuario ${userId} eliminado correctamente de la sala ${roomId}.`);
   } catch (err) {
     console.error('Error al eliminar candidato:', err);
   }
