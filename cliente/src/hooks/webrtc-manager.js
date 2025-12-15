@@ -2,7 +2,8 @@
 import { 
   getActiveAdmin, registerAdminIsActive, getAllViewersAndListen,
   listenToSignals, sendSignal, listenToSignalsFromViewer,
-  listenToApprovals, setAdminIsStreaming
+   setAdminIsStreaming,
+   listenToRequests
 } from "../../src/supabase-client";
 
 import { getPeerConnection, createPeerConnection, closePeerConnection } from "./peer-manager.js";
@@ -175,13 +176,18 @@ export async function createOfferToViewer(roomId, adminId) {
     }
 }
 
+//MODIFICAR ESTE FUNCION PARA QUE SE RECUPERE EL VIEWER APROBADO CON EL "EMAIL"
 let ApprovedViewer;
-export function listenForApprovals(room){
+export function listenForApprovals(room, email){
   return new Promise(async (resolve) => {
-    const { unsubscribeChannel } = await listenToApprovals(room, (approver) => { 
-      ApprovedViewer = approver.user_id;
-      console.log("Viewer aprobado:", ApprovedViewer);
-      resolve(ApprovedViewer);
+    const { unsubscribeChannel } = listenToRequests(room, email, (approver) => { 
+      if (approver.status === 'approved') {
+        ApprovedViewer = approver.user_id;
+        console.log("Viewer aprobado:", ApprovedViewer);
+        resolve(ApprovedViewer);
+
+      }
+      unsubscribeChannel().unsubscribe();
     });
   });
 }

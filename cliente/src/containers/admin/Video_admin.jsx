@@ -9,7 +9,7 @@ import { startBroadcasting, stopLocalStream,
   createOfferToViewer,
   // handleSignal
  } from "../../hooks/webrtc-manager";
-import { listenToApprovals, listenToSignals, getAllViewersAndListen, subscribeToSignals, getViewerStreaming
+import { listenToSignals, getAllViewersAndListen, subscribeToSignals, getViewerStreaming
 
  } from '../../supabase-client';
 import { message } from "statuses";
@@ -57,7 +57,7 @@ const VideoGeneral = () => {
         let admin = email;
         console.log("Admin para escuchar transmisiones:", admin);
 
-        const exists = await listenForApprovals(roomId);
+        const exists = await listenForApprovals(roomId, email);
         if (exists) {
           setRemote(true);
         } else {
@@ -200,9 +200,6 @@ const VideoGeneral = () => {
           <p className="text-red-600 font-medium mb-4">No hay intervencion en este momento.</p>
         )
       }
-
-        
-        
       </div>
     </div>
     )

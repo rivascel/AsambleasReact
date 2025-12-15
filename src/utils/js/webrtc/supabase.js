@@ -18,6 +18,22 @@ async function createRoom(roomId) {
 
 //El usuario se une a la sala
 async function requestToJoinRoom(roomId, userId) {
+    const { data, error1 } = await supabase
+        .from('requests')
+        .select('user_id')
+        .eq('room_id', roomId)
+        .eq('status', 'pending')
+        // .single();
+        // .maybeSingle();
+    if (data && data.some(request => request.user_id === userId)) {
+        // Ya existe una solicitud pendiente para este usuario en esta sala
+        console.log(`El usuario ${userId} ya tiene una solicitud pendiente en la sala ${roomId}.`);
+        return;
+    }
+    if (error1) {
+        throw error1;
+    }
+
     const { error } = await supabase
       .from('requests')
       .insert([{ user_id: userId, status: 'pending', room_id: roomId }]);

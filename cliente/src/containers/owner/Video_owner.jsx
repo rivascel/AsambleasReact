@@ -3,10 +3,11 @@ import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
 import { getAdmin, joinStreamAsViewer, startLocalStream,
   stopLocalStream, 
-  listenForAnswers
+  listenForAnswers,
+  
      } from '../../hooks/webrtc-client';
-import { listenToSignalsFromAdmin, listenToSignals, registerViewer, listenToApprovals, getAdminStreaming
-
+import { listenToSignalsFromAdmin, listenToSignals, registerViewer, getAdminStreaming,
+          listenToRequests
  } from '../../supabase-client';
 
 const socket11 = io("https://localhost:3000", {
@@ -20,11 +21,8 @@ const localRef = useRef();
   const roomId = 'main-room';
   const { email, ownerData, login, checkApprove } = useContext(UserContext);
   const [adminId, setAdminId] = useState(null);
-  const [listen, setListen]=useState(false);
   const [isAllowed, setIsAllowed] = useState(false);
-  // const [viewerReady, setViewerReady] = useState(checkApprove);
   const [viewerReady, setViewerReady] = useState(false);
-  const [signalreceived, setSignalreceived] = useState(false);
   const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
 
   socket11.emit("request-stream", email, roomId);
@@ -40,9 +38,6 @@ const localRef = useRef();
     
     const fetchData = async () => {
       const admin = await getAdmin(roomId);
-      // setAdminId(admin);
-      // console.log("Admin",admin);
-
       try {
         const response = await fetch("https://localhost:3000/api/recover-users-id", { 
           method: 'POST',
@@ -54,6 +49,14 @@ const localRef = useRef();
 
         const userData = await response.json();
         const userById = userData.approvedUsersById || [];
+
+        const { unsuscribeChannel } = listenToRequests(roomId, email, (approver) => { 
+          if (approver.status === 'approved') {
+            console.log("Viewer aprobado via listener:", approver.user_id);
+            if (!viewerReady) setViewerReady(true);
+          }
+          unsuscribeChannel().unsubscribe();
+        });
 
         if (userById.includes(email)) {
           console.log("Usuario aprobado para enviar stream...");
@@ -101,17 +104,17 @@ const localRef = useRef();
   },[roomId, ownerInfo?.email]);
 
 
-  useEffect(() => {
-    const init = async () => {
-      const { unsubscribe} = listenToApprovals(roomId, (from_user)=>{
-      });
-      return () => {
-      unsubscribe?.();
-    }
-  };
+//   useEffect(() => {
+//     const init = async () => {
+//       const { unsubscribe} = listenToApprovals(roomId, (from_user)=>{
+//       });
+//       return () => {
+//       unsubscribe?.();
+//     }
+//   };
 
-  init();
-}, [email]);
+//   init();
+// }, [email]);
 
 //   useEffect(() => {
 //   if (!roomId) return;

@@ -11,244 +11,242 @@ const socket5 = io("https://localhost:3000", {
 
 const AttendeesList = () => {
   const roomId = 'main-room';
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  // const [pendingUsers, setPendingUsers] = useState(null);
-  const [isPending, setIsPending] = useState(null);
-  const [isApproved, setIsApproved] = useState(null);
-  const [check, setCheck] = useState(false);
-  const [updatedUsers, setUpdatedUsers] = useState(false);
-  // const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [pendingUsersIds, setPendingUsersIds] = useState([]);
+  const [approvedUsersIds, setApprovedUsersIds] = useState([]);
+  // const [updatedUsers, setUpdatedUsers] = useState('default');
 
-  // let pendingUsers;
-  // let approvedUsers; 
-  let pendingUsersIds = [];
-  let approvedUsersIds = [];
-
+   // Elimina updatedUsers y usa los estados directamente
+  const hasPending = pendingUsersIds.length > 0;
+  const hasApproved = approvedUsersIds.length > 0;
+  
   useEffect( ()=>{
-  // let channel;
   let isMounted = true;
+    let channelRequests, channelApprovals;
 
-  const fetchUsers = async () =>  {
-    try {
-      const [pendingRes, approvedRes] = await Promise.all([
-        fetch("https://localhost:3000/api/recover-users", { 
+  const fetchUsers = async () => {
+      try {
+        console.log("🔄 Ejecutando fetchUsers...");
+        const [pendingRes, approvedRes] = await Promise.all([
+          fetch("https://localhost:3000/api/recover-users", { 
             method: 'POST',
             headers: { 'Content-Type':'application/json' },
             body: JSON.stringify({ roomId: "main-room" }),
           }),
-        fetch("https://localhost:3000/api/searched-users-approved", { 
+          fetch("https://localhost:3000/api/searched-users-approved", { 
             method: 'POST',
             headers: { 'Content-Type':'application/json' },
             body: JSON.stringify({ roomId: "main-room" }),
           })
-      ]);
+        ]);
 
-      if (!pendingRes.ok || !approvedRes.ok) {
-        throw new Error("Error al cargar los usuarios");
-      }
+        if (!pendingRes.ok || !approvedRes.ok) {
+          throw new Error("Error al cargar los usuarios");
+        }
 
-      const pendingUsersJson = await pendingRes.json();
-      const approvedUsersJson = await approvedRes.json();
-      console.log("Usuarios pendientes recibidos:", pendingUsersJson);
+        const pendingUsersJson = await pendingRes.json();
+        const approvedUsersJson = await approvedRes.json();
+        
+        console.log("pendingUsersJson:", pendingUsersJson);
+        console.log("approvedUsersJson:", approvedUsersJson);
 
-      const pendingUsers = pendingUsersJson?.pendingUsers || [];
-      
-      const approvedUsers = approvedUsersJson?.approvedUsers || [];
+        const pendingUsers = pendingUsersJson?.pendingUsers || [];
+        const approvedUsers = approvedUsersJson?.approvedUsers || [];
 
-      console.log(`pending users:`, pendingUsers);
-      console.log(`approved users:`, approvedUsers);
-
-      console.log(`pending ${pendingUsers}, approved ${approvedUsers}`);
-      console.log("Estructura completa de pendingUsersJson:", pendingUsersJson);
-      console.log("Tipo de pendingUsersJson:", typeof pendingUsersJson);
-      console.log("pendingUsersJson.pendingUsers:", pendingUsersJson.pendingUsers);
-      console.log("Es array pendingUsersJson.pendingUsers?", Array.isArray(pendingUsersJson.pendingUsers));
-
-      // pendingUsersIds = pendingUsers.map(user => user.user_id);
-      // approvedUsersIds = approvedUsers.map(user => user.user_id);
-      // console.log(`pendingIds ${pendingUsersIds}, approvedIds ${approvedUsersIds}`);
-
-      // Extrae los IDs (solo si hay usuarios)
-      const pendingUsersIds = Array.isArray(pendingUsers) 
+        const pendingIds = Array.isArray(pendingUsers) 
           ? pendingUsers.map(user => user?.user_id || user?.id).filter(id => id) 
           : [];
 
-      const approvedUsersIds = Array.isArray(approvedUsers) 
-          ? approvedUsers.map(user => user?.user_id || user?.id).filter(id => id) 
+        const approvedIds = Array.isArray(approvedUsers) 
+          ? approvedUsers.filter(id => id) 
           : [];
-      
-      console.log(`pendingIds:`, pendingUsersIds);
-      console.log(`approvedIds:`, approvedUsersIds);
+        
+        console.log(`📊 Resultado fetchUsers - Pendientes: ${pendingIds.length}, Aprobados: ${approvedIds.length}`);
 
-      // if (!isMounted) return;
-
-      // setIsPending(pendingUsers.pendingUsers || pendingUsers || []);
-      // setIsApproved(approvedUsers.approvedUsers || approvedUsers || []);
-
-      // Verifica si hay al menos un ID en alguno de los arrays
-
-      if (pendingUsersIds.length > 0 || approvedUsersIds.length > 0) {
-          console.log("recuperando usuarios...");
+        if (isMounted) {
+          setPendingUsersIds(pendingIds);
+          setApprovedUsersIds(approvedIds);
+          setLoading(false);
           
-          // Actualiza los estados con los IDs
-          setIsPending(pendingUsersIds);
-          setIsApproved(approvedUsersIds);
-          
-          console.log("Usuarios pendientes actualizados:", pendingUsersIds);
-          console.log("Usuarios aprobados actualizados:", approvedUsersIds);
-      } else {
-          console.log("No se encontraron usuarios pendientes o aprobados");
+          console.log("✅ Estados actualizados:", {
+            pending: pendingIds,
+            approved: approvedIds
+          });
+        }
+      } catch (error) {
+        console.error("Error cargando usuarios:", error);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
+    };
 
 
-
-      // if (pendingUsersIds !== '' &&  approvedUsersIds !== '') {
-      //   console.log("recuperando usuarios...");
-        // setUpdatedUsers(true);
-
-        // setIsPending(pendingUsers.pendingUsers || pendingUsers || []);
-        // setIsApproved(approvedUsers.approvedUsers || approvedUsers || []);
-
-        // setIsPending(pendingUsersIds || []);
-        // setIsApproved(approvedUsersIds || []);
-        // console.log("Usuarios pendientes actualizados:", isPending);
-
-      // } else {
-      //   // setUpdatedUsers(false);
-      //   return;
-      // };
-
-    } catch (error) {
-      console.error("Error cargando usuarios:", error);
-    } finally {
-      setLoading(false);
+  // Función para manejar cambios
+  const handleChange = (type) => {
+    console.log(`📡 Cambio detectado en ${type}`);
+    if (isMounted) {
+      fetchUsers();
     }
   };
 
-    // Ejecutar la carga inicial
-  fetchUsers();
-},[roomId,updatedUsers]);
+    fetchUsers();
 
-  useEffect( ()=>{
 
-    const init =  async () => {
+// Configurar suscripciones (sin filtrar)
+  channelRequests = listenToRequests(
+    "main-room",
+    null, // Escuchar todo
+    () => handleChange('solicitudes'),
+    // false
+  );
 
-      const channel = listenToRequests(roomId, pendingUsersIds, (data) => {
-        console.log("📡 Evento recibido de pendientes en admin:", data);
+  channelApprovals = listenToRequests(
+    "main-room",
+    null, // Escuchar todo
+    () => handleChange('aprobaciones'),
+    // true
+  );
 
-        // ⭐ Refrescamos manualmente cuando llega un evento
-        if (channel) setUpdatedUsers(true);
-        console.log("canal de pendientes:");
-      });
+  console.log("✅ Suscripciones configuradas");
 
-      const channel2 =  listenToRequests(roomId, approvedUsersIds, (data) => {
-      console.log("📡 Evento recibido de aprobados en admin:", data);
-      
-        // ⭐ Refrescamos manualmente cuando llega un evento
-      if (channel2) setUpdatedUsers(true);
-        console.log("canal de aprobados:");
-      });
-
-    }
-
-    init();
-
-      // Cleanup: ejecutar solo cuando se desmonte el componente
-      let channel, channel2;
+  // Limpieza
     return () => {
-      console.log("🧹 Limpiando listener del admin");
-      if (channel || channel2) {
-        channel.unsubscribe();
-        channel2.unsubscribe();
+      console.log("🧹 Limpiando efectos...");
+      isMounted = false;
+      if (channelRequests) {
+        console.log("Desuscribiendo channelRequests");
+        channelRequests.unsubscribe();
+      }
+      if (channelApprovals) {
+        console.log("Desuscribiendo channelApprovals");
+        channelApprovals.unsubscribe();
       }
     };
-  }, [roomId]);
+},[]);
 
+
+
+  // Keep only the logging useEffect for debugging
+  useEffect(() => {
+    console.log("📊 Estado actual:", {
+      pendingUsersIds,
+      approvedUsersIds,
+      hasPending,
+      hasApproved,
+      loading
+    });
+  }, [pendingUsersIds, approvedUsersIds, hasPending, hasApproved, loading]);
 
 
     const handleApprove = async (userId) => {
     try {
-          const response = await fetch("https://localhost:3000/api/approved-users",
-            { 
-                method: 'POST',
-                headers: { 'Content-type':'application/json' },
-                body: JSON.stringify({ roomId: "main-room" , userId: userId }),
-            });
+            const response = await fetch("https://localhost:3000/api/approved-users",
+              { 
+                  method: 'POST',
+                  headers: { 'Content-type':'application/json' },
+                  body: JSON.stringify({ roomId: "main-room" , userId: userId }),
+              });
 
-            setIsPending(prev => prev.filter(user => user.user_id !== userId));
-            // setIsApproved(prev => [...prev, userId]);
-
-      } catch (err) {
-      console.error(err);
-      console.log("Error al enviar la solicitud.");
-      }
+                if (response.ok) {
+                  console.log(`✅ Usuario ${userId} aprobado en el servidor`);
+                  
+                  // CORRECCIÓN AQUÍ: Filtrar por ID (string), no por user.user_id
+                  setPendingUsersIds(prev => prev.filter(id => id !== userId));
+                  
+                  // CORRECCIÓN AQUÍ: Agregar a aprobados
+                  setApprovedUsersIds(prev => [...prev, userId]);
+                  
+                  console.log(`✅ Estados locales actualizados: 
+                    Pendientes eliminado: ${userId}
+                    Aprobados agregado: ${userId}`);
+                } else {
+                  console.error("❌ Error en la respuesta del servidor");
+                }
+            } catch (err) {
+              console.error("❌ Error al aprobar usuario:", err);
+            }
+ 
     }
 
-  const handleCancel = async (email) => {
+  const handleCancel = async (userId) => {
     try {
-        await fetch("https://localhost:3000/api/cancel-users",
-          { 
-              method: 'POST',
-              headers: { 'Content-type':'application/json' },
-              body: JSON.stringify({ userId: email }),
-          });
-          // Actualiza los estados localmente
-          setIsApproved(prev => prev.filter(id => id !== email));
-              
+      console.log(`❌ Intentando cancelar aprobación de: ${userId}`);
+      
+      const response = await fetch("https://localhost:3000/api/cancel-users", { 
+        method: 'POST',
+        headers: { 'Content-type':'application/json' },
+        body: JSON.stringify({ userId: userId }),
+      });
+      
+      if (response.ok) {
+        console.log(`✅ Aprobación de ${userId} cancelada en el servidor`);
+        
+        // Actualiza los estados localmente
+        setApprovedUsersIds(prev => prev.filter(id => id !== userId));
+        
+        console.log(`✅ Estado local actualizado: Aprobados eliminado: ${userId}`);
+      } else {
+        console.error("❌ Error en la respuesta del servidor");
+      }
     } catch (err) {
-    console.error(err);
-    console.log("Error al enviar la solicitud.");
+      console.error("❌ Error al cancelar aprobación:", err);
     }
-  }
+  };
+    // Renderizado simplificado
+  const renderContent = () => {
+    if (loading) {
+      return <p>Cargando...</p>;
+    }
+
+    if (!hasPending && !hasApproved) {
+      return <p className="text-gray-600 mb-2">No hay usuarios pendientes ni aprobados.</p>;
+    }
+
+
+  return (
+      <>
+        {hasPending && (
+          <div className="mb-6">
+            <h2 className="text-lg font-bold mb-2">Usuarios pendientes</h2>
+            {pendingUsersIds.map((userId, index) => (
+              <div key={`pending-${userId}-${index}`} className="mb-2 p-2 border rounded">
+                <p>{userId}</p>
+                <button
+                  onClick={() => handleApprove(userId)}
+                  className="bg-green-500 text-red px-3 py-1 rounded hover:bg-green-600 mt-1"
+                >
+                  Aprobar
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {hasApproved && (
+          <div>
+            <h2 className="text-lg font-bold mb-2">Usuarios aprobados</h2>
+            {approvedUsersIds.map((userId, index) => (
+              <div key={`approved-${userId}-${index}`} className="mb-2 p-2 border rounded">
+                <p>{userId}</p>
+                <button
+                  onClick={() => handleCancel(userId)}
+                  className="bg-red-500 text-red px-3 py-1 rounded hover:bg-red-600 mt-1"
+                >
+                  Cancelar aprobación
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (
     <div className="bg-white p-4 rounded shadow-md text-center">
-      <p className="text-green-600 font-medium">Solicitudes recibidas</p>
-
-      {loading ? (
-          <p> Cargando </p>
-        ) : updatedUsers ?(
-          <>
-            <h2 className="text-lg font-bold">Usuarios pendientes</h2>
-            
-              {isPending.length > 0 ? (
-                isPending.map(user => (
-                  <div key={user?.user_id} className="mb-2 p-2 border rounded">
-                    <p>{user.user_id} </p>
-                    <button
-                      onClick={()=>handleApprove(user.user_id)}
-                      className="bg-blue-500 text-red px-3 py-1 rounded hover:bg-blue-600"
-                    >
-                      Aprobar
-                    </button>
-                  </div>
-                  ))
-                  ) : (
-                      <p>No hay usuarios pendientes</p>
-                )
-              } 
-              
-            <h2 className="text-lg font-bold mt-4">Usuarios aprobados</h2>
-              {isApproved.length > 0 ? (
-                isApproved.map((email, index) => (
-                    <div key={`approved-${ index }`} className="mb-2 p-2 border rounded">
-                      <p>{email} </p>
-                      <button
-                        onClick={()=>handleCancel(email)}
-                        className="bg-blue-500 text-red px-3 py-1 rounded hover:bg-blue-600"
-                      >
-                        Cancelar aprobacion
-                      </button>
-                    </div>
-                )) 
-              ) : ( <p>No hay usuarios pendientes</p>
-            )}
-          </>
-          ) : (
-            <p>No hay actualizaciones de usuarios</p>
-          )
-    }
+      <p className="text-green-600 font-medium mb-4">Solicitudes recibidas</p>
+      {renderContent()}
     </div>
   );
 };
