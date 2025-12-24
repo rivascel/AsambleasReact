@@ -113,8 +113,6 @@ export async function createOfferToAdmin(roomId, viewerId /*, pc*/) {
        console.log("🎥 Tracks añadidos al PeerConnection:", localStream.getTracks().map(t => t.kind));
     } else {
       console.warn("⚠️ No se encontraron tracks locales — no se generarán ICE candidates");
-      // En caso de que quieras forzar el inicio de ICE aunque no haya medios:
-      // adminPc.createDataChannel("dummy");
     }
 
     console.log("🔍 Estado de peerConnections para viewer:", Object.keys(peerConnections));
@@ -200,28 +198,34 @@ export async function listenForAnswers(viewerId) {
   // const subscription = 
   const channel = listenToSignals(viewerId, async ( signal ) => { 
     const adminId = signal.from_user;
-    const pcAdmin = peerConnections[adminId];
 
-    if (!pcAdmin) {
+    // let pc;
+    const pc = getPeerConnection(adminId);
+        if (!pc) pc=createPeerConnection(adminId);
+        // const pc = peerConnections[viewerId];
+        console.log(`📨 Señal enviada a ${viewerId}:`, signal);
+
+    if (!pc) {
       console.warn(`No se encontró conexión para viewer ${viewerId}`);
       return;
     }
 
     if (signal.type === "answer") {
+
       await handleAnswer(signal.from_user, signal.payload);
 
-      console.log("Estado actual de señalización:", pcAdmin.signalingState);
+      console.log("Estado actual de señalización:", pc.signalingState);
 
       console.log("📦 Payload recibido del answer:");
 
       const answer = typeof signal.payload === "string" ? JSON.parse(signal.payload) : signal.payload;
 
       // Verificar el estado de señalización
-      console.log("Estado actual de señalización:", pcAdmin.signalingState);
+      console.log("Estado actual de señalización:", pc.signalingState);
       
-      if (pcAdmin.signalingState === "have-local-offer") {
+      if (pc.signalingState === "have-local-offer") {
           try{
-            await pcAdmin.setRemoteDescription(answer);
+            await pc.setRemoteDescription(answer);
             console.log(`✅ Answer aplicado para ${viewerId}`);
           } catch (error) { 
              if (error.toString().includes('ufrag')) {
@@ -233,14 +237,14 @@ export async function listenForAnswers(viewerId) {
           };
 
       } else {
-        console.warn(`⚠️ Estado inesperado: ${pcAdmin.signalingState} para ${viewerId}`);
+        console.warn(`⚠️ Estado inesperado: ${pc.signalingState} para ${viewerId}`);
       }
       
       try {
         while (candidateQueue.length > 0) {
           const queuedCandidate = candidateQueue.shift();
           try {
-              await pcAdmin.addIceCandidate(queuedCandidate);
+              await pc.addIceCandidate(queuedCandidate);
               console.log('✅ Candidato en cola agregado')
           } catch (err) {
             console.error('Error agregando candidato en cola:', err);
@@ -249,8 +253,7 @@ export async function listenForAnswers(viewerId) {
       } catch (error) {
       console.error(`❌ Error al aplicar la respuesta de ${adminId}:`, error);
       }
-    } 
-    if (signal.type === "ice-candidate") {
+    } else if (signal.type === "ice-candidate") {
       try {
         const parsed = typeof signal.payload === "string" ? JSON.parse(signal.payload) : signal.payload;
         console.log("📦 Payload ICE recibido:", parsed); // Debug detallado
@@ -284,7 +287,7 @@ export async function listenForAnswers(viewerId) {
         });
 
         // Usar handleIncomingICECandidate o agregar directamente
-        await handleIncomingICECandidate(pcAdmin, iceCandidate);
+        await handleIncomingICECandidate(pc, iceCandidate);
 
 
       } catch (error) {
@@ -308,210 +311,6 @@ export async function listenForAnswers(viewerId) {
   // return subscription;
 };
 
-export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
-  
-  if (peerConnections[adminId]) {
-    peerConnections[adminId].close();
-    delete peerConnections[adminId];
-  };
-
-  let pcAdmin = getPeerConnection(adminId);
-  if (!pcAdmin) {
-    pcAdmin = createPeerConnection(adminId);
-  }
-  remoteStream = new MediaStream();
-
-   // Prepara la conexión para recibir audio y video.
-  pcAdmin.addTransceiver('video', { direction: 'sendrecv' });
-  pcAdmin.addTransceiver('audio', { direction: 'sendrecv' });
-
-  console.log("Viewer transceivers:", pcAdmin.getTransceivers().length);
-
-    // 2. Mostrar el video remoto (stream del admin)
-  pcAdmin.ontrack = (event) => {
-    console.log("🎥 Track recibido:", event.track.kind);
-
-    event.streams[0].getTracks().forEach(track => {
-      const exists = remoteStream.getTracks().some((t) => t.id === track.id);
-      if (!exists) {
-        remoteStream.addTrack(track);
-      }
-    });
-      
-  // ✅ Asignar el stream al video solo si no se ha hecho antes
-    if (streamTarget && !streamTarget.srcObject) {
-      streamTarget.srcObject = remoteStream;
-      console.log("📺 Stream remoto asignado (solo una vez)");
-    } else {
-      console.log("ℹ️ Stream ya estaba asignado, no se reasigna");
-    }
-
-    console.log("🎬 Tracks actuales en remoteStream:", remoteStream.getTracks().length);
-  };
-
-    // Manejar ICE candidates
-  pcAdmin.onicecandidate = async (event) => {
-    if (event.candidate) {
-      // Enviar a cada viewer individualmente
-        try {
-            await sendSignal({
-            room_id: roomId,  
-            from_user: viewerId,  //De mi (viewer)
-            to_user: adminId,     //Para el admin 
-            type: "ice-candidate",
-            payload: {
-              candidate: event.candidate.candidate,        // ← Esto es crucial
-              sdpMLineIndex: event.candidate.sdpMLineIndex,
-              sdpMid: event.candidate.sdpMid
-            },
-            
-          });
-          console.log(`❄️ ICE candidate ENVIADO a ${adminId}`);
-        } catch (error) {
-            console.error(`Error enviando ICE candidate `, error);
-        }
-    }
-  };
-
-  // ✅ PASO 1: Inicializa una cola para los candidatos que lleguen temprano.
-  // Track connection state
-  let isSettingRemoteDescription = false;
-  let isCreatingAnswer = false;
-  let candidateQueue = [];
-
-  //Escucha del Viewer - to_user
-  listenToSignalsFromAdmin(viewerId, async ({ to_user, from_user, type, payload, room_id }) => {
-    try {
-      if (type === "offer") {
-        if (isSettingRemoteDescription || isCreatingAnswer || pcAdmin.signalingState !== "stable") {
-          console.warn('Ya se está procesando una oferta o no estamos en estado estable');
-          return;
-        }
-
-        isSettingRemoteDescription = true;
-        
-        let offer;
-        if (typeof payload === 'string') {
-          try {
-            offer = JSON.parse(payload);
-          } catch (e) {
-            console.error('Error parsing offer payload:', e);
-            return;
-          }
-        } else {
-          offer = payload;
-        }
-
-        if (pcAdmin.connectionState === "closed") {
-          console.warn("⚠️ Intentando usar una peer connection cerrada.");
-          return;
-        }
-        await pcAdmin.setRemoteDescription(new RTCSessionDescription(offer));
-
-        console.log("Remote description set");
-
-        // 2. Process queued candidates (with ufrag validation)
-        await processCandidateQueue(pcAdmin, candidateQueue);
-
-        // 3. Create and send answer
-        isCreatingAnswer = true;
-
-        const answer = await pcAdmin.createAnswer();
-        console.log("Answer created:", answer.type);
-
-        await pcAdmin.setLocalDescription(answer);
-        console.log("Local description set");
-
-        pcAdmin.onconnectionstatechange = () => {
-          console.log("📡 Conexión state:", pcAdmin.connectionState);
-          if (pcAdmin.connectionState === "disconnected" || pcAdmin.connectionState === "failed" || pcAdmin.connectionState === "closed") {
-            console.warn("❌ Conexión cerrada, liberando recursos");
-            pcAdmin.close();
-            delete peerConnections[adminId];
-          }
-        };
-
-        // Enviar respuesta al admin
-
-        await sendSignal({
-          room_id: room_id,
-          from_user: to_user,  //o viewer
-          to_user: from_user,   // o adminId
-          type: "answer",
-          payload: answer,
-        });
-        console.log("Answer sent to admin");
-
-      } else if (type === "ice-candidate" && payload) {
-
-        try {
-            const parsed = typeof payload === "string" ? JSON.parse(payload) : payload;
-
-            // console.log("📦 Payload recibido para ICE:", parsed);
-
-            // Validar que tenga las claves necesarias
-            if (!parsed.candidate) {
-              console.log("ICE end-of-candidates recibido");
-              return;
-            }
-
-            if (
-              !parsed.sdpMid ||
-              parsed.sdpMLineIndex === undefined
-            ) {
-              console.warn("❗ ICE candidate incompleto:", parsed);
-              return;
-            }
-
-            // Asegurar que sdpMLineIndex sea número (por si viene como string)
-            parsed.sdpMLineIndex = Number(parsed.sdpMLineIndex);
-            const candidate = new RTCIceCandidate(parsed);
-
-            if (!pcAdmin || pcAdmin.connectionState === "closed") {
-              console.warn("⚠️ Peer connection cerrada o no existe");
-              return;
-            }
-
-            if (pcAdmin.remoteDescription) {
-              await pcAdmin.addIceCandidate(candidate);
-              console.log("✅ ICE candidate agregado");
-            } else {
-              candidateQueue.push(candidate);
-              console.log("🕒 ICE candidate en cola (sin remoteDescription)");
-            }
-
-        } catch (error) {
-          console.error("❌ Error procesando ICE:", error);
-        }
-      }
-
-          // Return cleanup function
-      return () => {
-      unsubscribe();
-
-      if (pcAdmin) {
-        pcAdmin.close();
-        pcAdmin = null;
-
-      }
-      remoteStream.getTracks().forEach(track => track.stop());
-      }
-
-    } 
-    catch (error) {
-      console.error('Error in signal handler:', error);
-      // Reset flags on error
-      isSettingRemoteDescription = false;
-      isCreatingAnswer = false;
-    } 
-    finally {
-          isSettingRemoteDescription = false;
-          isCreatingAnswer = false;
-    }
-  });
-};
-
-
 export async function handleIncomingICECandidate(pc, candidate) {
   if (!pc.remoteDescription) {
     candidateQueue.push(candidate);
@@ -524,34 +323,313 @@ export async function handleIncomingICECandidate(pc, candidate) {
       console.error("❌ Error agregando ICE:", err);
     }
   }
-}
+};
 
-// Helper function to process queued candidates
-export async function processCandidateQueue(pcAdmin, queue) {
-  const processed = [];
-  const errors = [];
+//====== espectador recibe transmision del admin ======
+export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
 
-  for (const candidate of queue) {
-    try {
-      await pcAdmin.addIceCandidate(candidate);
-      processed.push(candidate);
-      console.log('Processed queued ICE candidate');
-    } catch (error) {
-      if (error.toString().includes('ufrag')) {
-        console.warn('Skipping queued candidate with ufrag mismatch');
-      } else {
-        errors.push(error);
+   // Variables de estado para reconexión
+
+  // ============================================================
+  // 🧹 UTILIDADES
+  // ============================================================
+  
+  function cleanupViewerConnection() {
+    const pc = peerConnections[adminId]
+
+    if (pc) {
+      pc.ontrack = null
+      pc.onicecandidate = null
+      pc.onconnectionstatechange = null
+      pc.close()
+      delete peerConnections[adminId]
+    }
+
+    if (streamTarget?.srcObject) {
+      streamTarget.srcObject.getTracks().forEach(t => t.stop())
+      streamTarget.srcObject = null
+    }
+
+    console.log("🧹 Viewer PC destruida")
+  }
+
+  function createRemoteStream() {
+    const stream = new MediaStream()
+    if (streamTarget) {
+      streamTarget.srcObject = stream
+    }
+    return stream
+  }
+
+
+  // ============================================================
+  // 🔌 CREACIÓN PC
+  // ============================================================
+
+  function createViewerPC() {
+    const pc = createPeerConnection(adminId)
+    peerConnections[adminId] = pc
+
+    const remoteStream = createRemoteStream();  
+
+    pc.addTransceiver('video', { direction: 'recvonly' })
+    pc.addTransceiver('audio', { direction: 'recvonly' })
+
+    pc.onconnectionstatechange = () => {
+      console.log("🔌 PC state:", pc.connectionState)
+      if (pc.connectionState === 'failed' || pc.connectionState === 'closed') {
+        cleanupViewerConnection()
       }
+    }
+
+    pc.ontrack = ({ track }) => {
+      console.log("🎥 Track recibido:", track.kind)
+
+      if (!remoteStream.getTracks().some(t => t.id === track.id)) {
+        remoteStream.addTrack(track)
+      }
+
+      track.onended = () => {
+        console.log("⏹️ Track terminó → reset PC")
+        cleanupViewerConnection()
+      }
+    }
+
+    pc.onicecandidate = async ({ candidate }) => {
+      if (!candidate) return
+
+      try {
+        await sendSignal({
+          room_id: roomId,
+          from_user: viewerId,
+          to_user: adminId,
+          type: "ice-candidate",
+          payload: {
+            candidate: candidate.candidate,
+            sdpMLineIndex: candidate.sdpMLineIndex,
+            sdpMid: candidate.sdpMid
+          }
+        })
+      } catch (err) {
+        console.error("❌ Error enviando ICE:", err)
+      }
+    }
+
+    return pc
+  }
+
+  // ============================================================
+  // 📡 SIGNALING
+  // ============================================================
+
+  async function handleOffer(offer, fromUser, room_id) {
+    console.log("📨 Offer recibida → nueva PC")
+
+    // Siempre empezamos LIMPIO
+    cleanupViewerConnection()
+
+    const pc = createViewerPC()
+
+    const parsedOffer =
+      typeof offer === "string" ? JSON.parse(offer) : offer
+
+    await pc.setRemoteDescription(new RTCSessionDescription(parsedOffer))
+
+    const answer = await pc.createAnswer()
+    await pc.setLocalDescription(answer)
+
+    await sendSignal({
+      room_id,
+      from_user: viewerId,
+      to_user: fromUser,
+      type: "answer",
+      payload: answer
+    })
+
+    console.log("📤 Answer enviado")
+  }
+
+  async function handleIceCandidate(payload) {
+    const pc = peerConnections[adminId]
+    if (!pc || !pc.remoteDescription) return
+
+    try {
+      const parsed =
+        typeof payload === "string" ? JSON.parse(payload) : payload
+
+      if (!parsed?.candidate) return
+
+      await pc.addIceCandidate(new RTCIceCandidate(parsed))
+    } catch (err) {
+      console.error("❌ ICE error:", err)
     }
   }
 
-  // Clear processed candidates
-  queue.splice(0, processed.length);
+// ============================================================
+  // 👂 LISTENER DE SEÑALES
+  // ============================================================
 
-  if (errors.length > 0) {
-    console.error('Errors processing some candidates:', errors);
+  const unsubscribe = listenToSignalsFromAdmin(
+    viewerId,
+    async ({ type, payload, from_user, room_id }) => {
+      try {
+        if (type === "offer") {
+          await handleOffer(payload, from_user, room_id)
+        }
+
+        if (type === "ice-candidate") {
+          await handleIceCandidate(payload)
+        }
+      } catch (err) {
+        console.error("❌ Signal handler error:", err)
+      }
+    }
+  )
+
+  // ============================================================
+  // 🧹 CLEANUP FINAL
+  // ============================================================
+
+  return () => {
+    console.log("🧹 Viewer cleanup manual")
+    unsubscribe()
+    cleanupViewerConnection()
   }
-}
+};
 
 
+
+//Escucha del Viewer - to_user
+  // const unsubscribe=listenToSignalsFromAdmin(viewerId, async ({ to_user, from_user, type, payload, room_id }) => {
+  //   try {
+  //     if (type === "offer") {
+  //       if (isSettingRemoteDescription || isCreatingAnswer || pcAdmin.signalingState !== "stable") {
+  //         console.warn('Ya se está procesando una oferta o no estamos en estado estable');
+  //         return;
+  //       }
+
+  //       isSettingRemoteDescription = true;
+        
+  //       let offer;
+  //       if (typeof payload === 'string') {
+  //         try {
+  //           offer = JSON.parse(payload);
+  //         } catch (e) {
+  //           console.error('Error parsing offer payload:', e);
+  //           return;
+  //         }
+  //       } else {
+  //         offer = payload;
+  //       }
+
+  //       if (pcAdmin.connectionState === "closed") {
+  //         console.warn("⚠️ Intentando usar una peer connection cerrada.");
+  //         return;
+  //       }
+  //       await pcAdmin.setRemoteDescription(new RTCSessionDescription(offer));
+
+  //       console.log("Remote description set");
+
+  //       // 2. Process queued candidates (with ufrag validation)
+  //       await processCandidateQueue(pcAdmin, candidateQueue);
+
+  //       // 3. Create and send answer
+  //       isCreatingAnswer = true;
+
+  //       const answer = await pcAdmin.createAnswer();
+  //       console.log("Answer created:", answer.type);
+
+  //       await pcAdmin.setLocalDescription(answer);
+  //       console.log("Local description set");
+
+  //       pcAdmin.onconnectionstatechange = () => {
+  //         console.log("📡 Conexión state:", pcAdmin.connectionState);
+  //         if (pcAdmin.connectionState === "disconnected" || pcAdmin.connectionState === "failed" || pcAdmin.connectionState === "closed") {
+  //           console.warn("❌ Conexión cerrada, liberando recursos");
+  //           pcAdmin.close();
+  //           delete peerConnections[adminId];
+  //         }
+  //       };
+
+  //       // Enviar respuesta al admin
+
+  //       await sendSignal({
+  //         room_id: room_id,
+  //         from_user: to_user,  //o viewer
+  //         to_user: from_user,   // o adminId
+  //         type: "answer",
+  //         payload: answer,
+  //       });
+  //       console.log("Answer sent to admin");
+
+  //     } else if (type === "ice-candidate" && payload) {
+
+  //       try {
+  //           const parsed = typeof payload === "string" ? JSON.parse(payload) : payload;
+
+  //           // console.log("📦 Payload recibido para ICE:", parsed);
+
+  //           // Validar que tenga las claves necesarias
+  //           if (!parsed.candidate) {
+  //             console.log("ICE end-of-candidates recibido");
+  //             return;
+  //           }
+
+  //           if (
+  //             !parsed.sdpMid ||
+  //             parsed.sdpMLineIndex === undefined
+  //           ) {
+  //             console.warn("❗ ICE candidate incompleto:", parsed);
+  //             return;
+  //           }
+
+  //           // Asegurar que sdpMLineIndex sea número (por si viene como string)
+  //           parsed.sdpMLineIndex = Number(parsed.sdpMLineIndex);
+  //           const candidate = new RTCIceCandidate(parsed);
+
+  //           if (!pcAdmin || pcAdmin.connectionState === "closed") {
+  //             console.warn("⚠️ Peer connection cerrada o no existe");
+  //             return;
+  //           }
+
+  //           if (pcAdmin.remoteDescription) {
+  //             await pcAdmin.addIceCandidate(candidate);
+  //             console.log("✅ ICE candidate agregado");
+  //           } else {
+  //             candidateQueue.push(candidate);
+  //             console.log("🕒 ICE candidate en cola (sin remoteDescription)");
+  //           }
+
+  //       } catch (error) {
+  //         console.error("❌ Error procesando ICE:", error);
+  //       }
+  //     }
+
+  //         // Return cleanup function
+  //     return () => {
+  //     unsubscribe();
+
+  //     if (pcAdmin) {
+  //       pcAdmin.close();
+  //       pcAdmin = null;
+
+  //     }
+  //     remoteStream.getTracks().forEach(track => track.stop());
+  //     }
+
+  //   } 
+  //   catch (error) {
+  //     console.error('Error in signal handler:', error);
+  //     // Reset flags on error
+  //     isSettingRemoteDescription = false;
+  //     isCreatingAnswer = false;
+  //   } 
+  //   finally {
+  //         isSettingRemoteDescription = false;
+  //         isCreatingAnswer = false;
+  //   }
+  // });
+
+  //Escucha del Viewer - to_user
+  
       

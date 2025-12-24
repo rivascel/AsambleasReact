@@ -572,11 +572,12 @@ export const listenToUserRequests = (room, userId, onChange, options = {}) => {
 };
 
 // Esta función es SOLO para el ADMIN (mantiene compatibilidad)
-export const listenToRequests = (room, filterUser, onChange, isApprovals = false) => {
+export const listenToRequests = (room, options={}, onChange) => {
+  const { componentId = 'default'} = options;
   console.warn("⚠️ listenToRequests está deprecado para usuarios. Usa listenToUserRequests para usuarios individuales.");
   
   // Para el admin, crear canal único
-  const channelName = `admin-${room}-${Date.now()}`;
+  const channelName = `admin-${room}-${componentId} -${Date.now()}`;
   console.log(`🔔 [ADMIN] Usando listenToRequests: ${channelName}`);
   
   const channel = supabase

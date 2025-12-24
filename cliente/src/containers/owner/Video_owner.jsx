@@ -50,20 +50,21 @@ const localRef = useRef();
         const userData = await response.json();
         const userById = userData.approvedUsersById || [];
 
-        const { unsuscribeChannel } = listenToRequests(roomId, email, (approver) => { 
+        const { unsuscribeChannel } = listenToRequests(roomId, {componentId: 'VideoGeneral'}, (approver) => {
+          
           if (approver.status === 'approved') {
             console.log("Viewer aprobado via listener:", approver.user_id);
             if (!viewerReady) setViewerReady(true);
           }
-          unsuscribeChannel().unsubscribe();
+          // unsuscribeChannel().unsubscribe();
         });
 
         if (userById.includes(email)) {
           console.log("Usuario aprobado para enviar stream...");
-          if (!viewerReady) setViewerReady(true);
+          // if (!viewerReady) setViewerReady(true);
         } else {
           console.log("Usuario aun no aprobado");
-          if (viewerReady) setViewerReady(false);
+          // if (viewerReady) setViewerReady(false);
         };
 
       } catch (error) {
@@ -93,7 +94,7 @@ const localRef = useRef();
       socket11.on("stream-ready", async ()=>{
         if (!subscribe) return;
         console.log(`El admin comenzó transmisión`);
-        windows.alert("El administrador ha iniciado la transmisión.");
+        // windows.alert("El administrador ha iniciado la transmisión.");
       });
     };
     init();
@@ -103,41 +104,29 @@ const localRef = useRef();
     
   },[roomId, ownerInfo?.email]);
 
-
-//   useEffect(() => {
-//     const init = async () => {
-//       const { unsubscribe} = listenToApprovals(roomId, (from_user)=>{
-//       });
-//       return () => {
-//       unsubscribe?.();
-//     }
-//   };
-
-//   init();
-// }, [email]);
-
-//   useEffect(() => {
-//   if (!roomId) return;
-
-//   const channel = subscribeToSignals(roomId, (payload) => {
-//     handleSignal(payload);
-//   });
-
-//   return () => channel.unsubscribe();
-// }, [roomId]);
-
-// useEffect(() => {
-// if (!adminId) return;
-//   const channel = subscribeToSignals(adminId, (message) => handleSignal(message, 'admin'));
-//   return () => channel.unsubscribe();
-// }, [adminId]);
+    useEffect(() => {
+      //  if (!userId) return;
+  
+      const init = () => {
+        const subscription = listenForAnswers(email);
+        return () => {
+          if (subscription.unsubscribe) {
+            console.log("🧹 Cancelando suscripción answers desde el cliente:", email);
+            subscription.unsubscribe();
+          }
+        };
+      }
+      init();
+    }, [roomId, email]);
+  
 
 
   const openCall = async () => {
     try {
-      await listenForAnswers(ownerInfo.email); 
       await startLocalStream(roomId, ownerInfo.email, localRef.current);
       socket11.emit("user-ready", ownerInfo.email, roomId);
+      // await listenForAnswers(ownerInfo.email); 
+
       
       setIsAllowed(true);
     } catch (error) {

@@ -96,14 +96,16 @@ const AttendeesList = () => {
 // Configurar suscripciones (sin filtrar)
   channelRequests = listenToRequests(
     "main-room",
-    null, // Escuchar todo
+    // null, // Escuchar todo
+    { componentId: 'AttendeesList' },
     () => handleChange('solicitudes'),
     // false
   );
 
   channelApprovals = listenToRequests(
     "main-room",
-    null, // Escuchar todo
+    // null, // Escuchar todo
+    { componentId: 'AttendeesList' },
     () => handleChange('aprobaciones'),
     // true
   );

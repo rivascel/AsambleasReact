@@ -57,7 +57,7 @@ const VideoGeneral = () => {
         let admin = email;
         console.log("Admin para escuchar transmisiones:", admin);
 
-        const exists = await listenForApprovals(roomId, email);
+        const exists = listenForApprovals(roomId, email);
         if (exists) {
           setRemote(true);
         } else {
