@@ -34,16 +34,8 @@ app.set("host", process.env.HOST || "0.0.0.0");
 const PORT = app.get("port");
 const HOST = app.get("host");
 
-// Pasa io a tus rutas
-// app.use((req, res, next) => {
-//   req.io = io; // Ahora todas las rutas tendrán acceso a io
-//   next();
-// });
-
-
 const authRoutes = require('./routes'); // o './routes/auth'
 app.use('/api', authRoutes);
-
 
 // app.use(express.static(path.join(__dirname, 'assets')));
 app.use(express.static(path.join(__dirname, '../cliente/dist')));
@@ -69,7 +61,13 @@ realTimeServer(httpsServer);
 
 
 httpsServer.listen(app.get(PORT, HOST), () => {
-    console.log(`Servidor HTTPS corriendo en https://localhost:${app.get("port")}`);
+    const protocol = httpsServer instanceof https.Server ? 'https' : 'http';
+     console.log(`✅ Servidor ${protocol} corriendo en ${protocol}://${HOST}:${PORT}`);
+    if (HOST === '0.0.0.0') {
+      console.log(`🔗 Accede localmente en: ${protocol}://localhost:${PORT}`);
+    }
+
+    // console.log(`Servidor HTTPS corriendo en https://localhost:${app.get("port")}`);
   });
 
 
