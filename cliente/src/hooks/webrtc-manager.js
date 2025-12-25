@@ -173,8 +173,6 @@ export async function createOfferToViewer(roomId, adminId) {
     }
 }
 
-
-
 // Escucha las answers a la offer que creó el viewer al admin
 export function listenForAnswers(adminId) {
   //Viene del video_owner.jsx con el usuario adminId
@@ -281,22 +279,6 @@ export async function handleIncomingICECandidate(pc, candidate) {
   }
 }
 
-//MODIFICAR ESTE FUNCION PARA QUE SE RECUPERE EL VIEWER APROBADO CON EL "EMAIL"
-// const approvedViewers = new Set()
-// // let ApprovedViewer;
-// export function listenForApprovals(room, email){
-//   return new Promise(async (resolve) => {
-//     const { unsubscribeChannel } = listenToRequests(room, {componentId : 'VideoGeneral'},(approver) => { 
-//       if (approver.status === 'approved') {
-//         ApprovedViewer = approver.user_id;
-//         console.log("Viewer aprobado:", approvedViewers);
-//         resolve(approvedViewers);
-
-//       }
-//       // unsubscribeChannel().unsubscribe();
-//     });
-//   });
-// }
 
 const approvedViewers = new Set()
 
@@ -456,8 +438,6 @@ export async function receivingStream(roomId, adminId, /*ApprovedViewer,*/ strea
       }
     }
   
-
-
     // ===============================
 
   if (approvedViewers !== undefined) {

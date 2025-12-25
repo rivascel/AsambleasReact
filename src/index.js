@@ -28,6 +28,11 @@ app.use(cookieParser()); // << esto debe ir ANTES de cualquier `app.use(router)`
 
 //settings
 app.set("port", process.env.PORT || 3000);
+app.set("host", process.env.HOST || "0.0.0.0");
+
+// Obtén los valores
+const PORT = app.get("port");
+const HOST = app.get("host");
 
 // Pasa io a tus rutas
 // app.use((req, res, next) => {
@@ -63,7 +68,7 @@ const httpsServer = https.createServer(sslOptions, app); //crea servidor https
 realTimeServer(httpsServer);
 
 
-httpsServer.listen(app.get("port"), () => {
+httpsServer.listen(app.get(PORT, HOST), () => {
     console.log(`Servidor HTTPS corriendo en https://localhost:${app.get("port")}`);
   });
 
