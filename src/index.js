@@ -9,7 +9,6 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const bodyParser = require('body-parser');
 const https = require("https");
-// const https = require("https");
 const app = express();
 const cors = require('cors');
 
@@ -28,11 +27,13 @@ app.use(cookieParser()); // << esto debe ir ANTES de cualquier `app.use(router)`
 
 //settings
 app.set("port", process.env.PORT || 3000);
-app.set("host", process.env.HOST || "0.0.0.0");
+app.set("host", "0.0.0.0");
 
 // Obtén los valores
 const PORT = app.get("port");
-const HOST = app.get("host");
+const HOST = "0.0.0.0";
+
+
 
 const authRoutes = require('./routes'); // o './routes/auth'
 app.use('/api', authRoutes);
@@ -53,21 +54,37 @@ const sslOptions = {
     cert: fs.readFileSync(path.join(__dirname, 'ssl/localhost.pem'))
   };
 
+
 //Levanto el servidor
 const httpsServer = https.createServer(sslOptions, app); //crea servidor https
 
+
+const isProduction = process.env.NODE_ENV === 'production';
+const protocol = httpsServer instanceof https.Server ? 'https' : 'http';
+
+
 //Llamo al servidor de Socket.io
 realTimeServer(httpsServer);
+// realTimeServer(server);
+
+// httpsServer.listen(app.get("port"), () => {
+//     console.log(`Servidor HTTPS corriendo en https://localhost:${app.get("port")}`);
+//   });
 
 
-httpsServer.listen(app.get(PORT, HOST), () => {
-    const protocol = httpsServer instanceof https.Server ? 'https' : 'http';
-     console.log(`✅ Servidor ${protocol} corriendo en ${protocol}://${HOST}:${PORT}`);
-    if (HOST === '0.0.0.0') {
-      console.log(`🔗 Accede localmente en: ${protocol}://localhost:${PORT}`);
-    }
-
-    // console.log(`Servidor HTTPS corriendo en https://localhost:${app.get("port")}`);
-  });
+//   httpsServer.listen(app.get("port"), "0.0.0.0", () => {
+//   console.log(`Servidor corriendo en puerto ${app.get("port")}`);
+// });
 
 
+httpsServer.listen(PORT, HOST, () => {
+  console.log(`✅ Servidor ${protocol} corriendo en ${protocol}://${HOST}:${PORT}`);
+  
+  if (HOST === '0.0.0.0') {
+    console.log(`🔗 Accede localmente en: ${protocol}://localhost:${PORT}`);
+  }
+  
+  if (isProduction) {
+    console.log(`🚀 Aplicación lista en producción`);
+  }
+});
