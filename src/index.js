@@ -33,6 +33,9 @@ app.set("host", "0.0.0.0");
 const PORT = app.get("port");
 const HOST = "0.0.0.0";
 
+// Configuración para Render (certificados automáticos)
+// En Render, los certificados están en rutas específicas
+const isRender = process.env.RENDER || false; // Render setea RENDER=true
 
 
 const authRoutes = require('./routes'); // o './routes/auth'
@@ -49,14 +52,23 @@ app.get('*', (req, res, next) => {
   res.sendFile(path.join(__dirname, '../cliente/dist/index.html'));
 });
 
-const sslOptions = {
-    key: fs.readFileSync(path.join(__dirname, 'ssl/localhost-key.pem')),
-    cert: fs.readFileSync(path.join(__dirname, 'ssl/localhost.pem'))
-  };
+let sslOptions;
+if (isRender) {
+  // En Render, usa certificados automáticos si están disponibles
+  // O configura para aceptar HTTPS externo
+  console.log('✅ Modo Render: Configurando para HTTPS externo');
+  // Continuar sin opciones específicas, Render maneja SSL
+} else {
+  // Desarrollo local: tus certificados autofirmados
 
+  sslOptions = {
+      key: fs.readFileSync(path.join(__dirname, 'ssl/localhost-key.pem')),
+      cert: fs.readFileSync(path.join(__dirname, 'ssl/localhost.pem'))
+    };
 
+};
 //Levanto el servidor
-const httpsServer = https.createServer(sslOptions, app); //crea servidor https
+ httpsServer = https.createServer(sslOptions, app); //crea servidor https
 
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -77,14 +89,21 @@ realTimeServer(httpsServer);
 // });
 
 
+// httpsServer.listen(PORT, HOST, () => {
+//   console.log(`✅ Servidor ${protocol} corriendo en ${protocol}://${HOST}:${PORT}`);
+  
+//   if (HOST === '0.0.0.0') {
+//     console.log(`🔗 Accede localmente en: ${protocol}://localhost:${PORT}`);
+//   }
+  
+//   if (isProduction) {
+//     console.log(`🚀 Aplicación lista en producción`);
+//   }
+// });
+
 httpsServer.listen(PORT, HOST, () => {
-  console.log(`✅ Servidor ${protocol} corriendo en ${protocol}://${HOST}:${PORT}`);
-  
-  if (HOST === '0.0.0.0') {
-    console.log(`🔗 Accede localmente en: ${protocol}://localhost:${PORT}`);
-  }
-  
-  if (isProduction) {
-    console.log(`🚀 Aplicación lista en producción`);
+  console.log(`✅ Servidor HTTPS listo en puerto ${PORT}`);
+  if (!isRender) {
+    console.log(`🔗 Local: https://localhost:${PORT}`);
   }
 });
