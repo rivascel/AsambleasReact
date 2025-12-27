@@ -1,6 +1,12 @@
 const { Resend } = require('resend');
 const { config } = require('../config/config');
 
+if (!config.api_key) {
+  console.error('❌ RESEND_API_KEY no está definida');
+  throw new Error('Missing RESEND_API_KEY');
+}
+
+
 const resend = new Resend(config.api_key); // Guárdala en .env
 
 async function sendMagicLink(to, token) {
