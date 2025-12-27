@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { useState } from "react";
+import { API_URL } from '../config/api';
 
 const initialState = {
     owners:[]
@@ -22,6 +23,7 @@ const useInitialState = () =>{
     }
 
     return {
+        apiUrl: API_URL,
         connected,
         addToMeeting,
         removeToMeeting, 

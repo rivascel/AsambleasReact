@@ -3,13 +3,15 @@ import axios from "axios";
 import { io } from "socket.io-client";
 import { UserContext } from "../../components/UserContext";
 import { listenToRequests } from "../../supabase-client";
-import { is } from "type-is";
+import AppContext from '../context/AppContext';
 
 const socket5 = io("https://localhost:3000", {
   withCredentials: true,
 });
+const { apiUrl } = useContext(AppContext);
 
 const AttendeesList = () => {
+
   const roomId = 'main-room';
   const [loading, setLoading] = useState(true);
   const [pendingUsersIds, setPendingUsersIds] = useState([]);
@@ -28,14 +30,16 @@ const AttendeesList = () => {
       try {
         console.log("🔄 Ejecutando fetchUsers...");
         const [pendingRes, approvedRes] = await Promise.all([
-          fetch("https://localhost:3000/api/recover-users", { 
+          fetch(`${apiUrl}/api/recover-users`, { 
             method: 'POST',
             headers: { 'Content-Type':'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ roomId: "main-room" }),
           }),
-          fetch("https://localhost:3000/api/searched-users-approved", { 
+          fetch(`${apiUrl}/api/searched-users-approved`, { 
             method: 'POST',
             headers: { 'Content-Type':'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ roomId: "main-room" }),
           })
         ]);
