@@ -4,8 +4,6 @@
   "description": "programa para conexion en linea de propietarios en las asambleas",
   "main": "src/index.js",
   "scripts": {
-    "frontend:install": "cd cliente && npm install",
-    "frontend:build": "cd cliente && npm run build",
     "backend:install": "cd src && npm install",
     "dev": "concurrently \"cd cliente && npm run dev\" \"cd src && nodemon index.js\"",
     "build": "npm run frontend:build",
