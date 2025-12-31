@@ -23,8 +23,9 @@ const cors = require('cors');
 
 app.use(cors({
   origin: [
-    'http://localhost:5173',
-    process.env.FRONTEND_URL
+    // 'http://localhost:5173',
+    process.env.FRONTEND_URL,
+    process.env.BACKEND_URL
   ],
   credentials: true
 }));
