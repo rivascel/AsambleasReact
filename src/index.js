@@ -21,14 +21,21 @@ const cors = require('cors');
 //   optionsSuccessStatus: 200 // Para navegadores antiguos
 // }));
 
+// app.use(cors({
+//   origin: [
+//     'https://asambleasdeployed.onrender.com',
+//     process.env.FRONTEND_URL,
+//   ],
+//   credentials: true
+// }));
+
 app.use(cors({
-  origin: [
-    // 'http://localhost:5173',
-    process.env.FRONTEND_URL,
-    process.env.BACKEND_URL
-  ],
-  credentials: true
+  origin: config.FrontEndBaseUrl, // URL de tu frontend
+  credentials: true, // Importante para cookies
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 
 // Middleware para parsear el cuerpo de las solicitudes como JSON
 app.use(express.json());

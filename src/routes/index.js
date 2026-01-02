@@ -43,8 +43,6 @@ router.post("/logout", (req, res) => {
 });
 
 
-
-
 router.get("/file", (req, res)=>{
     const filePath = path.join(__dirname,'data','votacion.txt'); // Ruta segura al archivo
     fs.readFile(filePath, 'utf8', (err, data) => {
@@ -198,6 +196,9 @@ router.get('/magic-link', (req, res) => {
             secure: true,
             sameSite: 'None', // Necesario para cross-origin
             // maxAge: 1000 * 60 * 60 * 2, // 2 horas
+            domain: frontendUrl.hostname, // Dominio del frontend
+            path: '/',
+            maxAge: 24 * 60 * 60 * 1000 // 24 horas
             });
 
         // Enviar cookie segura con el token
@@ -206,14 +207,19 @@ router.get('/magic-link', (req, res) => {
             secure: true,       // solo en HTTPS
             sameSite: 'Strict', // protege CSRF
             // maxAge: 15 * 60 * 1000 * 2 // 15 minutos
+            domain: frontendUrl.hostname,
+            path: '/',
+            maxAge: 24 * 60 * 60 * 1000 // 24 horas
             });
 
 
         // En lugar de redirigir directamente
-        return res.json({ 
-            redirectTo: `${config.FrontEndBaseUrl}/owner`,
-            email: payload.email, 
-        });
+        // return res.json({ 
+        //     redirectTo: `${config.FrontEndBaseUrl}/owner`,
+        //     email: payload.email, 
+        // });
+
+         return res.redirect(`${config.FrontEndBaseUrl}/owner`);
     
     } catch (error) {
         res.status(401).json({ message: 'Token inválido o expirado' });
