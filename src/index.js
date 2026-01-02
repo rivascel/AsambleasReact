@@ -1,7 +1,6 @@
 // process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 require('dotenv').config(); // ruta relativa al root del proyecto
-const { config } = require('../config/config');
 
 const express = require("express");
 // const fs = require("fs");
@@ -22,20 +21,22 @@ const cors = require('cors');
 //   optionsSuccessStatus: 200 // Para navegadores antiguos
 // }));
 
-// app.use(cors({
-//   origin: [
-//     'https://asambleasdeployed.onrender.com',
-//     process.env.FRONTEND_URL,
-//   ],
-//   credentials: true
-// }));
-
 app.use(cors({
-  origin: config.FrontEndBaseUrl, // URL de tu frontend
-  credentials: true, // Importante para cookies
+  origin: [
+    'https://asambleasdeployed.onrender.com',
+    process.env.FRONTEND_URL,
+  ],
+  credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// app.use(cors({
+//   origin: config.FrontEndBaseUrl, // URL de tu frontend
+//   credentials: true, // Importante para cookies
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
 
 
 // Middleware para parsear el cuerpo de las solicitudes como JSON
