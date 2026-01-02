@@ -10,7 +10,7 @@ if (!config.api_key) {
 const resend = new Resend(config.api_key); // Guárdala en .env
 
 async function sendMagicLink(to, token) {
-  const magicLink = `${config.FrontEndBaseUrl}/magic-link?token=${token}`;
+  const magicLink = `${config.BackEndBaseUrl}/magic-link?token=${token}`;
 
   try {
     const data = await resend.emails.send({

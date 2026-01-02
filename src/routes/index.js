@@ -196,20 +196,20 @@ router.get('/magic-link', (req, res) => {
             secure: true,
             sameSite: 'None', // Necesario para cross-origin
             // maxAge: 1000 * 60 * 60 * 2, // 2 horas
-            domain: frontendUrl.hostname, // Dominio del frontend
-            path: '/',
-            maxAge: 24 * 60 * 60 * 1000 // 24 horas
+            // domain: frontendUrl.hostname, // Dominio del frontend
+            // path: '/',
+            // maxAge: 24 * 60 * 60 * 1000 // 24 horas
             });
 
         // Enviar cookie segura con el token
         res.cookie('token', token, {
             httpOnly: true,
             secure: true,       // solo en HTTPS
-            sameSite: 'Strict', // protege CSRF
+            sameSite: 'None', // protege CSRF
             // maxAge: 15 * 60 * 1000 * 2 // 15 minutos
-            domain: frontendUrl.hostname,
-            path: '/',
-            maxAge: 24 * 60 * 60 * 1000 // 24 horas
+            // domain: frontendUrl.hostname,
+            // path: '/',
+            // maxAge: 24 * 60 * 60 * 1000 // 24 horas
             });
 
 
