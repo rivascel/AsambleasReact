@@ -1,6 +1,7 @@
 // process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 require('dotenv').config(); // ruta relativa al root del proyecto
+const { config } = require('../config/config');
 
 const express = require("express");
 // const fs = require("fs");
