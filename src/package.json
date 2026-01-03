@@ -6,7 +6,7 @@
   "scripts": {
     "backend:install": "cd src && npm install",
     "dev": "concurrently \"cd cliente && npm run dev\" \"cd src && nodemon index.js\"",
-    "build": "npm run frontend:build",
+    "build": "echo 'No build needed'",
     "start": "node src/index.js"
   },
   "author": "Ivan Rivas",
