@@ -211,7 +211,7 @@ router.get('/magic-link', (req, res) => {
             // domain: frontendUrl.hostname,
             // path: '/',
             // maxAge: 24 * 60 * 60 * 1000 // 24 horas
-            path: '/',
+            // path: '/',
             });
 
 
