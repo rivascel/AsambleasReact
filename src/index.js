@@ -22,10 +22,7 @@ const cors = require('cors');
 // }));
 
 app.use(cors({
-  origin: [
-    'https://asambleasdeployed.onrender.com',
-    process.env.FRONTEND_URL,
-  ],
+  origin: 'https://asambleasdeployed.onrender.com',
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

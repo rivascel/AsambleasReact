@@ -199,6 +199,7 @@ router.get('/magic-link', (req, res) => {
             // domain: frontendUrl.hostname, // Dominio del frontend
             // path: '/',
             // maxAge: 24 * 60 * 60 * 1000 // 24 horas
+            path: '/',
             });
 
         // Enviar cookie segura con el token
@@ -210,6 +211,7 @@ router.get('/magic-link', (req, res) => {
             // domain: frontendUrl.hostname,
             // path: '/',
             // maxAge: 24 * 60 * 60 * 1000 // 24 horas
+            path: '/',
             });
 
 
