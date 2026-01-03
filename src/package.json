@@ -2,12 +2,12 @@
   "name": "web-asambleas",
   "version": "1.0.0",
   "description": "programa para conexion en linea de propietarios en las asambleas",
-  "main": "src/index.js",
+  "main": "index.js",
   "scripts": {
     "backend:install": "cd src && npm install",
     "dev": "concurrently \"cd cliente && npm run dev\" \"cd src && nodemon index.js\"",
     "build": "echo 'No build needed'",
-    "start": "node src/index.js"
+    "start": "node index.js"
   },
   "author": "Ivan Rivas",
   "license": "ISC",
