@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "backend:install": "npm install",
-    "dev": "concurrently \"cd cliente && npm run dev\" \"cd src && nodemon index.js\"",
-    "build": "echo 'No build needed'",
+    "dev": "concurrently nodemon index.js\"",
+    "build": "npm install",
     "start": "node index.js"
   },
   "author": "Ivan Rivas",
