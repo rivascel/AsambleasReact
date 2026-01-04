@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "frontend:install": "cd cliente && npm install",
-    "backend:install": "cd src && npm install",
+    "backend:install": "npm install",
     "dev": "concurrently \"cd cliente && npm run dev\" \"cd src && nodemon index.js\"",
     "build": "echo 'No build needed'",
     "start": "node index.js"
