@@ -1,6 +1,6 @@
 // middlewares/auth.js
 const jwt = require('jsonwebtoken');
-const config = require('../config'); // Ajusta la ruta a tu config
+const config = require('../config/config'); // Ajusta la ruta a tu config
 
 function requireAuth(req, res, next) {
     // 1. Extraer el token de las cookies
