@@ -226,6 +226,8 @@ router.get('/magic-link', (req, res) => {
           maxAge: 15 * 60 * 1000 * 2, // 15 minutos
           path: '/',
           });
+
+      console.log("Usuario autenticado con enlace mágico:", user.email);
       
       res.redirect(`${config.FrontEndBaseUrl}/owner`);
     
