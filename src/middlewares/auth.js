@@ -5,9 +5,8 @@ const config = require('../config/config'); // Ajusta la ruta a tu config
 function requireAuth(req, res, next) {
     // 1. Extraer el token de las cookies
     console.log("Headers recibidos:", req.headers.cookie); // Verifica si llegan cookies
-    console.log("🍪 Cookies recibidas:", req.cookies);
-   console.log("🍪 Cookies:", req.cookies);
-    console.log("🔐 Token:", req.cookies?.token);
+   console.log("🍪 Cookies:", req.cookie);
+    console.log("🔐 Token:", req.cookie?.token);
     console.log("🔑 jwtSecret existe:", !!config.jwtSecret);
 
     try {

@@ -223,6 +223,7 @@ router.get('/magic-link', (req, res) => {
           httpOnly: true,
           secure: true,       // solo en HTTPS
           sameSite: 'None', // protege CSRF
+          domain: '.onrender.com',
           maxAge: 15 * 60 * 1000 * 2, // 15 minutos
           path: '/',
           });
