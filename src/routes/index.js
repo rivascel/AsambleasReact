@@ -205,28 +205,22 @@ router.get('/magic-link', (req, res) => {
         return res.status(401).json({ message: "Token inválido" });
       }
 
+      const cookieOptions = {
+        httpOnly: true,
+        secure: true, // Debe ser true en producción
+        sameSite: 'None', // Para cross-origin
+        maxAge: 1000 * 60 * 60 * 24, // 24 horas
+        path: '/',
+        domain: '.onrender.com' // ¡IMPORTANTE! Dominio compartido
+      };
+
       res.cookie('session', JSON.stringify({ 
         role: 'owner',
         email: user.email 
-      }), 
-      {
-        httpOnly: true,
-        // secure: config.isProd,
-        secure: true,
-        sameSite: 'None', // Necesario para cross-origin
-        maxAge: 1000 * 60 * 60 * 24,
-        path: '/',
-      });
+      }), cookieOptions);
 
       // Enviar cookie segura con el token
-      res.cookie('token', token, {
-          httpOnly: true,
-          secure: true,       // solo en HTTPS
-          sameSite: 'None', // protege CSRF
-          // domain: '.onrender.com',
-          maxAge: 1000 * 60 * 60 * 24, // 15 minutos
-          path: '/',
-          });
+      res.cookie('token', token, cookieOptions);
 
       console.log("Usuario autenticado con enlace mágico:", user.email);
       

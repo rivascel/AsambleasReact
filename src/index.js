@@ -32,35 +32,41 @@ app.set('trust proxy', 1);
 // }));
 
 // 2. Configura CORS de forma explícita (evita el origin: true si es posible)
-const allowedOrigins = [
-  'https://asambleasdeployed.onrender.com', 
-  'https://asambleasreact.onrender.com' // Agrega todas las variantes que veas en tus logs
-];
+// const allowedOrigins = [
+//   'https://asambleasdeployed.onrender.com', 
+//   'https://asambleasreact.onrender.com' // Agrega todas las variantes que veas en tus logs
+// ];
+
+// app.use(cors({
+//   origin: function (origin, callback) {
+//     // Permitir peticiones sin origin (como Postman o health checks)
+//     if (!origin) return callback(null, true);
+    
+//     if (allowedOrigins.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       console.error("❌ Bloqueado por CORS:", origin);
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true,
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   allowedHeaders: [    
+//     'Content-Type',
+//     'Authorization',
+//     'X-Requested-With',
+//     'Accept',
+//     'Origin'],
+//     exposedHeaders: ['Set-Cookie']
+// }));
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Permitir peticiones sin origin (como Postman o health checks)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.error("❌ Bloqueado por CORS:", origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  // origin: 'https://asambleasdeployed.onrender.com',
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
-// app.use(cors({
-//   // origin: 'https://asambleasdeployed.onrender.com',
-//   origin: true,
-//   credentials: true,
-//   methods: ['GET', 'POST', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
 
 // app.use(cors({
 //   origin: config.FrontEndBaseUrl, // URL de tu frontend
