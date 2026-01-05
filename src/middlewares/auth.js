@@ -27,6 +27,7 @@ function requireAuth(req, res, next) {
     
         // 2. Verificar el JWT
         const payload = jwt.verify(token, config.jwtSecret);
+        console.log("✅ Token verificado para usuario ID:", payload);
         
         // 3. Inyectar el usuario en la request para que los endpoints lo usen
         req.user = payload; 
