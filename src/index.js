@@ -69,12 +69,13 @@ app.use(cors({
 //   allowedHeaders: ['Content-Type', 'Authorization']
 // }));
 
+app.use(cookieParser()); // << esto debe ir ANTES de cualquier `app.use(router)`
+// app.use(bodyParser.json());
 
 // Middleware para parsear el cuerpo de las solicitudes como JSON
 app.use(express.json());
 
-app.use(cookieParser()); // << esto debe ir ANTES de cualquier `app.use(router)`
-// app.use(bodyParser.json());
+
 
 // app.use(cors({ origin: process.env.FRONTEND_URL }));
 
