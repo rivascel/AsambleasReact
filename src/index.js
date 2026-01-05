@@ -21,8 +21,11 @@ const cors = require('cors');
 //   optionsSuccessStatus: 200 // Para navegadores antiguos
 // }));
 
+app.set('trust proxy', 1);
+
 app.use(cors({
-  origin: 'https://asambleasdeployed.onrender.com',
+  // origin: 'https://asambleasdeployed.onrender.com',
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -38,6 +41,7 @@ app.use(cors({
 
 // Middleware para parsear el cuerpo de las solicitudes como JSON
 app.use(express.json());
+
 app.use(cookieParser()); // << esto debe ir ANTES de cualquier `app.use(router)`
 // app.use(bodyParser.json());
 
@@ -61,7 +65,7 @@ app.use('/api', authRoutes);
 //   res.sendFile(path.join(__dirname, '../cliente/dist/index.html'));
 // });
 
-app.set('trust proxy', 1);
+
 
 //settings
 app.set("port", process.env.PORT || 3000);

@@ -4,6 +4,8 @@ const config = require('../config/config'); // Ajusta la ruta a tu config
 
 function requireAuth(req, res, next) {
     // 1. Extraer el token de las cookies
+    console.log("Headers recibidos:", req.headers.cookie); // Verifica si llegan cookies
+    console.log("🍪 Cookies recibidas:", req.cookies);
     const token = req.cookies.token;
 
     if (!token) {
