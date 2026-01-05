@@ -6,7 +6,8 @@ function requireAuth(req, res, next) {
     // 1. Extraer el token de las cookies
     console.log("Headers recibidos:", req.headers.cookie); // Verifica si llegan cookies
     console.log("🍪 Cookies recibidas:", req.cookies);
-    const token = req.cookies.token;
+   console.log("🍪 Cookies:", req.cookies);
+    console.log("🔐 Token:", req.cookies?.token);
 
     if (!token) {
         console.warn("⚠️ Intento de acceso sin token");

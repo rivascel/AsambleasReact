@@ -24,12 +24,20 @@ const cors = require('cors');
 app.set('trust proxy', 1);
 
 app.use(cors({
-  // origin: 'https://asambleasdeployed.onrender.com',
-  origin: true,
+  origin: (origin, callback) => {
+    console.log("🌐 Origin recibido:", origin);
+    callback(null, true);
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// app.use(cors({
+//   // origin: 'https://asambleasdeployed.onrender.com',
+//   origin: true,
+//   credentials: true,
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
 
 // app.use(cors({
 //   origin: config.FrontEndBaseUrl, // URL de tu frontend
