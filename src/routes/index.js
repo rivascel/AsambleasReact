@@ -211,16 +211,21 @@ router.get('/magic-link', (req, res) => {
         sameSite: 'None', // Para cross-origin
         maxAge: 1000 * 60 * 60 * 24, // 24 horas
         path: '/',
-        domain: '.onrender.com' // ¡IMPORTANTE! Dominio compartido
+        domain: 'onrender.com' // ¡IMPORTANTE! Dominio compartido
       };
 
       res.cookie('session', JSON.stringify({ 
         role: 'owner',
         email: user.email 
-      }), cookieOptions);
+      }), {
+            ...cookieOptions,
+            httpOnly: false // Para que JS pueda leerlo si es necesario
+        });
 
       // Enviar cookie segura con el token
       res.cookie('token', token, cookieOptions);
+
+      console.log("✅ Cookies establecidas para:", user.email);
 
       console.log("Usuario autenticado con enlace mágico:", user.email);
       
@@ -229,6 +234,21 @@ router.get('/magic-link', (req, res) => {
     } catch (error) {
         res.status(401).json({ message: 'Token inválido o expirado' });
     }
+});
+
+// En routes/index.js, agregar:
+router.get('/test-cookies', (req, res) => {
+    console.log("=== TEST COOKIES ===");
+    console.log("Headers:", req.headers);
+    console.log("Raw cookies header:", req.headers.cookie);
+    console.log("Parsed cookies:", req.cookies);
+    console.log("===================");
+    
+    res.json({
+        receivedCookies: req.cookies,
+        rawHeader: req.headers.cookie,
+        message: "Test endpoint"
+    });
 });
 
 
