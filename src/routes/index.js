@@ -211,7 +211,7 @@ router.get('/magic-link', (req, res) => {
         sameSite: 'None', // Para cross-origin
         maxAge: 1000 * 60 * 60 * 24, // 24 horas
         path: '/',
-        domain: 'onrender.com' // ¡IMPORTANTE! Dominio compartido
+        domain: '.onrender.com' // ¡IMPORTANTE! Dominio compartido
       };
 
       res.cookie('session', JSON.stringify({ 
