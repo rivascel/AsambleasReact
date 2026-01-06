@@ -5,7 +5,8 @@ const config = {
   port: process.env.PORT,
   BaseUrl: process.env.BACKEND_URL,
   FrontEndBaseUrl: process.env.FRONTEND_URL,
-  jwtSecret: process.env.JWT_SECRET_KEY,
+  BackEndBaseUrl: process.env.BACKEND_URL,
+  jwtSecret: process.env.JWT_SECRET_KEY || 'una_clave_temporal_muy_segura',
   api_key:process.env.RESEND_API_KEY
 
 }

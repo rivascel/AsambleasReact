@@ -25,24 +25,12 @@ const isLoggedIn = require("../middlewares/IsLoggedIn");
 const { requireAuth } = require('../middlewares/auth');
 
 
-router.get('/owner-data', requireAuth, (req, res) => {
-    // Este endpoint solo devuelve datos si la cookie está presente
-    const email = req.cookies.username;
-    res.json({ email, user: "owner", dashboardData: "Aquí van tus datos" });
-});
 
-router.get('/admin-data', requireAuth, (req, res) => {
-    // Este endpoint solo devuelve datos si la cookie está presente
-    const email = req.cookies.username;
-    res.json({ email, user: "administrador", dashboardData: "Aquí van tus datos" });
-});
 
 router.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.json({ message: "Sesión cerrada" });
 });
-
-
 
 
 router.get("/file", (req, res)=>{
@@ -180,6 +168,26 @@ router.post('/request-magic-link', async (req, res) => {
     }
 });
 
+router.get('/owner-data', requireAuth, (req, res) => {
+    // Este endpoint solo devuelve datos si la cookie está presente
+    // const session = JSON.parse(req.cookies.session);
+    // const email = req.cookies.username;
+    res.json({
+      user: "owner", 
+      email: req.user.email
+  });
+});
+
+router.get('/admin-data', requireAuth, (req, res) => {
+    // Este endpoint solo devuelve datos si la cookie está presente
+    const email = req.cookies.username;
+   res.json({ 
+        user: "administrador", 
+        email: req.user.email,
+        dashboardData: "Datos privados" 
+    });
+});
+
 // Endpoint para manejar el enlace mágico
 router.get('/magic-link', (req, res) => {
     const { token } = req.query;
@@ -189,36 +197,45 @@ router.get('/magic-link', (req, res) => {
     }
 
     try {
-        // Verificar el token
-        const payload = jwt.verify(token, config.jwtSecret);
+      // Verificar el token
+      const user = jwt.verify(token, config.jwtSecret);
+      // req.user = payload;
 
-        res.cookie('username', payload.email, {
-            httpOnly: true,
-            // secure: config.isProd,
-            secure: true,
-            sameSite: 'None', // Necesario para cross-origin
-            // maxAge: 1000 * 60 * 60 * 2, // 2 horas
-            });
+      if (!user) {
+        return res.status(401).json({ message: "Token inválido" });
+      }
 
-        // Enviar cookie segura con el token
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: true,       // solo en HTTPS
-            sameSite: 'Strict', // protege CSRF
-            // maxAge: 15 * 60 * 1000 * 2 // 15 minutos
-            });
+      const cookieOptions = {
+        httpOnly: true,
+        secure: true, // Debe ser true en producción
+        sameSite: 'Lax', // Para cross-origin
+        maxAge: 1000 * 60 * 60 * 24 * 1000, // 24 horas
+        path: '/',
+        // domain: '.onrender.com' // ¡IMPORTANTE! Dominio compartido
+      };
 
-
-        // En lugar de redirigir directamente
-        return res.json({ 
-            redirectTo: `${config.FrontEndBaseUrl}/owner`,
-            email: payload.email, 
+      res.cookie('session', JSON.stringify({ 
+        role: 'owner',
+        email: user.email 
+      }), {
+            ...cookieOptions,
+            httpOnly: false // Para que JS pueda leerlo si es necesario
         });
+
+      // Enviar cookie segura con el token
+      res.cookie('token', token, cookieOptions);
+
+      console.log("✅ Cookies establecidas para:", user.email);
+
+      console.log("Usuario autenticado con enlace mágico:", user.email);
+      
+      res.redirect(`${config.FrontEndBaseUrl}/owner`);
     
     } catch (error) {
         res.status(401).json({ message: 'Token inválido o expirado' });
     }
 });
+
 
 
 router.post('/request-participation', async (req, res) => {
