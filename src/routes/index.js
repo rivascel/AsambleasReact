@@ -208,10 +208,10 @@ router.get('/magic-link', (req, res) => {
       const cookieOptions = {
         httpOnly: true,
         secure: true, // Debe ser true en producción
-        sameSite: 'None', // Para cross-origin
-        maxAge: 1000 * 60 * 60 * 24, // 24 horas
+        sameSite: 'Lax', // Para cross-origin
+        maxAge: 1000 * 60 * 60 * 24 * 1000, // 24 horas
         path: '/',
-        domain: '.onrender.com' // ¡IMPORTANTE! Dominio compartido
+        // domain: '.onrender.com' // ¡IMPORTANTE! Dominio compartido
       };
 
       res.cookie('session', JSON.stringify({ 
@@ -236,20 +236,6 @@ router.get('/magic-link', (req, res) => {
     }
 });
 
-// En routes/index.js, agregar:
-router.get('/test-cookies', (req, res) => {
-    console.log("=== TEST COOKIES ===");
-    console.log("Headers:", req.headers);
-    console.log("Raw cookies header:", req.headers.cookie);
-    console.log("Parsed cookies:", req.cookies);
-    console.log("===================");
-    
-    res.json({
-        receivedCookies: req.cookies,
-        rawHeader: req.headers.cookie,
-        message: "Test endpoint"
-    });
-});
 
 
 router.post('/request-participation', async (req, res) => {

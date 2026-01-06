@@ -12,6 +12,7 @@ const cookieParser = require("cookie-parser");
 const http = require("http");
 const app = express();
 const cors = require('cors');
+const path = require("path");
 
 // app.use(cors({
 //   origin: ['https://localhost:5173','https://localhost:3000'],
@@ -32,41 +33,41 @@ app.set('trust proxy', 1);
 // }));
 
 // 2. Configura CORS de forma explícita (evita el origin: true si es posible)
-// const allowedOrigins = [
-//   'https://asambleasdeployed.onrender.com', 
-//   'https://asambleasreact.onrender.com' // Agrega todas las variantes que veas en tus logs
-// ];
-
-// app.use(cors({
-//   origin: function (origin, callback) {
-//     // Permitir peticiones sin origin (como Postman o health checks)
-//     if (!origin) return callback(null, true);
-    
-//     if (allowedOrigins.indexOf(origin) !== -1) {
-//       callback(null, true);
-//     } else {
-//       console.error("❌ Bloqueado por CORS:", origin);
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-//   methods: ['GET', 'POST', 'OPTIONS'],
-//   allowedHeaders: [    
-//     'Content-Type',
-//     'Authorization',
-//     'X-Requested-With',
-//     'Accept',
-//     'Origin'],
-//     exposedHeaders: ['Set-Cookie']
-// }));
+const allowedOrigins = [
+  'https://asambleasdeployed.onrender.com', 
+  'https://asambleasreact.onrender.com' // Agrega todas las variantes que veas en tus logs
+];
 
 app.use(cors({
-  // origin: 'https://asambleasdeployed.onrender.com',
-  origin: true,
+  origin: function (origin, callback) {
+    // Permitir peticiones sin origin (como Postman o health checks)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.error("❌ Bloqueado por CORS:", origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: [    
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'Accept',
+    'Origin'],
+    exposedHeaders: ['Set-Cookie']
 }));
+
+// app.use(cors({
+//   // origin: 'https://asambleasdeployed.onrender.com',
+//   origin: true,
+//   credentials: true,
+//   methods: ['GET', 'POST', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
 
 // app.use(cors({
 //   origin: config.FrontEndBaseUrl, // URL de tu frontend
@@ -91,6 +92,14 @@ app.get('/health', (req, res) => {
 
 const authRoutes = require('./routes'); // o './routes/auth'
 app.use('/api', authRoutes);
+
+// servir frontend
+app.use(express.static(path.join(__dirname, "cliente/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "cliente/dist/index.html"));
+});
+
 
 // app.use(express.static(path.join(__dirname, 'assets')));
 // app.use(express.static(path.join(__dirname, '../cliente/dist')));
