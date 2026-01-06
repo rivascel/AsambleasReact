@@ -42,7 +42,7 @@ app.get('*', (req, res, next) => {
 
 
 //settings
-app.set("port", process.env.PORT || 3000);
+app.set("port", process.env.PORT || 10000);
 app.set("host", "0.0.0.0");
 
 // Obtén los valores

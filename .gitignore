@@ -216,3 +216,8 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,macos,node
+
+node_modules/
+cliente/node_modules/
+cliente/dist/
+.env

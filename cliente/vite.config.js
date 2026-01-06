@@ -9,6 +9,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react(),tailwindcss()],
+  build: {
+    outDir: 'dist', // Esta es la opción que garantiza el nombre de la carpeta
+  },
   server: {
     https: {
       key: fs.readFileSync(path.resolve(__dirname, '../src/ssl/localhost-key.pem')),

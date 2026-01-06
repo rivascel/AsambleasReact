@@ -1,15 +1,13 @@
 {
-  "name": "backend-front",
+  "name": "asambleas-react",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "frontend:install": "cd cliente && npm install",
-    "frontend:build": "cd cliente && npm run build",
-    "backend:install": "cd src && npm install",
-    "dev": "concurrently \"cd cliente && npm run dev\" \"cd src && nodemon index.js\"",
-    "build": "npm run frontend:build",
-    "start": "node src/index.js"
+    "install-all": "npm install && cd cliente && npm install",
+    "build": "cd cliente && npm install && npm run build",
+    "start": "node src/index.js",
+    "render-postinstall": "npm install && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
