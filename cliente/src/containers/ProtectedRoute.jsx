@@ -58,7 +58,7 @@ const ProtectedRoute = ({ children }) => {
           }
         } catch (error) {
           if (error.response && error.response.status === 401) {
-            console.error("Sesión expirada o no válida");
+            console.error("Sesión expirada o no válida", error);
           }
           // No redirijas inmediatamente si estás en medio de la carga
         }
