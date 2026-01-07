@@ -26,6 +26,7 @@ function requireAuth(req, res, next) {
         }
     
         // 2. Verificar el JWT
+        console.log("🔍 Verificando Secret:", process.env.JWT_SECRET_KEY ? "EXISTE" : "NO EXISTE/UNDEFINED");
         const payload = jwt.verify(token, config.jwtSecret);
         console.log("✅ Token verificado para usuario ID:", payload);
         
