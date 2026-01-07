@@ -208,7 +208,7 @@ router.get('/magic-link', (req, res) => {
       const cookieOptions = {
         httpOnly: true,
         secure: true, // Debe ser true en producción
-        sameSite: 'Lax', // Para cross-origin
+        sameSite: 'None', // Para cross-origin
         maxAge: 1000 * 60 * 60 * 24 * 1000, // 24 horas
         path: '/',
         // domain: '.onrender.com' // ¡IMPORTANTE! Dominio compartido
