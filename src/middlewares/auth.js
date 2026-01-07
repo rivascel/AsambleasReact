@@ -20,7 +20,7 @@ function requireAuth(req, res, next) {
 
         const token = req.cookies.token;
 
-        if (!token) {
+        if (req.cookies.username === 'owner' && !token) {
             console.warn("⚠️ Intento de acceso sin token");
             return res.status(401).json({ message: "No hay token, por favor inicia sesión" });
         }

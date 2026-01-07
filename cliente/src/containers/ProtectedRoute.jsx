@@ -27,18 +27,6 @@ const ProtectedRoute = ({ children }) => {
         // Detectar si la ruta es del admin o del owner
         const isAdminRoute = location.pathname.startsWith("/admin");
 
-        // try {
-        //   const res = await axios.get(`${apiUrl}/api/admin-data`, {
-        //     withCredentials: true,
-        //   });
-        //   setIsAuthenticatedAdmin(true);
-        //   setEmail(res.data.email);
-
-        // } catch {
-        //   setIsAuthenticatedAdmin(false);
-        //   console.warn("❌ No autenticado:");
-        // }
-        
         const endpoint = isAdminRoute
           ? `${apiUrl}/api/admin-data`
           : `${apiUrl}/api/owner-data`;
