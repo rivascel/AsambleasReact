@@ -24,10 +24,19 @@ function requireAuth(req, res, next) {
             console.warn("⚠️ Intento de acceso sin token");
             return res.status(401).json({ message: "No hay token, por favor inicia sesión" });
         }
+
+        // USA DIRECTAMENTE process.env PARA EVITAR ERRORES DE REFERENCIA
+        const secret = process.env.JWT_SECRET_KEY; 
+
+        if (!secret) {
+            console.error("❌ ERROR CRÍTICO: La variable JWT_SECRET_KEY no está definida en el sistema");
+            return res.status(500).json({ message: "Error interno de configuración" });
+        }
+
     
         // 2. Verificar el JWT
         console.log("🔍 Verificando Secret:", process.env.JWT_SECRET_KEY ? "EXISTE" : "NO EXISTE/UNDEFINED");
-        const payload = jwt.verify(token, config.jwtSecret);
+        const payload = jwt.verify(token, secret);
         console.log("✅ Token verificado para usuario ID:", payload);
         
         // 3. Inyectar el usuario en la request para que los endpoints lo usen
