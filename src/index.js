@@ -93,11 +93,15 @@ app.get('/health', (req, res) => {
 const authRoutes = require('./routes'); // o './routes/auth'
 app.use('/api', authRoutes);
 
-// servir frontend
-app.use(express.static(path.join(__dirname, "cliente/dist")));
+// Esta es la forma más segura de apuntar a la raíz del proyecto en Render
+const publicPath = path.resolve(__dirname, '..', 'cliente', 'dist');
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "cliente/dist/index.html"));
+// Servir archivos estáticos
+app.use(express.static(publicPath));
+
+// Ruta comodín para React
+app.get('*', (req, res) => {
+    res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 
