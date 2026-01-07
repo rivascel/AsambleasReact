@@ -1,0 +1,260 @@
+:root {
+    --blue: #daf2f2;
+    --white: #FFFFFF;
+    --black: #000000;
+    --very-light-pink: #C7C7C7;
+    --text-input-field: #F7F7F7;
+    --hospital-green: #ACD9B2;
+    --sm: 14px;
+    --md: 16px;
+    --lg: 18px;
+  }
+  *{
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+  }
+
+  html{
+      font-size: 62.5%;
+  }
+  body {
+      background-color: var(--blue);
+      margin: 0;
+      font-family: 'Dosis', sans-serif;
+  }
+
+  header{
+    background-color: var(--hospital-green);
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-width:324px;
+    height: auto;
+    /* align-items: center; */
+  }
+
+  img{
+    width: 150px;
+    height:80px;
+    align-self: center;
+  }
+
+  .header--title-container {
+    margin: 5px;
+    width: 100%;
+    min-width: 288px;
+    max-width: 900px;
+    height: 300px;
+    margin-top: 40;
+    text-align: center;
+    align-self: center;
+    justify-items: center;
+    
+}
+
+.title h1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    line-height: 2.0rem;
+    color: var(--black);
+
+}
+
+main{
+    width: 100%;
+    min-width: 320px;
+    height: auto;
+    background-color: var(--very-light-pink);
+
+}
+
+#localVideo {
+    width: 100px;
+    height: 100%;
+}
+
+
+.header-title-container h1{
+  font-size: 1.5rem;
+  text-align: center;
+
+}
+
+  .title{
+    margin: 10px;
+    padding: 10px;
+  }
+
+.identification{
+    display: grid;
+
+}
+
+ 
+.work--vote,
+.work--show{
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    width: 100%;
+    text-align: center;
+  }
+
+#decision{
+  width: 100%;
+
+}
+
+
+.work--resume{
+    /* height: 5vh;
+    margin: 1rem;
+    padding: 1rem; */
+    width: 100%;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+
+  .work--chat{
+    display: flex;
+    border: 1px solid #ccc;
+  }
+  #chatbox {
+    position: relative;
+    display:flex;
+    flex-wrap:wrap;
+    text-align:left;
+    margin:0;
+    padding:10px;
+    background:#fff;
+    height:200px;
+    width:300px;
+    border:1px solid #ACD8F0;
+    overflow:auto; 
+}
+
+
+  .work--attend{
+    text-align: center;
+  }
+
+  .work--ask{
+    border: 1px solid #ccc;
+    background-color: var(--very-light-pink);
+    margin: 2px;
+    grid-column: 3;
+    text-align: center;
+  }
+
+  .work--list{
+    display: flex;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+
+  #write{
+      width: 300px;
+  }
+  .buttons{
+      display: flex;
+  }
+
+  
+
+#all-messages{
+
+	width:90%;
+	height: 50px;
+    border: #ff0000;
+    overflow: scroll;
+}
+
+.send-message {
+    position: relative;
+    height: 100px;
+    
+}
+#message {
+  background: white;
+  max-width: 360px;
+  height: 50px;
+  margin: 10px auto 16px;
+  padding: 5px 5px;
+  border-radius: 3px;
+}
+
+#message h2 {
+  color: #ffa100;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 0 0 8px;
+}
+
+#message h1 {
+  font-size: 22px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 16px;
+}
+
+#message p {
+  line-height: 140%;
+  margin: 16px 0 24px;
+  font-size: 14px;
+}
+
+#message a {
+  display: block;
+  text-align: center;
+  background: #039be5;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: white;
+  padding: 16px;
+  border-radius: 4px;
+}
+
+#message, #message a {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+#load {
+  color: rgba(0, 0, 0, 0.4);
+  text-align: center;
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  body, #message {
+      margin-top: 0;
+      background: white;
+      box-shadow: none;
+  }
+
+  body {
+      border-top: 16px solid #ffa100;
+  }
+}
+
+body {
+  margin: 1em;
+}
+
+button {
+  margin: 0.2em 0.1em;
+}
+
+div#videos {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.work--attend#localVideo {
+  background: black;
+  width: 20px;
+  height: 50%;
+  display: block;
+  margin: 1em;
+}
