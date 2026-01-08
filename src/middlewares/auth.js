@@ -21,36 +21,34 @@ function requireAuth(req, res, next) {
         const token = req.cookies.token;
         const userRole = req.cookies.username;
 
-        if (userRole === 'owner' && !token) {
-            console.warn("⚠️ Intento de acceso sin token");
-            return res.status(401).json({ message: "No hay token, por favor inicia sesión" });
-        }
-
-        // USA DIRECTAMENTE process.env PARA EVITAR ERRORES DE REFERENCIA
-        const secret = process.env.JWT_SECRET_KEY; 
-
-        if (!secret) {
-            console.error("❌ ERROR CRÍTICO: La variable JWT_SECRET_KEY no está definida en el sistema");
-            return res.status(500).json({ message: "Error interno de configuración" });
-        }
-
-    
-        // 2. Verificar el JWT
-        if (userRole === 'owner') {
-            console.log("🔍 Verificando Secret:", process.env.JWT_SECRET_KEY ? "EXISTE" : "NO EXISTE/UNDEFINED");
-            const payload = jwt.verify(token, secret);
-            console.log("✅ Token verificado para usuario ID:", payload);
-        
-            // 3. Inyectar el usuario en la request para que los endpoints lo usen
-            req.user = payload; 
-            // 5. ¡IMPORTANTE! Solo un next() al final del éxito
-            next();
-        }
+        // if (userRole === 'owner' && !token) {
+        //     console.warn("⚠️ Intento de acceso sin token");
+        //     return res.status(401).json({ message: "No hay token, por favor inicia sesión" });
+        // }
 
         // CASO 1: Es Administrador -> Pasa directo
         if (userRole === 'administrador') {
             console.log("👤 Acceso concedido como Administrador (sin JWT)");
             return next(); 
+        }
+
+        // CASO 2: Es Owner -> Requiere validación de Token
+        if (userRole === 'owner') {
+            if (!token) {
+                console.warn("⚠️ Owner intentó acceder sin token");
+                return res.status(401).json({ message: "No hay token, por favor inicia sesión" });
+            }
+
+            const secret = process.env.JWT_SECRET_KEY;
+            if (!secret) {
+                console.error("❌ ERROR CRÍTICO: JWT_SECRET_KEY no definida");
+                return res.status(500).json({ message: "Error de configuración" });
+            }
+
+            const payload = jwt.verify(token, secret);
+            req.user = payload; 
+            console.log("✅ Token de Owner verificado:", payload.email);
+            return next();
         }
 
         // CASO 3: No es ninguno de los dos
