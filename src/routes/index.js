@@ -190,61 +190,54 @@ router.get('/admin-data', requireAuth, (req, res) => {
 
 // Endpoint para manejar el enlace mágico
 router.get('/magic-link', (req, res) => {
-    const { token } = req.query;
+  // 1. Limpiar cookies viejas para evitar conflictos de roles
+  res.clearCookie('session');
+  res.clearCookie('token');
+  res.clearCookie('username');
 
-    if (!token) {
-        return res.status(400).json({ message: 'Token es requerido' });
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).json({ message: 'Token es requerido' });
+  }
+
+  try {
+    // 2. Verificar el token y obtener los datos del usuario
+    // Usamos el secret directamente para evitar fallos de referencia circular
+    const userData = jwt.verify(token, process.env.JWT_SECRET_KEY);
+
+    const cookieOptions = {
+      httpOnly: true, // Cambiamos a true por seguridad, el middleware las leerá igual
+      secure: true,
+      sameSite: 'None',
+      maxAge: 1000 * 60 * 60 * 24, // 24 horas
+      path: '/',
+    };
+
+    // 3. Determinar el rol (puedes basarte en una propiedad del token)
+    // Supongamos que tu token tiene { email, role }
+    const role = userData.role || 'owner'; // por defecto owner si no viene en el token
+
+    // 4. Establecer cookies unificadas
+    res.cookie('session', JSON.stringify({ 
+        role: role, 
+        email: userData.email 
+    }), { ...cookieOptions, httpOnly: false }); // httpOnly false para que el front vea el rol si lo necesita
+
+    if (role === 'owner') {
+        res.cookie('token', token, cookieOptions);
+        console.log(`✅ Cookies de Owner para: ${userData.email}`);
+        return res.redirect(`${process.env.FRONTEND_URL}/owner`);
+    } else {
+        console.log(`✅ Cookies de Administrador para: ${userData.email}`);
+        return res.redirect(`${process.env.FRONTEND_URL}/admin/dashboard`);
     }
 
-    try {
-      // Verificar el token
-      const user = jwt.verify(token, config.jwtSecret);
-      // req.user = payload;
-
-      if (!user) {
-        return res.status(401).json({ message: "Token inválido" });
-      }
-
-      const cookieOptions = {
-        httpOnly: true,
-        secure: true, // Debe ser true en producción
-        sameSite: 'None', // Para cross-origin
-        maxAge: 1000 * 60 * 60 * 24 * 1000, // 24 horas
-        path: '/',
-        // domain: '.onrender.com' // ¡IMPORTANTE! Dominio compartido
-      };
-
-      res.cookie('session', JSON.stringify({ 
-        role: 'owner',
-        email: user.email 
-      }), {
-            ...cookieOptions,
-            httpOnly: false // Para que JS pueda leerlo si es necesario
-        });
-
-      // Enviar cookie segura con el token
-      res.cookie('token', token, cookieOptions);
-
-      res.cookie('username', JSON.stringify({ 
-        role: 'administrador',
-        email: user.email 
-      }), {
-            ...cookieOptions,
-            httpOnly: false // Para que JS pueda leerlo si es necesario
-        });
-
-
-      console.log("✅ Cookies establecidas para:", user.email);
-
-      console.log("Usuario autenticado con enlace mágico:", user.email);
-      
-      res.redirect(`${config.FrontEndBaseUrl}/owner`);
-    
-    } catch (error) {
-        res.status(401).json({ message: 'Token inválido o expirado' });
-    }
+  } catch (error) {
+    console.error("❌ Error en Magic Link:", error.message);
+    return res.status(401).json({ message: 'Token inválido o expirado' });
+  }
 });
-
 
 
 router.post('/request-participation', async (req, res) => {
