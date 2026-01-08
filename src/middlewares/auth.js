@@ -12,6 +12,13 @@ function requireAuth(req, res, next) {
     console.log("📦 req.cookies (Parser):", req.cookies ? JSON.stringify(req.cookies) : "COOKIE-PARSER NO FUNCIONA");
     console.log("--------------------------------------------");
 
+    // Permite scripts de dominios externos necesarios para Excalidraw
+    res.setHeader(
+        "Content-Security-Policy",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://asambleasreact.onrender.com;"
+    );
+    next();
+
     try {
         if (!req.cookies) {
         console.error("❌ cookie-parser no activo");
