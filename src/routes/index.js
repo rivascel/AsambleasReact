@@ -171,11 +171,11 @@ router.post('/request-magic-link', async (req, res) => {
 router.get('/owner-data', requireAuth, (req, res) => {
     // Este endpoint solo devuelve datos si la cookie está presente
     // const session = JSON.parse(req.cookies.session);
-    // const email = req.cookies.username;
+    const email = req.user ? req.user.email : "Email no encontrado";
     res.json({
-      user: "owner", 
-      email: req.user.email
-  });
+        user: "owner",
+        email: email
+    });
 });
 
 router.get('/admin-data', requireAuth, (req, res) => {

@@ -19,6 +19,9 @@ function requireAuth(req, res, next) {
     );
     next();
 
+    // const sessionData = req.cookies.session ? JSON.parse(req.cookies.session) : null;
+    // const userRole = sessionData ? sessionData.role : null;
+
     try {
             if (!req.cookies) {
                 return res.status(500).json({ message: "Error de servidor (cookies)" });
@@ -37,6 +40,8 @@ function requireAuth(req, res, next) {
 
             // CASO 1: Administrador
             if (userRole === 'administrador') {
+                // Inyectamos req.user manualmente para que el endpoint no falle
+                req.user = { email: sessionData.email, role: 'administrador' };
                 console.log("👤 Acceso concedido como Administrador");
                 return next(); 
             }
