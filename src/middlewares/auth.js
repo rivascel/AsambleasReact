@@ -35,15 +35,19 @@ function requireAuth(req, res, next) {
 
     
         // 2. Verificar el JWT
-        console.log("🔍 Verificando Secret:", process.env.JWT_SECRET_KEY ? "EXISTE" : "NO EXISTE/UNDEFINED");
-        const payload = jwt.verify(token, secret);
-        console.log("✅ Token verificado para usuario ID:", payload);
+        if (req.cookies.username === 'owner') {
+            console.log("🔍 Verificando Secret:", process.env.JWT_SECRET_KEY ? "EXISTE" : "NO EXISTE/UNDEFINED");
+            const payload = jwt.verify(token, secret);
+            console.log("✅ Token verificado para usuario ID:", payload);
         
-        // 3. Inyectar el usuario en la request para que los endpoints lo usen
-        req.user = payload; 
+            // 3. Inyectar el usuario en la request para que los endpoints lo usen
+            req.user = payload; 
+            // 5. ¡IMPORTANTE! Solo un next() al final del éxito
+            next();
+        }
+        
 
-        // 5. ¡IMPORTANTE! Solo un next() al final del éxito
-        next();
+        
         
     } catch (err) {
         console.error("❌ Error de JWT:", err.message);
