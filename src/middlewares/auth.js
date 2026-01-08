@@ -20,53 +20,49 @@ function requireAuth(req, res, next) {
     next();
 
     try {
-        if (!req.cookies) {
-        console.error("❌ cookie-parser no activo");
-        return res.status(500).json({ message: "Error de servidor (cookies)" });
-        }
-
-        const token = req.cookies.token;
-        const userRole = req.cookies.role;
-
-        // if (userRole === 'owner' && !token) {
-        //     console.warn("⚠️ Intento de acceso sin token");
-        //     return res.status(401).json({ message: "No hay token, por favor inicia sesión" });
-        // }
-
-        // CASO 1: Es Administrador -> Pasa directo
-        if (userRole === 'administrador') {
-            console.log("👤 Acceso concedido como Administrador (sin JWT)");
-            return next(); 
-        }
-
-        // CASO 2: Es Owner -> Requiere validación de Token
-        if (userRole === 'owner') {
-            if (!token) {
-                console.warn("⚠️ Owner intentó acceder sin token");
-                return res.status(401).json({ message: "No hay token, por favor inicia sesión" });
+            if (!req.cookies) {
+                return res.status(500).json({ message: "Error de servidor (cookies)" });
             }
 
-            const secret = process.env.JWT_SECRET_KEY;
-            if (!secret) {
-                console.error("❌ ERROR CRÍTICO: JWT_SECRET_KEY no definida");
-                return res.status(500).json({ message: "Error de configuración" });
+            // 1. Intentar obtener el rol desde la cookie 'session' o 'username'
+            let userRole = null;
+            try {
+                const sessionData = req.cookies.session ? JSON.parse(req.cookies.session) : null;
+                userRole = sessionData ? sessionData.role : null;
+            } catch (e) {
+                console.error("Error parseando cookie de sesión");
             }
 
-            const payload = jwt.verify(token, secret);
-            req.user = payload; 
-            console.log("✅ Token de Owner verificado:", payload.email);
-            return next();
-        }
+            const token = req.cookies.token;
 
-        // CASO 3: No es ninguno de los dos
-        console.warn("🚫 Rol no reconocido:", userRole);
-        return res.status(403).json({ message: "No tienes permiso para acceder" });
-        
-        
-    } catch (err) {
-        console.error("❌ Error de JWT:", err.message);
-        return res.status(401).json({ message: "Token inválido o expirado" });
-    }
+            // CASO 1: Administrador
+            if (userRole === 'administrador') {
+                console.log("👤 Acceso concedido como Administrador");
+                return next(); 
+            }
+
+            // CASO 2: Owner
+            if (userRole === 'owner') {
+                if (!token) {
+                    return res.status(401).json({ message: "No hay token de owner" });
+                }
+
+                const secret = process.env.JWT_SECRET_KEY;
+                const payload = jwt.verify(token, secret);
+                req.user = payload;
+                return next();
+            }
+
+            // CASO 3: Fallo
+            console.warn("🚫 Rol no reconocido:", userRole);
+            return res.status(403).json({ message: "Acceso denegado: Rol inválido" });
+
+        } catch (err) {
+            console.error("❌ Error en Auth:", err.message);
+            if (!res.headersSent) {
+                return res.status(401).json({ message: "Sesión inválida o expirada" });
+            }
+        }
 }
 
 module.exports = { requireAuth };
