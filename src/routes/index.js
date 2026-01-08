@@ -225,13 +225,13 @@ router.get('/magic-link', (req, res) => {
       // Enviar cookie segura con el token
       res.cookie('token', token, cookieOptions);
 
-      // res.cookie('username', JSON.stringify({ 
-      //   role: 'administrador',
-      //   email: user.email 
-      // }), {
-      //       ...cookieOptions,
-      //       httpOnly: false // Para que JS pueda leerlo si es necesario
-      //   });
+      res.cookie('username', JSON.stringify({ 
+        role: 'administrador',
+        email: user.email 
+      }), {
+            ...cookieOptions,
+            httpOnly: false // Para que JS pueda leerlo si es necesario
+        });
 
 
       console.log("✅ Cookies establecidas para:", user.email);
