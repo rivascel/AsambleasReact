@@ -19,8 +19,9 @@ function requireAuth(req, res, next) {
         }
 
         const token = req.cookies.token;
+        const userRole = req.cookies.username;
 
-        if (req.cookies.username === 'owner' && !token) {
+        if (userRole === 'owner' && !token) {
             console.warn("⚠️ Intento de acceso sin token");
             return res.status(401).json({ message: "No hay token, por favor inicia sesión" });
         }
@@ -35,7 +36,7 @@ function requireAuth(req, res, next) {
 
     
         // 2. Verificar el JWT
-        if (req.cookies.username === 'owner') {
+        if (userRole === 'owner') {
             console.log("🔍 Verificando Secret:", process.env.JWT_SECRET_KEY ? "EXISTE" : "NO EXISTE/UNDEFINED");
             const payload = jwt.verify(token, secret);
             console.log("✅ Token verificado para usuario ID:", payload);
@@ -45,8 +46,16 @@ function requireAuth(req, res, next) {
             // 5. ¡IMPORTANTE! Solo un next() al final del éxito
             next();
         }
-        
 
+        // CASO 1: Es Administrador -> Pasa directo
+        if (userRole === 'administrador') {
+            console.log("👤 Acceso concedido como Administrador (sin JWT)");
+            return next(); 
+        }
+
+        // CASO 3: No es ninguno de los dos
+        console.warn("🚫 Rol no reconocido:", userRole);
+        return res.status(403).json({ message: "No tienes permiso para acceder" });
         
         
     } catch (err) {
