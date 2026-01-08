@@ -180,10 +180,10 @@ router.get('/owner-data', requireAuth, (req, res) => {
 
 router.get('/admin-data', requireAuth, (req, res) => {
     // Este endpoint solo devuelve datos si la cookie está presente
-    const email = req.cookies.username;
+    const email = req.user ? req.user.email : "administrador no encontrado";
    res.json({ 
         user: "administrador", 
-        email: req.user.email,
+        email: email,
         dashboardData: "Datos privados" 
     });
 });
