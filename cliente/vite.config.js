@@ -12,6 +12,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
   },
+  base: '/',
   server: {
   //   https: {
   //     key: fs.readFileSync(path.resolve(__dirname, '../src/ssl/localhost-key.pem')),
