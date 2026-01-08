@@ -19,7 +19,7 @@ function requireAuth(req, res, next) {
         }
 
         const token = req.cookies.token;
-        const userRole = req.cookies.username;
+        const userRole = req.cookies.role;
 
         // if (userRole === 'owner' && !token) {
         //     console.warn("⚠️ Intento de acceso sin token");
