@@ -17,7 +17,6 @@ function requireAuth(req, res, next) {
         "Content-Security-Policy",
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://asambleasreact.onrender.com;"
     );
-    next();
 
     // const sessionData = req.cookies.session ? JSON.parse(req.cookies.session) : null;
     // const userRole = sessionData ? sessionData.role : null;
@@ -29,43 +28,62 @@ function requireAuth(req, res, next) {
 
             // 1. Intentar obtener el rol desde la cookie 'session' o 'username'
             let userRole = null;
-            try {
-                const sessionData = req.cookies.session ? JSON.parse(req.cookies.session) : null;
-                userRole = sessionData ? sessionData.role : null;
-            } catch (e) {
-                console.error("Error parseando cookie de sesión");
+            let userEmail = null;
+
+
+            // 1. Intentar obtener datos de la cookie 'session' (JSON)
+            if (req.cookies.session) {
+                try {
+                    // Si la cookie viene del front, a veces necesita decodeURIComponent
+                    const rawSession = req.cookies.session;
+                    const sessionData = JSON.parse(rawSession);
+                    userRole = sessionData.role;
+                    userEmail = sessionData.email;
+                } catch (e) {
+                    console.error("Error parseando cookie de sesión JSON");
+                }
+            }
+
+            // 2. FALLBACK: Si no hay session, mirar si existe la cookie 'username' (Caso Admin local)
+            if (!userRole && req.cookies.username) {
+                userRole = req.cookies.username; // Si la cookie es username=administrador
+                userEmail = "admin@local.com";   // Email genérico para admin local
             }
 
             const token = req.cookies.token;
 
-            // CASO 1: Administrador
-            if (userRole === 'administrador') {
-                // Inyectamos req.user manualmente para que el endpoint no falle
-                req.user = { email: sessionData.email, role: 'administrador' };
-                console.log("👤 Acceso concedido como Administrador");
-                return next(); 
+            // CASO ADMINISTRADOR
+            if (userRole === 'administrador' || req.cookies.username === 'administrador') {
+                req.user = { 
+                    email: userEmail || req.cookies.username || "admin@sistema.com", 
+                    role: 'administrador' 
+                };
+                return next(); // <--- Termina aquí y va al endpoint
             }
 
             // CASO 2: Owner
             if (userRole === 'owner') {
+                const token = req.cookies.token;
                 if (!token) {
                     return res.status(401).json({ message: "No hay token de owner" });
                 }
 
                 const secret = process.env.JWT_SECRET_KEY;
                 const payload = jwt.verify(token, secret);
+                // console.log("👤 Payload JWT:", payload);
                 req.user = payload;
                 return next();
             }
 
-            // CASO 3: Fallo
-            console.warn("🚫 Rol no reconocido:", userRole);
-            return res.status(403).json({ message: "Acceso denegado: Rol inválido" });
+            // // CASO 3: Fallo
+            // console.warn("🚫 Rol no reconocido:", userRole);
+            // return res.status(403).json({ message: "Acceso denegado: Rol inválido" });
+            return res.status(403).json({ message: "No autorizado" });
 
         } catch (err) {
             console.error("❌ Error en Auth:", err.message);
             if (!res.headersSent) {
-                return res.status(401).json({ message: "Sesión inválida o expirada" });
+                return res.status(401).json({ message: "Sesión expirada" });
             }
         }
 }

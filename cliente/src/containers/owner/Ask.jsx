@@ -7,7 +7,7 @@ import AppContext from '../../context/AppContext';
 
 
 const AskToParticipate = () => {
-  
+  // const API_URL = import.meta.env.VITE_API_URL;
   const { apiUrl } = useContext(AppContext);
   const socket7 = io(`${apiUrl}`, {
     withCredentials: true,

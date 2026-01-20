@@ -11,7 +11,7 @@ import {
  
 } from "../../src/supabase-client";
 
-const API_URL = import.meta.env.VITE_BACKEND_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 
 const peerConnections={};
@@ -23,6 +23,8 @@ const appliedAnswers = new Set();
 let configuration=null;
 // Obtener configuración del servidor
 
+// const { apiUrl } = useContext(AppContext);
+
 export const getWebRTCConfig = async () => {
 
     if (configuration) return configuration;
@@ -30,6 +32,7 @@ export const getWebRTCConfig = async () => {
     const response = await fetch(`${API_URL}/api/webrtc-config`, {
       credentials: 'include'
     });
+    // console.log("Respuesta de configuración WebRTC:", response);
     if (!response.ok){
       const Text = await response.text();
       throw new Error(`Error fetching WebRTC config: ${Text}`);
@@ -43,10 +46,11 @@ export async function getAdmin(roomId) {
   return await getActiveAdmin(roomId);
 };
 
-async function createPeerConnection(viewerId) {
+async function createPeerConnection(user) {
   const config = await getWebRTCConfig();
   const pc = new RTCPeerConnection(config);
-  peerConnections[viewerId] = pc;
+  peerConnections[user] = pc;
+  console.log(`✅ PeerConnection creada para ${user}`);
   return pc;
 }
 
@@ -121,11 +125,15 @@ export async function createOfferToAdmin(roomId, viewerId /*, pc*/) {
 
     adminPc = getPeerConnection(adminId);
     if (!adminPc) {
-      adminPc = createPeerConnection(adminId);
+      adminPc = await createPeerConnection(adminId);
+      console.log("🔌 Creando PeerConnection para admin:", adminPc);
+      console.log("✅ PeerConnection creada para admin:", adminId);
     } 
 
     if (localStream && localStream.getTracks().length > 0) {
-      localStream.getTracks().forEach((track) => adminPc.addTrack(track, localStream));
+      localStream.getTracks().forEach(track => { 
+        adminPc.addTrack(track, localStream)
+      });
        console.log("🎥 Tracks añadidos al PeerConnection:", localStream.getTracks().map(t => t.kind));
     } else {
       console.warn("⚠️ No se encontraron tracks locales — no se generarán ICE candidates");
@@ -215,8 +223,8 @@ export async function listenForAnswers(viewerId) {
   const channel = listenToSignals(viewerId, async ( signal ) => { 
     const adminId = signal.from_user;
 
-    // let pc;
-    const pc = getPeerConnection(adminId);
+    let pc;
+     pc = getPeerConnection(adminId);
         if (!pc) pc=createPeerConnection(adminId);
         // const pc = peerConnections[viewerId];
         console.log(`📨 Señal enviada a ${viewerId}:`, signal);
@@ -349,6 +357,8 @@ export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
   // ============================================================
   // 🧹 UTILIDADES
   // ============================================================
+
+  
   
   function cleanupViewerConnection() {
     const pc = peerConnections[adminId]
@@ -359,14 +369,16 @@ export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
       pc.onconnectionstatechange = null
       pc.close()
       delete peerConnections[adminId]
+       console.log("🧹 Viewer PC destruida")
     }
 
     if (streamTarget?.srcObject) {
       streamTarget.srcObject.getTracks().forEach(t => t.stop())
-      streamTarget.srcObject = null
+      streamTarget.srcObject = null;
+      console.log("🧹 Stream remoto detenido y limpiado")
     }
-
-    console.log("🧹 Viewer PC destruida")
+    console.log("✅ Viewer cleanup completo")
+   
   }
 
   function createRemoteStream() {
@@ -382,9 +394,10 @@ export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
   // 🔌 CREACIÓN PC
   // ============================================================
 
-  function createViewerPC() {
-    const pc = createPeerConnection(adminId)
-    peerConnections[adminId] = pc
+  async function createViewerPC() {
+    console.log("🔧 Creando Viewer PC... en ",adminId);
+    const pc = await createPeerConnection(adminId);
+    console.log("🔌 Viewer PC creada")
 
     const remoteStream = createRemoteStream();  
 
@@ -426,6 +439,7 @@ export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
             sdpMid: candidate.sdpMid
           }
         })
+        console.log("❄️ ICE candidate enviado al admin")
       } catch (err) {
         console.error("❌ Error enviando ICE:", err)
       }
@@ -444,10 +458,11 @@ export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
     // Siempre empezamos LIMPIO
     cleanupViewerConnection()
 
-    const pc = createViewerPC()
+    const pc = await createViewerPC()
 
     const parsedOffer =
       typeof offer === "string" ? JSON.parse(offer) : offer
+      // console.log("🧪 offer RAW:", offer, typeof offer)
 
     await pc.setRemoteDescription(new RTCSessionDescription(parsedOffer))
 
@@ -473,6 +488,7 @@ export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
     try {
       const parsed =
         typeof payload === "string" ? JSON.parse(payload) : payload
+        // console.log("🧪 ice RAW:", payload, typeof payload)
 
       if (!parsed?.candidate) return
 
@@ -492,10 +508,12 @@ export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
       try {
         if (type === "offer") {
           await handleOffer(payload, from_user, room_id)
+          // console.log("✅ Offer manejada correctamente en viewer");
         }
 
         if (type === "ice-candidate") {
-          await handleIceCandidate(payload)
+          await handleIceCandidate(payload);
+          // console.log("✅ ICE candidate manejado correctamente en viewer");
         }
       } catch (err) {
         console.error("❌ Signal handler error:", err)

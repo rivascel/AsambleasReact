@@ -1,9 +1,9 @@
 
 const config = {
   env: process.env.NODE_ENV,
-  isProd:process.env.NODE_ENV === 'production',
+  isProd:process.env.NODE_ENV === 'development',
   port: process.env.PORT,
-  BaseUrl: process.env.BACKEND_URL,
+  // BaseUrl: process.env.BACKEND_URL,
   FrontEndBaseUrl: process.env.FRONTEND_URL,
   BackEndBaseUrl: process.env.BACKEND_URL,
   jwtSecret: process.env.JWT_SECRET_KEY,

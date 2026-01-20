@@ -1,4 +1,4 @@
-console.log("✅ MagicLinkVerification.jsx actualizado");
+// console.log("✅ MagicLinkVerification.jsx actualizado");
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../components/UserContext";
@@ -17,6 +17,10 @@ const MagicLinkVerification = () => {
     const verifyMagicLink = async () => {
       const params = new URLSearchParams(window.location.search);
       const token = params.get("token");
+      const role = params.get("role");
+      const email = params.get("email");
+
+      console.log("🔗 Verificando enlace mágico con role:", token, role, email);
 
       if (!token) {
         setErrorMsg("Token no proporcionado en el enlace.");

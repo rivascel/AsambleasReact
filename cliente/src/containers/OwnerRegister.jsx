@@ -17,7 +17,10 @@ const RegisterOwner = ({ onRegister }) => {
     const handleSendLink = async () => {
       try {
         await axios.post(`${apiUrl}/api/request-magic-link`, 
-            { email },
+            {   email,
+                role: "owner"
+            
+             },
             { withCredentials: true }
         );
 

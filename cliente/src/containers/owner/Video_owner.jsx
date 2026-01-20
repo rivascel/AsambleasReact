@@ -14,7 +14,7 @@ import AppContext from '../../context/AppContext';
 
 
 const VideoGeneral = () => {
-
+// const API_URL = import.meta.env.VITE_API_URL;
   const { apiUrl } = useContext(AppContext);
 
   const socket11 = io(`${apiUrl}`, {
@@ -45,7 +45,7 @@ const VideoGeneral = () => {
     // setViewerReady(checkApprove); // sincroniza con el contexto
     
     const fetchData = async () => {
-      const admin = await getAdmin(roomId);
+      // const admin = await getAdmin(roomId);
       try {
         const response = await fetch(`${apiUrl}/api/recover-users-id`, { 
           method: 'POST',
@@ -112,20 +112,22 @@ const VideoGeneral = () => {
     
   },[roomId, ownerInfo?.email]);
 
-    useEffect(() => {
-      //  if (!userId) return;
-  
-      const init = () => {
-        const subscription = listenForAnswers(email);
-        return () => {
-          if (subscription.unsubscribe) {
-            console.log("🧹 Cancelando suscripción answers desde el cliente:", email);
-            subscription.unsubscribe();
-          }
-        };
-      }
-      init();
-    }, [roomId, email]);
+  //recibe las respuestas del admin al iniciar transmisión el viewer  
+  useEffect(() => {
+    //  if (!userId) return;
+
+    const init = () => {
+      const subscription = listenForAnswers(email);
+      console.log("👂 Escuchando answers y ices de admin :", email );
+      return () => {
+        if (subscription.unsubscribe) {
+          console.log("🧹 Cancelando suscripción answers desde el cliente:", email);
+          subscription.unsubscribe();
+        }
+      };
+    }
+    init();
+  }, [roomId, email]);
   
 
 

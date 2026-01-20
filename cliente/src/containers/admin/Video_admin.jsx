@@ -17,7 +17,7 @@ import { listenToSignals, getAllViewersAndListen, subscribeToSignals, getViewerS
 
 
 const VideoGeneral = () => {
-
+// const API_URL = import.meta.env.VITE_API_URL;
   const { apiUrl } = useContext(AppContext);
 
   const socket10 = io(`${apiUrl}`, {
@@ -85,18 +85,21 @@ const VideoGeneral = () => {
 
   },[roomId, userId]);
   
+  //Este inicia transmisión del admin y escucha respuestas
   useEffect(() => {
       
     const init = async () => {
-      const admin = await getAdmin(roomId);
-      console.log("email del admin:", email);
 
-      if (stream && localRef.current) {
+      if (stream && localRef.current && userStreaming) {
+        //en esta funcion llama a receiving stream
         await startBroadcasting(roomId, email, localRef.current);
+        const admin = await getAdmin(roomId);
+
         socket10.emit("admin-ready", admin, roomId);
 
+        console.log("email del admin:", email);
         const subscription = listenForAnswers(email);
-        console.log("👂 Escuchando ofertas y ices :", email );
+        console.log("👂 Escuchando answers y ices :", email );
         return () => {
             unsubscribe?.();
           if (subscription.unsubscribe) {
@@ -105,25 +108,28 @@ const VideoGeneral = () => {
           }
         };
       }
+
     };
 
     init();
   }, [stream]);
 
-  useEffect(() => {
-     if (!userId) return;
+  // ESTE NO VA PORQUE CUANDO SE UNE ESCUCHA LAS OFERTAS Y ICES Y ENVIA SU RESPUESTA REMOTA
+  // useEffect(() => {
+  //    if (!userId) return;
 
-    const init = () => {
-      const subscription = listenForAnswers(email);
-      return () => {
-        if (subscription.unsubscribe) {
-          console.log("🧹 Cancelando suscripción answers de:", email);
-          subscription.unsubscribe();
-        }
-      };
-    }
-    init();
-  }, [roomId, email]);
+  //   const init = () => {
+  //     const subscription = listenForAnswers(email);
+  //     console.log("👂 Escuchando ofertas y ices :", email );
+  //     return () => {
+  //       if (subscription.unsubscribe) {
+  //         console.log("🧹 Cancelando suscripción answers de:", email);
+  //         subscription.unsubscribe();
+  //       }
+  //     };
+  //   }
+  //   init();
+  // }, [roomId, email]);
 
 
   const openBroadcasting = async () => {

@@ -7,6 +7,7 @@
     "install-all": "npm install && cd cliente && npm install",
     "build": "cd cliente && npm install && npm run build",
     "start": "node src/index.js",
+    "dev": "concurrently \"cd cliente && npm run dev\" \"cd src && nodemon index.js\"",
     "render-postinstall": "npm install && npm run build"
   },
   "dependencies": {

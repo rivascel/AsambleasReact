@@ -20,7 +20,19 @@ const RegisterAdmin = ({ onRegister }) => {
         onRegister?.(email); // si quieres avanzar al siguiente paso visual
         login(email);
         setAdminId(email); // Guardar el ID del admin
-        document.cookie = `username=${email}; `;
+
+        // CREAR LA COOKIE EN EL FORMATO QUE EL BACKEND ENTIENDE
+        const sessionData = JSON.stringify({
+            role: 'administrador',
+            email: email
+        });
+        
+        // La guardamos como 'session' para que auth.js la encuentre
+        document.cookie = `session=${encodeURIComponent(sessionData)}; path=/;`;
+        // Opcionalmente guardamos el username para compatibilidad
+        document.cookie = `username=${email}; path=/;`;
+
+
         navigate("/admin/dashboard"); // ✅ sin recargar la página
         
       } catch (error) {

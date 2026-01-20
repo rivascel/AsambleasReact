@@ -24,9 +24,6 @@ const isLoggedIn = require("../middlewares/IsLoggedIn");
 
 const { requireAuth } = require('../middlewares/auth');
 
-
-
-
 router.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.json({ message: "Sesión cerrada" });
@@ -150,16 +147,16 @@ router.post("/votacion", (req, res)=>{
 // Endpoint para solicitar un enlace mágico
 
 router.post('/request-magic-link', async (req, res) => {
-    const { email } = req.body;
+    const { email, role } = req.body;
 
     if (!email) {
         return res.status(400).json({ message: 'Email es requerido' });
     }
 
     // Generar un token JWT con un tiempo de expiración (15 minutos)
-    const token = jwt.sign({ email }, config.jwtSecret, { expiresIn: '24h' });
+    const token = jwt.sign({ email, role }, config.jwtSecret, { expiresIn: '24h' });
 
-    const result = await sendMagicLink(email, token);
+    const result = await sendMagicLink(email, role, token);
 
     if (result.success) {
       res.json({ message: 'Correo enviado' });
@@ -172,6 +169,7 @@ router.get('/owner-data', requireAuth, (req, res) => {
     // Este endpoint solo devuelve datos si la cookie está presente
     // const session = JSON.parse(req.cookies.session);
     const email = req.user ? req.user.email : "Email no encontrado";
+    // const email = req.user.email;
     res.json({
         user: "owner",
         email: email
@@ -195,9 +193,10 @@ router.get('/magic-link', (req, res) => {
   res.clearCookie('token');
   res.clearCookie('username');
 
-  const { token } = req.query;
+  const { email, role, token } = req.query;
 
-  if (!token) {
+  console.log("🔗 Magic Link accessed with token:", token, email, role);
+  if (!token ) {
     return res.status(400).json({ message: 'Token es requerido' });
   }
 
@@ -217,10 +216,11 @@ router.get('/magic-link', (req, res) => {
     // 3. Determinar el rol (puedes basarte en una propiedad del token)
     // Supongamos que tu token tiene { email, role }
     const role = userData.role || 'owner'; // por defecto owner si no viene en el token
+    
 
     // 4. Establecer cookies unificadas
     res.cookie('session', JSON.stringify({ 
-        role: role, 
+        role: userData.role, 
         email: userData.email 
     }), { ...cookieOptions, httpOnly: false }); // httpOnly false para que el front vea el rol si lo necesita
 
@@ -228,9 +228,12 @@ router.get('/magic-link', (req, res) => {
         res.cookie('token', token, cookieOptions);
         console.log(`✅ Cookies de Owner para: ${userData.email}`);
         return res.redirect(`${process.env.FRONTEND_URL}/owner`);
-    } else {
+    } else if (role === 'administrador') {
         console.log(`✅ Cookies de Administrador para: ${userData.email}`);
         return res.redirect(`${process.env.FRONTEND_URL}/admin/dashboard`);
+    } else {
+        console.warn('❌ Rol desconocido en el token');
+        return res.status(400).json({ message: 'Rol desconocido' });
     }
 
   } catch (error) {

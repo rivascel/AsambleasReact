@@ -1,6 +1,8 @@
 //una funcion que se esta exportando para ser usada en otro
 //archivo, y crea el servidor socket.io en tiempo real
 
+const jwt = require("jsonwebtoken");
+
 module.exports = httpServer =>{
     const { Server } = require("socket.io");
     const io = new Server(httpServer, {
@@ -14,33 +16,67 @@ module.exports = httpServer =>{
     let connectedUsers = [];
     const ADMIN_EMAIL = "admin";
     let administrador = "";
+    let userIdentifier;
 
     // Configuración de Socket.IO con CORS
         io.on("connection", socket => {
 
-        const cookie = socket.handshake.headers.cookie || "";
-            
-        const user = decodeURIComponent(cookie.split("username=").pop()?.split(";")[0]); // Validar la existencia de la cookie
-        if (!user) return;
+            const cookieString = socket.handshake.headers.cookie || ""; 
 
-            if (user != '') {
-                if (user ) {
-                    if (!connectedUsers.includes(user)) {
-                        connectedUsers.push(user); // Agregar usuario si no está en la lista
-                    };
-        
-                    //Enviar la lista actualizada a todos los clientes
+            const getCookie = (name) => {  
+                const value = `; ${cookieString}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
+                return null;
+            };
+
+            const sessionCookie = getCookie('session');
+
+            if (sessionCookie) {
+                try {
+                // 1. Decodificar caracteres especiales (como %22 para comillas)
+                const decodedSession = decodeURIComponent(sessionCookie);
+                // 2. Parsear el string JSON a objeto JS
+                const sessionData = JSON.parse(decodedSession);
+                
+                // Usamos el email como identificador en la lista
+                userIdentifier = sessionData.email;
+
+                if (userIdentifier && !connectedUsers.includes(userIdentifier)) {
+                    connectedUsers.push(userIdentifier);
                     io.emit("updateConnectedUsers", connectedUsers);
                     console.log("lista de conectados",connectedUsers)
                 }
+            } catch (e) {
+                console.error("Error al parsear la cookie session en Socket:", e.message);
+            }
+            console.log("Usuarios conectados actualmente:", connectedUsers);
+
+            }
+
+        // const user = decodeURIComponent(cookie.split("username=").pop()?.split(";")[0]); 
+        // Validar la existencia de la cookie if (!user) return;
         
-                socket.emit("updatedUser", user );
+            if (!userIdentifier) return;
+
+            if (userIdentifier != '') {
+                // if (user ) {
+                //     if (!connectedUsers.includes(user)) {
+                //         connectedUsers.push(user); // Agregar usuario si no está en la lista
+                //     };
+        
+                //     //Enviar la lista actualizada a todos los clientes
+                //     io.emit("updateConnectedUsers", connectedUsers);
+                //     console.log("lista de conectados",connectedUsers)
+                // }
+        
+                socket.emit("updatedUser", userIdentifier );
 
                 // Manejar la desconexión
                 socket.on("disconnect", () => {
                     // console.log("Usuario desconectado:", user);
-                    connectedUsers = connectedUsers.filter(id => id !== user);
-                    console.log("Usuario desconectado:", user);
+                    connectedUsers = connectedUsers.filter(id => id !== userIdentifier);
+                    console.log("Usuario desconectado:", userIdentifier);
                     io.emit("updateConnectedUsers", connectedUsers); // ⬅️ importante
                     console.log("lista de conectados", connectedUsers);
                 });

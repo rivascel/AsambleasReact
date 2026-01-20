@@ -9,14 +9,14 @@ if (!config.api_key) {
 
 const resend = new Resend(config.api_key); // Guárdala en .env
 
-async function sendMagicLink(to, token) {
+async function sendMagicLink(to, role, token) {
   const magicLink = `${config.BackEndBaseUrl}/api/magic-link?token=${token}`;
 
   try {
     const data = await resend.emails.send({
       from: 'onboarding@resend.dev', // O tu correo verificado
       to,
-      subject: 'Tu enlace mágico de acceso',
+      subject: 'Tu enlace mágico de acceso de ' + role,
       html: `
         <p>Hola 👋</p>
         <p>Haz clic en el siguiente enlace para iniciar sesión:</p>

@@ -607,6 +607,9 @@ export const listenToSignalsFromViewer = async (userId, callback) => {
     console.error("Usuario no definido aun"); 
     return;
   }
+  
+  const channelName = `userId-${userId} -${Date.now()}`;
+  console.log(`🔔 [ADMIN] Usando listenToSignalsFromViewer: ${channelName}`);
 
   const channel = supabase
   .channel(`Signals from Viewer-${userId}`)
@@ -673,16 +676,18 @@ export async function registerAdminIsActive(roomId, adminId) {
   }  
 }
 
-export async function setAdminIsStreaming(roomId) {
+export async function setAdminIsStreaming(roomId, adminId) {
   try {
-    const { error } = await supabase.from('rooms').upsert([
+    const { error } = await supabase.from('active_users').upsert([
       {
+        user_id: adminId,
         room_id: roomId,
-        is_active: true,
+        is_admin: true,
+        is_streaming: true,
         created_at: new Date().toISOString(),
       }
     ]);
-    if (error) {console.error("Error registering streaming in room:", error)}
+    if (error) {console.error("Error registering streaming as active:", error)}
     else {console.log("✅ Streaming");};
   } catch (error) {
     console.error("❌ Excepción en register streaming is Active:", error);
@@ -730,13 +735,14 @@ export async function getViewerStreaming() {
       .from("active_users")
       .select("is_streaming")
       .eq("is_streaming",true)
+      .eq("is_admin",false)
       .single();
 
       if (error) {
         console.error("Error obteniendo datos:", error);
         return false;
       }
-      console.log("data viewer streaming", data.user_id);
+      console.log("data viewer streaming", data);
 
       return data?.is_streaming == true;
       } catch (error){

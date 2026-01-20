@@ -1,6 +1,7 @@
 // process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 require('dotenv').config(); // ruta relativa al root del proyecto
+const { config } = require('dotenv');
 
 const express = require("express");
 // const fs = require("fs");
@@ -24,23 +25,17 @@ const path = require("path");
 
 app.set('trust proxy', 1);
 
-// app.use(cors({
-//   origin: (origin, callback) => {
-//     console.log("🌐 Origin recibido:", origin);
-//     callback(null, true);
-//   },
-//   credentials: true,
-// }));
-
 // 2. Configura CORS de forma explícita (evita el origin: true si es posible)
 const allowedOrigins = [
   'https://asambleasdeployed.onrender.com', 
-  'https://asambleasreact.onrender.com' // Agrega todas las variantes que veas en tus logs
+  'https://asambleasreact.onrender.com', // Agrega todas las variantes que veas en tus logs
+  'http://localhost:5173',
+  'http://localhost:3000'
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Permitir peticiones sin origin (como Postman o health checks)
+const originConfig = process.env.NODE_ENV === 'development' 
+  ? true // Permite todo en desarrollo
+  : function (origin, callback) {  // Permitir peticiones sin origin (como Postman o health checks)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -48,8 +43,11 @@ app.use(cors({
     } else {
       console.error("❌ Bloqueado por CORS:", origin);
       callback(new Error('Not allowed by CORS'));
-    }
-  },
+    } 
+};
+
+app.use(cors({
+  origin: originConfig,
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: [    
@@ -61,61 +59,34 @@ app.use(cors({
     exposedHeaders: ['Set-Cookie']
 }));
 
-// app.use(cors({
-//   // origin: 'https://asambleasdeployed.onrender.com',
-//   origin: true,
-//   credentials: true,
-//   methods: ['GET', 'POST', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
-
-// app.use(cors({
-//   origin: config.FrontEndBaseUrl, // URL de tu frontend
-//   credentials: true, // Importante para cookies
-//   methods: ['GET', 'POST', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
 
 app.use(cookieParser()); // << esto debe ir ANTES de cualquier `app.use(router)`
-// app.use(bodyParser.json());
 
 // Middleware para parsear el cuerpo de las solicitudes como JSON
 app.use(express.json());
 
-
-
-// app.use(cors({ origin: process.env.FRONTEND_URL }));
 
 app.get('/health', (req, res) => {
   res.send('OK');
 });
 
 const authRoutes = require('./routes'); // o './routes/auth'
+
 app.use('/api', authRoutes);
 
-// Esta es la forma más segura de apuntar a la raíz del proyecto en Render
-const publicPath = path.resolve(__dirname, '..', 'cliente', 'dist');
+if (process.env.NODE_ENV === 'production') {
+    // Esta es la forma más segura de apuntar a la raíz del proyecto en Render
+  const publicPath = path.resolve(__dirname, '..', 'cliente', 'dist');
 
-// Servir archivos estáticos
-app.use(express.static(publicPath));
+  // Servir archivos estáticos
+  app.use(express.static(publicPath));
 
-// Ruta comodín para React
-app.get('*', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
+  // Ruta comodín para React
+  app.get('*', (req, res) => {
+      res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-
-// app.use(express.static(path.join(__dirname, 'assets')));
-// app.use(express.static(path.join(__dirname, '../cliente/dist')));
-
-// app.get('*', (req, res, next) => {
-//   const ext = path.extname(req.path);
-//   if (ext) return next(); // Deja pasar archivos estáticos con extensión
-
-  // Si no tiene extensión, asumimos que es una ruta de SPA
-//   res.sendFile(path.join(__dirname, '../cliente/dist/index.html'));
-// });
-
+};
 
 
 //settings
