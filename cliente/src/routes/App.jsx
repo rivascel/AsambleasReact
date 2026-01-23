@@ -1,6 +1,7 @@
 import '../App.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from '../containers/Layout';
+import LayoutAdmin from '../containers/admin/Layout';
 import AdminDashBoard from '../pages/AdminDashBoard';
 import OwnerDashBoard from '../pages/OwnerDashBoard';
 import useInitialState from '../hooks/useInitialState';
@@ -21,7 +22,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home/>}/> 
               <Route path="/admin" element={<AdminRegister/>}/>
-              <Route path="/admin/dashboard" element={<ProtectedRoute><Layout><AdminDashBoard/></Layout></ProtectedRoute>}/>
+              <Route path="/admin/dashboard" element={<ProtectedRoute><LayoutAdmin><AdminDashBoard/></LayoutAdmin></ProtectedRoute>}/>
               <Route path="/owner" element={<ProtectedRoute><Layout><OwnerDashBoard/></Layout></ProtectedRoute>}/>
               <Route path="/magic-link" element={<MagicLinkVerification />} />
             </Routes>

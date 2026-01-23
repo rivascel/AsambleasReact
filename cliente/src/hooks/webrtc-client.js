@@ -23,8 +23,6 @@ const appliedAnswers = new Set();
 let configuration=null;
 // Obtener configuración del servidor
 
-// const { apiUrl } = useContext(AppContext);
-
 export const getWebRTCConfig = async () => {
 
     if (configuration) return configuration;

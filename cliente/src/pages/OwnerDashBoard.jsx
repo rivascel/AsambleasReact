@@ -33,22 +33,22 @@ const DashBoardOwner = () => {
   const [votesData, setVotesData] = useState({}); // lista de todos los propietarios
   const { email, login, setQuorum, setApprovalVotes, setRejectVotes, setBlankVotes } = useContext(UserContext);
   
-    useEffect(() => {
-    axios.get(`${apiUrl}/api/owner-data`, {
-      withCredentials: true,
-      })
-      .then((res) => {
-            // email;
-            login(res.data.email); // ✅ Actualiza el contexto global
-      })
-      .catch((err) => {
-        console.error(err);
-        setError("No autorizado. Redirigiendo...");
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 2000);
-      });
-    }, []);
+  useEffect(() => {
+  axios.get(`${apiUrl}/api/owner-data`, {
+    withCredentials: true,
+    })
+    .then((res) => {
+          // email;
+          login(res.data.email); // ✅ Actualiza el contexto global
+    })
+    .catch((err) => {
+      console.error(err);
+      setError("No autorizado. Redirigiendo...");
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    });
+  }, []);
 
   useEffect(() => {
     if (!email) return;
@@ -105,6 +105,7 @@ const DashBoardOwner = () => {
       const response = await axios.get(`${apiUrl}/api/emailFile`, {
         withCredentials: true,
       });
+      // console.log("Respuesta de /api/emailFile:", response.data);
       if (Array.isArray(response.data)) {
         setVotesData(response.data);
         calcularQuorum(response.data);
@@ -117,23 +118,26 @@ const DashBoardOwner = () => {
   };
 
   const calcularQuorum = (data) => {
+    let quorumPercentage = 0;
     if (!data.length) return;
 
     const SumItems = data.reduce((acumulator, objeto) => acumulator + parseInt(objeto.participacion), 0);
-      for (let i = 0; i < data.length; i++) {
-          
-        if (data[i].correo.trim() === email) {
-            const quorumPercentage = (parseInt(data[i].participacion) / SumItems) * 100;
-            // console.log("quorumPercentage",quorumPercentage);
-            setQuorum(quorumPercentage); // Actualiza el estado del quorum
-            break;
-          }
-         else {
-          console.log(`No se encontró el correo: ${email}`);
+    for (let i = 0; i < data.length; i++) {
+        
+      if (data[i].correo.trim() === email) {
+          quorumPercentage = (parseInt(data[i].participacion) / SumItems) * 100;
+          console.log("quorumPercentage",quorumPercentage);
+          setQuorum(quorumPercentage); // Actualiza el estado del quorum
+          break;
         }
+        else {
+        console.log(`No se encontró el correo: ${email}`);
       }
+    }
+    return quorumPercentage;
   };
-    if (error) return <p>{error}</p>;
+  
+  if (error) return <p>{error}</p>;
 
 
   return (

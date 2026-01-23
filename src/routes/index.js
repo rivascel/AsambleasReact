@@ -67,6 +67,7 @@ router.get("/emailFile", (req, res)=>{
                 .filter(line => line.trim() !== '') // Eliminar líneas vacías
                 .map(line => JSON.parse(line)); // Parsear cada línea como JSON
             res.json(votes);
+            // console.log("Archivo de correos leído y parseado correctamente.", votes);
         } catch (parseError) {
             console.error('Error al parsear los datos:', parseError);
             res.status(500).send('Error al procesar los datos');

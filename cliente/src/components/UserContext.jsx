@@ -121,6 +121,7 @@ const UserProvider = ({ children }) => {
       const parsed = JSON.parse(savedData);
       setEmail(parsed.email);
       setOwnerData(parsed.ownerData);
+      setQuorum(parsed.quorum);
       setQuorum(parsed.quorum || null);
       setIsAuthenticated(true);
     }

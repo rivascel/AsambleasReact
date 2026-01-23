@@ -2,7 +2,10 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import '../styles/Header.css';
 
-import { UserContext } from "../components/UserContext";
+// import { UserContext } from "../components/UserContext";
+
+import { UserContext } from "./UserContext";
+
 
 const Header = () => {
     const { ownerData, quorum } = useContext(UserContext);
@@ -51,7 +54,7 @@ const Header = () => {
                     </div>
                 
                     <div className="p-1">
-                        <strong>Porcentaje de quorum</strong>
+                        <strong>Porcentaje de representación en el quorum</strong>
                         <div id="quorum">
                             {typeof quorum === "number" ? `${quorum.toFixed(2)}%` : "No disponible"}
                         </div>

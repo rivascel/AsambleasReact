@@ -4,8 +4,6 @@ import { UserContext } from "../components/UserContext";
 import "../styles/Header.css";
 import AppContext from '../context/AppContext';
 
-
-
 const RegisterOwner = ({ onRegister }) => {
     const { apiUrl } = useContext(AppContext);
 
@@ -19,8 +17,7 @@ const RegisterOwner = ({ onRegister }) => {
         await axios.post(`${apiUrl}/api/request-magic-link`, 
             {   email,
                 role: "owner"
-            
-             },
+            },
             { withCredentials: true }
         );
 

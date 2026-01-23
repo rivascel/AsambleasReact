@@ -285,7 +285,9 @@ export async function handleIncomingICECandidate(pc, candidate) {
 }
 
 
-const approvedViewers = new Set()
+const approvedViewers = new Set();
+
+// sessionId = `${roomId}:${adminId}:${viewerId}`
 
 export function listenForApprovals(room) {
   return listenToRequests(

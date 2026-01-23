@@ -137,7 +137,6 @@ const VideoGeneral = () => {
       socket11.emit("user-ready", ownerInfo.email, roomId);
       // await listenForAnswers(ownerInfo.email); 
 
-      
       setIsAllowed(true);
     } catch (error) {
         console.error("Error al iniciar llamada:", error);
