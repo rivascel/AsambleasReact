@@ -126,7 +126,7 @@ const DashBoardOwner = () => {
         
       if (data[i].correo.trim() === email) {
           quorumPercentage = (parseInt(data[i].participacion) / SumItems) * 100;
-          console.log("quorumPercentage",quorumPercentage);
+          // console.log("quorumPercentage",quorumPercentage);
           setQuorum(quorumPercentage); // Actualiza el estado del quorum
           break;
         }

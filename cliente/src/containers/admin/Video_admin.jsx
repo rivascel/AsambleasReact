@@ -6,15 +6,12 @@ import { startBroadcasting, stopLocalStream,
   joinStreamAsAdmin,
   getAdmin,
   listenForApprovals,
-  createOfferToViewer,
   // handleSignal
  } from "../../hooks/webrtc-manager";
-import { listenToSignals, getAllViewersAndListen, subscribeToSignals, getViewerStreaming
+import { getViewerStreaming
 
  } from '../../supabase-client';
  import AppContext from '../../context/AppContext';
-
-
 
 const VideoGeneral = () => {
 // const API_URL = import.meta.env.VITE_API_URL;
@@ -35,9 +32,11 @@ const VideoGeneral = () => {
   const roomId="main-room";
   const listeningRef = useRef(false);
   const [remote, setRemote] = useState(false);
-  // const [newViewer, setNewViewer] = useState(null);
   const [userId, setUserId] = useState(null);
   
+  // sessionId = `${roomId}:${adminId}:${viewerId}`
+
+  // let userStreaming = null;
 
   const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
 
@@ -90,7 +89,7 @@ const VideoGeneral = () => {
       
     const init = async () => {
 
-      if (stream && localRef.current && userStreaming) {
+      if (stream && localRef.current /*&& userStreaming*/) {
         //en esta funcion llama a receiving stream
         await startBroadcasting(roomId, email, localRef.current);
         const admin = await getAdmin(roomId);
@@ -99,7 +98,8 @@ const VideoGeneral = () => {
 
         console.log("email del admin:", email);
         const subscription = listenForAnswers(email);
-        console.log("👂 Escuchando answers y ices :", email );
+        
+        
         return () => {
             unsubscribe?.();
           if (subscription.unsubscribe) {
@@ -114,33 +114,10 @@ const VideoGeneral = () => {
     init();
   }, [stream]);
 
-  // ESTE NO VA PORQUE CUANDO SE UNE ESCUCHA LAS OFERTAS Y ICES Y ENVIA SU RESPUESTA REMOTA
-  // useEffect(() => {
-  //    if (!userId) return;
-
-  //   const init = () => {
-  //     const subscription = listenForAnswers(email);
-  //     console.log("👂 Escuchando ofertas y ices :", email );
-  //     return () => {
-  //       if (subscription.unsubscribe) {
-  //         console.log("🧹 Cancelando suscripción answers de:", email);
-  //         subscription.unsubscribe();
-  //       }
-  //     };
-  //   }
-  //   init();
-  // }, [roomId, email]);
-
-
   const openBroadcasting = async () => {
       try {
         // 1. Obtener stream local
-        // await startBroadcasting(roomId, email, localRef.current);
-        //Funcion que escucha las respuestas 
         setStream(true);
-
-        // await listenForAnswers(admin);
-
         setIsBroadcasting(true);
 
       } catch (error) {
