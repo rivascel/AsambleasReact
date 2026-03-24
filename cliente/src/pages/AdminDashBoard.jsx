@@ -57,7 +57,7 @@ const DashBoardAdmin = () => {
   if (!socket20) return;
 
   const handleUpdateConnectedUsers = async (users) => {
-    console.log("usuarios conectados para quorum:", users);
+    // console.log("usuarios conectados para quorum:", users);
     setConnectedUsers(users);
 
     const data = await fetchOwners();
@@ -81,7 +81,7 @@ useEffect(() => {
   
   if (!ownerData.length) return; // data del backend
   
-  console.log("Calculando quorum con datos de propietarios y usuarios conectados...");
+  // console.log("Calculando quorum con datos de propietarios y usuarios conectados...");
 
   calcularQuorum(ownerData, connectedUsers);
 

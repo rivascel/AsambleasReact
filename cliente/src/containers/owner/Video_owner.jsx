@@ -3,21 +3,23 @@ import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
 import { getAdmin, joinStreamAsViewer, startLocalStream,
   stopLocalStream, 
-  listenForAnswers,
-  
-     } from '../../hooks/webrtc-client';
-import { listenToSignalsFromAdmin, listenToSignals, registerViewer, getAdminStreaming,
-          listenToRequests
+} from '../../hooks/webrtc-client';
+import { registerViewer, getAdminStreaming,
+          listenToRequests, listenToSignals
  } from '../../supabase-client';
+import { handleSignal } from '../../hooks/handleSignal';
 import AppContext from '../../context/AppContext';
-
-
 
 const VideoGeneral = () => {
 // const API_URL = import.meta.env.VITE_API_URL;
   const { apiUrl } = useContext(AppContext);
 
   const socket11 = io(`${apiUrl}`, {
+    withCredentials: true,
+    transports: ["websocket"]
+  });
+
+  const socket12 = io(`${apiUrl}`, {
     withCredentials: true,
     transports: ["websocket"]
   });
@@ -32,8 +34,9 @@ const VideoGeneral = () => {
   const [isAllowed, setIsAllowed] = useState(false);
   const [viewerReady, setViewerReady] = useState(false);
   const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
+  const [ready, setReady] = useState(false);
 
-  socket11.emit("request-stream", email, roomId);
+
 
   useEffect(() => {
     // 1️⃣ Validación temprana
@@ -86,66 +89,71 @@ const VideoGeneral = () => {
 
 //Corresponde cuando el viewer recibe la trasmision del admin
   useEffect(() => {
-    let subscribe=true;
-     
+    let subscribe;
+    let subscription;
+
+    socket11.on("stream-ready", async ()=>{
+      console.log(`El admin comenzó transmisión`);
+      // windows.alert("El administrador ha iniciado la transmisión.");
+      const admin =await  getAdmin(roomId);
+      await joinStreamAsViewer
+      (
+        roomId, 
+        ownerInfo.email, 
+        admin, 
+        remoteRef.current
+      );
+    });
+
     const init= async () => {
-      if (!ownerInfo?.email|| !roomId) return
-
-      const admin = await getAdmin(roomId);
+      if (!ownerInfo?.email || !roomId) return;
       await registerViewer(roomId,email);
-      const isStreaming = await getAdminStreaming(roomId);
+      // const isStreaming = await getAdminStreaming(roomId);
+      
+      socket11.emit("request-stream", email, roomId);
 
-      if (isStreaming) {
-        await joinStreamAsViewer(roomId, ownerInfo.email, admin, remoteRef.current);
-      }; 
+      subscribe = listenToSignals(  
+        email,
+        async ({ type, payload, from_user, to_user, room_id }) => {
 
-      socket11.on("stream-ready", async ()=>{
-        if (!subscribe) return;
-        console.log(`El admin comenzó transmisión`);
-        // windows.alert("El administrador ha iniciado la transmisión.");
-      });
+          if (to_user !== email) return;
+              await handleSignal({ type, payload, from_user, to_user, room_id }, 'viewer');
+              console.log(`tipo de señal ${type} de`, from_user);
+        }
+      );
     };
     init();
     return () => {
-      subscribe = false;
+      socket11.off("stream-ready");
+      if (subscribe) subscribe.removeChannel();
+      if (subscription) {
+          console.log("🧹 Cancelando suscripción answers de:", email);
+          subscription.removeChannel();
+        }
     }
     
   },[roomId, ownerInfo?.email]);
-
-  //recibe las respuestas del admin al iniciar transmisión el viewer  
-  useEffect(() => {
-    //  if (!userId) return;
-
-    const init = () => {
-      const subscription = listenForAnswers(email);
-      console.log("👂 Escuchando answers y ices de admin :", email );
-      return () => {
-        if (subscription.unsubscribe) {
-          console.log("🧹 Cancelando suscripción answers desde el cliente:", email);
-          subscription.unsubscribe();
-        }
-      };
-    }
-    init();
-  }, [roomId, email]);
-  
 
 
   const openCall = async () => {
     try {
       await startLocalStream(roomId, ownerInfo.email, localRef.current);
-      socket11.emit("user-ready", ownerInfo.email, roomId);
+      socket12.emit("user-ready", ownerInfo.email, roomId);
       // await listenForAnswers(ownerInfo.email); 
 
       setIsAllowed(true);
     } catch (error) {
         console.error("Error al iniciar llamada:", error);
     }
+    return () => {
+      socket12.disconnect();
+    }
   }
 
   const closeCall = () => {
     stopLocalStream(localRef.current);
     setIsAllowed(false);
+    offStreaming(email);
   }
 
   return (

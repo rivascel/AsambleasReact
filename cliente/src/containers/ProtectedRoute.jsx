@@ -33,7 +33,7 @@ const ProtectedRoute = ({ children }) => {
 
         try {
           const response = await axios.get(endpoint, { withCredentials: true });
-          console.log("✅ Autenticación verificada:", response.data);
+          // console.log("✅ Autenticación verificada:", response.data);
 
           if (response.data?.user === "administrador") {
             setIsAuthenticatedAdmin(true);

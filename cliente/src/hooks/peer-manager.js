@@ -1,5 +1,7 @@
-const peerConnections = {};
 
+
+const peerConnections = {}; 
+const iceCandidateQueue = {}; // Para almacenar candidatos antes de que el PC esté listo
 export const createPeerConnection = (userId) => {
   const configuration = { iceServers: 
     [{ urls:  ['stun:stun1.l.google.com:19302', 
@@ -10,13 +12,15 @@ export const createPeerConnection = (userId) => {
         username: "6e91ed4ca990de235a21a66f",
         credential: "mqzh0ARtqA3rjU6e",
       },
-      ],
-      iceCandidatePoolSize: 10
-      };
+    ],
+    iceCandidatePoolSize: 10
+  };
+  // const pc = {userId, connection: new RTCPeerConnection(configuration)};
   const pc = new RTCPeerConnection(configuration);
   
   // Almacenar la conexión
   peerConnections[userId] = pc;
+  iceCandidateQueue[userId] = []; // Inicializar la cola para este peerId
   
   return pc;
 };
@@ -38,3 +42,34 @@ export const closeAllPeerConnections = () => {
     closePeerConnection(userId);
   });
 };
+
+
+export function queueCandidate(userId, candidate) {
+
+  if (!iceCandidateQueue[userId]) {
+    iceCandidateQueue[userId] = [];
+  }
+
+  iceCandidateQueue[userId].push(candidate);
+
+  console.log("📥 ICE en cola para", userId);
+}
+
+export async function flushCandidateQueue(userId) {
+
+  const pc = peerConnections[userId];
+  const queue = iceCandidateQueue[userId];
+
+  if (!pc || !queue) return;
+
+  console.log("🚀 Procesando cola ICE de", userId);
+
+  for (const candidate of queue) {
+    try {
+      await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (err) {
+      console.warn("Error agregando ICE:", err);
+    }
+  }
+  iceCandidateQueue[userId] = [];
+}

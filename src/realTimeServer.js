@@ -133,6 +133,16 @@ module.exports = httpServer =>{
                     console.log("transmisión del user",userId, roomId);
                     socket.broadcast.emit("stream-ready-user",userId, roomId);
                 });
+
+                socket.on("request-stream", (userId, roomId) =>{
+                    console.log("solicitud de user para unirse al stream",userId, roomId);
+                    socket.broadcast.emit("listen-user",userId, roomId);
+                });
+
+                socket.on("signal to connect", (userId, roomId) =>{
+                    console.log("señal para conectar con user",userId, roomId);
+                    socket.broadcast.emit("signal to",userId, roomId);
+                });
                
             }
             // ===============CONEXION VIDEO ===================================

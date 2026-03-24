@@ -19,7 +19,7 @@ const AskToParticipate = () => {
   const { email, setCheckApprove } = useContext(UserContext);
   const [requestStatus, setRequestStatus] = useState(() => {
     const saved = localStorage.getItem("requestStatus");
-    console.log("💾 [AskToParticipate] Estado cargado de localStorage:", saved);
+    // console.log("💾 [AskToParticipate] Estado cargado de localStorage:", saved);
     if (!saved || saved === "undefined") return "none";
     return saved;
     });
@@ -32,7 +32,7 @@ const AskToParticipate = () => {
       // return;
     } else {
       localStorage.setItem("requestStatus", requestStatus);
-      console.log("🔄 requestStatus cambió:", requestStatus);
+      // console.log("🔄 requestStatus cambió:", requestStatus);
     }
     
   }, [requestStatus]);
@@ -40,7 +40,7 @@ const AskToParticipate = () => {
   useEffect(() => {
   if (!email) return;
   
-  console.log("👤 [AskToParticipate] Configurando listener para usuario:", email);
+  // console.log("👤 [AskToParticipate] Configurando listener para usuario:", email);
   
   const channel = listenToUserRequests(
     roomId, 
@@ -76,7 +76,7 @@ const AskToParticipate = () => {
   );
   
   return () => {
-    console.log("🧹 [AskToParticipate] Limpiando listener");
+    // console.log("🧹 [AskToParticipate] Limpiando listener");
     channel.unsubscribe();
   };
 }, [email, roomId]);

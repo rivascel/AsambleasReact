@@ -2,19 +2,19 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
 import { startBroadcasting, stopLocalStream, 
-  listenForAnswers,
   joinStreamAsAdmin,
-  getAdmin,
+  // getAdmin,
   listenForApprovals,
-  // handleSignal
+  createOfferToViewer,
+  getLocalStream
  } from "../../hooks/webrtc-manager";
-import { getViewerStreaming
+import { listenToSignals, getActiveAdmin
 
  } from '../../supabase-client';
+ import { handleSignal } from '../../hooks/handleSignal';
  import AppContext from '../../context/AppContext';
 
 const VideoGeneral = () => {
-// const API_URL = import.meta.env.VITE_API_URL;
   const { apiUrl } = useContext(AppContext);
 
   const socket10 = io(`${apiUrl}`, {
@@ -34,81 +34,85 @@ const VideoGeneral = () => {
   const [remote, setRemote] = useState(false);
   const [userId, setUserId] = useState(null);
   
-  // sessionId = `${roomId}:${adminId}:${viewerId}`
-
-  // let userStreaming = null;
-
   const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
-
-  socket10.on("request-stream-approved", (viewer, roomId)=>{
-    console.log(`un nuevo viewer ${viewer} en el cuarto ${roomId}`);
-    // setUserId(viewer);
-  });
-
-  socket10.on("stream-ready-user", async (userId, roomId)=>{
-    console.log(`El usuario ${userId} comenzó transmisión en ${roomId}`);
-    setUserId(userId);
-  });
-
 
   // Corresponde cuando el admin escucha las transmisiones de los viewers aprobados
   useEffect(() => {
     if (!roomId) return;
-    let suscribe;
+    let subscribe;
+    let subscription;
+
+    socket10.on("request-stream-approved", async (viewer, roomId)=>{
+      console.log(`un nuevo viewer ${viewer} en el cuarto ${roomId}`);
+
+      await joinStreamAsAdmin
+      (
+        roomId, 
+        admin, 
+        remoteRef.current
+      );
+
+
+    });
+    //recibe la señal para conectar con el viewer aprobado y llama a la función para crear oferta
+    socket10.on("listen-user", async (userId, roomId)=>{
+      const stream = getLocalStream();
+      
+      if (!stream) {
+        console.error("No hay stream activo para ",userId);
+        return;
+      }
+      createOfferToViewer(roomId, email, stream);
+    });
 
     const init = async () => {
-      try{
-        let admin = email;
-        console.log("Admin para escuchar transmisiones:", admin);
+    
+      let admin = email;
+      console.log("Admin para escuchar transmisiones:", admin);
 
-        const exists = listenForApprovals(roomId, email);
-        if (exists) {
-          setRemote(true);
-        } else {
-          return;
-        };
+      const exists = listenForApprovals(roomId, email);
+      if (exists) {
+        setRemote(true);
+      } else {
+        return;
+      };
 
-        const userStreaming = await getViewerStreaming(userId);
-        if (userStreaming) {
-          await joinStreamAsAdmin(roomId, admin /*, viewerId,*/, remoteRef.current);
-          console.log("✅ Admin listo para recibir streams y 👂 Escuchando transmisiones de viewers aprobados");
-        };
-      } catch (error) {
-        console.error("❌ Error inicializando listener de señales:", error);
-      }
-      return () => {
-        suscribe=false;
-      }
+      subscribe = listenToSignals(  
+        email,
+        async ({ type, payload, from_user, to_user, room_id }) => {
+
+          if (to_user !== email) return;
+              await handleSignal({ type, payload, from_user, to_user, room_id }, 'admin');
+              console.log(`tipo de señal ${type} de`, from_user);
+        }
+      )
     }
     init();
+    return () => {
+        socket10.off("request-stream-approved");
+        socket10.off("listen-user");
+        if (subscribe) subscribe.removeChannel();
+        if (subscription) {
+          console.log("🧹 Cancelando suscripción answers de:", email);
+          subscription.removeChannel();
+        }
+      }
 
   },[roomId, userId]);
   
   //Este inicia transmisión del admin y escucha respuestas
   useEffect(() => {
-      
     const init = async () => {
 
       if (stream && localRef.current /*&& userStreaming*/) {
         //en esta funcion llama a receiving stream
         await startBroadcasting(roomId, email, localRef.current);
-        const admin = await getAdmin(roomId);
+        const admin = await getActiveAdmin(roomId);
 
         socket10.emit("admin-ready", admin, roomId);
 
-        console.log("email del admin:", email);
-        const subscription = listenForAnswers(email);
-        
-        
-        return () => {
-            unsubscribe?.();
-          if (subscription.unsubscribe) {
-            console.log("🧹 Cancelando suscripción answers de:", email);
-            subscription.unsubscribe();
-          }
-        };
+        // console.log("email del admin:", email);
       }
-
     };
 
     init();
@@ -130,6 +134,7 @@ const VideoGeneral = () => {
         setStream(false);
         stopLocalStream(localRef.current);
         setIsBroadcasting(false);
+        offStreaming(email);
       } catch (error) {
         console.error("Error al colgar llamada:", error);
       }
