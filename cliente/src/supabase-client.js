@@ -203,7 +203,7 @@ export const listenToUserRequests = (room, userId, onChange, options = {}) => {
       },
       async (payload) => {
 
-        console.log("📦 Payload crudo:", payload);
+        // console.log("📦 Payload crudo:", payload);
 
         const eventUser = 
                 payload.eventType === 'DELETE'
@@ -242,7 +242,7 @@ export const listenToUserRequests = (room, userId, onChange, options = {}) => {
         }
         
         if (eventData) {
-          console.log(`🚀 Enviando evento ${eventData._event}`, eventData);
+          // console.log(`🚀 Enviando evento ${eventData._event}`, eventData);
           // Usar requestAnimationFrame para asegurar que React esté listo
           onChange(eventData);
         }
@@ -275,13 +275,16 @@ export const listenToRequests = (room, options={}, onChange) => {
         filter: `room_id=eq.${room}`
       },
       (payload) => {
-        console.log(`🎯 [ADMIN-via-deprecated] Evento ${payload.eventType}`);
+        // console.log(`🎯 [ADMIN-via-deprecated] Evento ${payload.eventType}`);
         onChange?.(payload.new || payload.old);
       }
     )
     .subscribe();
     
-  return channel;
+  return {
+    channel,
+    removeChannel: () => supabase.removeChannel(channel)
+  } 
 };
 
 

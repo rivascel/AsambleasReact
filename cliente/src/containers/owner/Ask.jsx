@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
 import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
@@ -9,11 +9,8 @@ import AppContext from '../../context/AppContext';
 const AskToParticipate = () => {
   // const API_URL = import.meta.env.VITE_API_URL;
   const { apiUrl } = useContext(AppContext);
-  const socket7 = io(`${apiUrl}`, {
-    withCredentials: true,
-    transports: ["websocket"]
-  });
 
+  const socketRef = useRef(null);
   const roomId = 'main-room';
   const [loading, setLoading] = useState(true);
   const { email, setCheckApprove } = useContext(UserContext);
@@ -23,6 +20,11 @@ const AskToParticipate = () => {
     if (!saved || saved === "undefined") return "none";
     return saved;
     });
+
+    socketRef.current = io(`${apiUrl}`, {
+    withCredentials: true,
+    transports: ["websocket"]
+  });
 
   useEffect(() => {
     localStorage.setItem("requestStatus", requestStatus);
@@ -46,15 +48,16 @@ const AskToParticipate = () => {
     roomId, 
     email, 
     (requestData) => {
-      console.log("📨 [AskToParticipate] Datos recibidos:", {
-        data: requestData,
-        timestamp: new Date().toISOString(),
-        // currentStatus: requestStatus // Agrega el estado actual
-      });
+      // console.log("📨 [AskToParticipate] Datos recibidos:", {
+      //   data: requestData,
+      //   timestamp: new Date().toISOString(),
+      //   // currentStatus: requestStatus // Agrega el estado actual
+      // }
+      // );
       
       if (requestData._deleted) {
-        console.log("🗑️ [AskToParticipate] DELETE detectado, cambiando a 'none'");
-        console.log("🗑️ user_id:", requestData.user_id, "email:", email);
+        // console.log("🗑️ [AskToParticipate] DELETE detectado, cambiando a 'none'");
+        // console.log("🗑️ user_id:", requestData.user_id, "email:", email);
         setRequestStatus('none');
       } 
       else if (requestData._event === 'approved') {

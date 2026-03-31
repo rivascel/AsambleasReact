@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { UserContext } from "../components/UserContext";
 import AppContext from '../context/AppContext';
@@ -6,8 +6,8 @@ import AppContext from '../context/AppContext';
 const Chat = () => {
 
   const { apiUrl } = useContext(AppContext);
-
-  const socket4 = io(`${apiUrl}`, {
+  const socketRef = useRef(null);
+  socketRef.current = io(`${apiUrl}`, {
     withCredentials: true,
     transports: ["websocket"]
     // auth: {
@@ -31,7 +31,7 @@ const Chat = () => {
       }
 
     setMessages([...messages, newMessage]);
-    socket4.emit("message", newMessage);
+    socketRef.current.emit("message", newMessage);
     setMessage(""); // sólo limpias el input, el servidor se encargará de reflejarlo
   };
 
@@ -42,10 +42,10 @@ const Chat = () => {
       setMessages((prevMessages) => [...prevMessages, msg]);
     };
 
-    socket4.on("message", handleIncoming);
+    socketRef.current.on("message", handleIncoming);
 
     return () => {
-      socket4.off("message", handleIncoming);
+      socketRef.current.off("message", handleIncoming);
     };
   }, []);
 

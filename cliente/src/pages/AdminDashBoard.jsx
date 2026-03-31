@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import axios from 'axios';
 import { io } from "socket.io-client";
 import Approve from '../containers/admin/Approve';
@@ -10,7 +10,6 @@ import MeetingPoll from '../containers/admin/Meeting_poll';
 import Questions from '../containers/admin/SendQuestion';
 import { UserContext } from "../components/UserContext";
 import AppContext from '../context/AppContext';
-import { useRef } from "react";
 
 // const socketRef = useRef(null);
 
@@ -24,8 +23,9 @@ const Section = ({ title, children }) => (
 const DashBoardAdmin = () => {
   const { apiUrl } = useContext(AppContext);
   // const [email, setEmail] = useState(null);
+  const socketRef = useRef(null);
 
-    const socket20 = io(`${apiUrl}`, {
+  socketRef.current = io(`${apiUrl}`, {
     withCredentials: true,
     transports: ["websocket"]
   });
@@ -54,7 +54,7 @@ const DashBoardAdmin = () => {
   }, []);
 
   useEffect(() => {
-  if (!socket20) return;
+  if (!socketRef.current) return;
 
   const handleUpdateConnectedUsers = async (users) => {
     // console.log("usuarios conectados para quorum:", users);
@@ -66,10 +66,10 @@ const DashBoardAdmin = () => {
     }
   };
 
-  socket20.on("updateConnectedUsers", handleUpdateConnectedUsers);
+  socketRef.current.on("updateConnectedUsers", handleUpdateConnectedUsers);
 
   return () => {
-    socket20.off("updateConnectedUsers", handleUpdateConnectedUsers);
+    socketRef.current.off("updateConnectedUsers", handleUpdateConnectedUsers);
   };
 }, []);
 

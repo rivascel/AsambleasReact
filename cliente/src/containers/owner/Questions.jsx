@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { io } from "socket.io-client";
 import axios from 'axios';
 import { UserContext } from "../../components/UserContext";
@@ -8,7 +8,9 @@ import AppContext from '../../context/AppContext';
 
 const Questions = () => {
   const { apiUrl } = useContext(AppContext);
-  const socket2 = io(`${apiUrl}`, {
+  const socketRef = useRef(null);
+
+  socketRef.current = io(`${apiUrl}`, {
     withCredentials: true,
     transports: ["websocket"]
   });
@@ -21,13 +23,13 @@ const Questions = () => {
 
 
   useEffect(() => {
-      socket2.on('receive-decision', text => {
+      socketRef.current.on('receive-decision', text => {
         setDecisionText(text);
       });
 
       // Limpieza para evitar múltiples listeners
       return () => {
-        socket2.off('receive-decision');
+        socketRef.current.off('receive-decision');
       };
     }, []);
 

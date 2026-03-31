@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
 import { io } from "socket.io-client";
 import { UserContext } from "../../components/UserContext";
 import AppContext from '../../context/AppContext';
@@ -7,7 +7,9 @@ import AppContext from '../../context/AppContext';
 
 const SendQuestions = () => {
   const { apiUrl } = useContext(AppContext);
-  const socket1 = io(`${apiUrl}`, {
+  const socketRef = useRef(null);
+
+  socketRef.current = io(`${apiUrl}`, {
     withCredentials: true,
     transports: ["websocket"]
   });
@@ -15,7 +17,7 @@ const SendQuestions = () => {
   const { decisionText, setDecisionText } = useContext(UserContext);
 
   const SendtoUsers = (e) => {
-    socket1.emit('send-decision', decisionText);
+    socketRef.current.emit('send-decision', decisionText);
   };
 
   return (

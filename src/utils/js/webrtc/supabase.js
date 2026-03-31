@@ -222,7 +222,6 @@ module.exports = {
     requestToJoinRoom,
     getPendingRequest,
     approveUser,
-    // listenForApproval,
     deleteCandidate,
     ApprovedUserQuery,
     getPendingRequestById,

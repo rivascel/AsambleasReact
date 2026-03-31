@@ -1,12 +1,8 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
-import { getAdmin, joinStreamAsViewer, startLocalStream,
-  stopLocalStream, 
-} from '../../hooks/webrtc-client';
-import { registerViewer, getAdminStreaming,
-          listenToRequests, listenToSignals
- } from '../../supabase-client';
+import { getAdmin, joinStreamAsViewer, startLocalStream, stopLocalStream } from '../../hooks/webrtc-client';
+import { registerViewer, listenToRequests, listenToSignals, offStreaming } from '../../supabase-client';
 import { handleSignal } from '../../hooks/handleSignal';
 import AppContext from '../../context/AppContext';
 
@@ -14,31 +10,25 @@ const VideoGeneral = () => {
 // const API_URL = import.meta.env.VITE_API_URL;
   const { apiUrl } = useContext(AppContext);
 
-  const socket11 = io(`${apiUrl}`, {
-    withCredentials: true,
-    transports: ["websocket"]
-  });
-
-  const socket12 = io(`${apiUrl}`, {
-    withCredentials: true,
-    transports: ["websocket"]
-  });
-
-
+  const socketRef = useRef(null);
   const localRef = useRef();
   const remoteRef = useRef();
-  const hasSubscribed = useRef(false);
   const roomId = 'main-room';
   const { email, ownerData, login, checkApprove } = useContext(UserContext);
-  const [adminId, setAdminId] = useState(null);
   const [isAllowed, setIsAllowed] = useState(false);
   const [viewerReady, setViewerReady] = useState(false);
   const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
   const [ready, setReady] = useState(false);
+  const [adminId, setAdminId] = useState(null);
+  const hasSubscribed = useRef(false);
 
-
+  socketRef.current = io(`${apiUrl}`, {
+  withCredentials: true,
+  transports: ["websocket"]
+  });
 
   useEffect(() => {
+    let unsuscribeChannel;
     // 1️⃣ Validación temprana
     if (!email || !roomId || !ownerInfo?.email) {
       console.warn("Esperando datos para fetch...");
@@ -48,7 +38,6 @@ const VideoGeneral = () => {
     // setViewerReady(checkApprove); // sincroniza con el contexto
     
     const fetchData = async () => {
-      // const admin = await getAdmin(roomId);
       try {
         const response = await fetch(`${apiUrl}/api/recover-users-id`, { 
           method: 'POST',
@@ -61,21 +50,19 @@ const VideoGeneral = () => {
         const userData = await response.json();
         const userById = userData.approvedUsersById || [];
 
-        const { unsuscribeChannel } = listenToRequests(roomId, {componentId: 'VideoGeneral'}, (approver) => {
+        unsuscribeChannel  = listenToRequests(roomId, {componentId: 'VideoGeneral'}, (approver) => {
           
           if (approver.status === 'approved') {
-            console.log("Viewer aprobado via listener:", approver.user_id);
+            // console.log("Viewer aprobado via listener:", approver.user_id);
             if (!viewerReady) setViewerReady(true);
           }
-          // unsuscribeChannel().unsubscribe();
         });
 
         if (userById.includes(email)) {
           console.log("Usuario aprobado para enviar stream...");
-          // if (!viewerReady) setViewerReady(true);
+          if (!viewerReady) setViewerReady(true);
         } else {
           console.log("Usuario aun no aprobado");
-          // if (viewerReady) setViewerReady(false);
         };
 
       } catch (error) {
@@ -83,16 +70,44 @@ const VideoGeneral = () => {
       }
     };
     fetchData();
+    return () => {
+      if (unsuscribeChannel) unsuscribeChannel.removeChannel();
+    }
     
   },[checkApprove, roomId, email, ownerInfo]);
 
 
-//Corresponde cuando el viewer recibe la trasmision del admin
   useEffect(() => {
     let subscribe;
-    let subscription;
 
-    socket11.on("stream-ready", async ()=>{
+    //Recibe mensaje de que el usuario fue cancelado para transmitir por el admin y bloquea opción para transmitir
+    socketRef.current.on("canceled", async ({ userId, roomId })=>{
+      console.log(`viewer cancelado ${userId} en el cuarto ${roomId} para transmitir`);
+      setViewerReady(false);
+    });
+
+    //2. Escucha todas las señales enviadas por el admin 
+    const init= async () => {
+      if (!ownerInfo?.email || !roomId) return;
+
+      subscribe = listenToSignals(  
+        email,
+        async ({ type, payload, from_user, to_user, room_id }) => {
+
+          if (to_user !== email) return;
+              await handleSignal({ type, payload, from_user, to_user, room_id }, 'viewer');
+              console.log(`tipo de señal ${type} de`, from_user);
+        }
+      );
+
+      await registerViewer(roomId,email);
+      
+      socketRef.current.emit("request-stream", { userId: email, roomId });
+
+    };
+    init();
+
+    socketRef.current.on("stream-ready", async ()=>{
       console.log(`El admin comenzó transmisión`);
       // windows.alert("El administrador ha iniciado la transmisión.");
       const admin =await  getAdmin(roomId);
@@ -105,48 +120,27 @@ const VideoGeneral = () => {
       );
     });
 
-    const init= async () => {
-      if (!ownerInfo?.email || !roomId) return;
-      await registerViewer(roomId,email);
-      // const isStreaming = await getAdminStreaming(roomId);
-      
-      socket11.emit("request-stream", email, roomId);
-
-      subscribe = listenToSignals(  
-        email,
-        async ({ type, payload, from_user, to_user, room_id }) => {
-
-          if (to_user !== email) return;
-              await handleSignal({ type, payload, from_user, to_user, room_id }, 'viewer');
-              console.log(`tipo de señal ${type} de`, from_user);
-        }
-      );
-    };
-    init();
     return () => {
-      socket11.off("stream-ready");
+      socketRef.current.off("stream-ready");
+      socketRef.current.off("canceled");
       if (subscribe) subscribe.removeChannel();
-      if (subscription) {
-          console.log("🧹 Cancelando suscripción answers de:", email);
-          subscription.removeChannel();
-        }
+      
     }
     
-  },[roomId, ownerInfo?.email]);
+  },[roomId, email]);
 
 
   const openCall = async () => {
     try {
       await startLocalStream(roomId, ownerInfo.email, localRef.current);
-      socket12.emit("user-ready", ownerInfo.email, roomId);
-      // await listenForAnswers(ownerInfo.email); 
+      socketRef.current.emit("user-ready", ownerInfo.email, roomId);
 
       setIsAllowed(true);
     } catch (error) {
         console.error("Error al iniciar llamada:", error);
     }
     return () => {
-      socket12.disconnect();
+      socketRef.current.disconnect();
     }
   }
 
@@ -154,6 +148,7 @@ const VideoGeneral = () => {
     stopLocalStream(localRef.current);
     setIsAllowed(false);
     offStreaming(email);
+    // if (viewerReady) setViewerReady(false);
   }
 
   return (

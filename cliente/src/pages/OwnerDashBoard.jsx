@@ -21,7 +21,9 @@ const Section = ({ title, children }) => (
 const DashBoardOwner = () => {
   const { apiUrl } = useContext(AppContext);
 
-  const socket5 = io(`${apiUrl}`, {
+  const socketRef = React.useRef();
+
+  socketRef.current = io(`${apiUrl}`, {
     withCredentials: true,
     transports: ["websocket"]
   });
@@ -81,8 +83,8 @@ const DashBoardOwner = () => {
       fetchOwners();
     };
 
-    socket5.on("updateConnectedUsers",  handleUpdate);
-    return () => socket5.off("updateConnectedUsers", handleUpdate);
+    socketRef.current.on("updateConnectedUsers",  handleUpdate);
+    return () => socketRef.current.off("updateConnectedUsers", handleUpdate);
   }, [email]);      
 
   useEffect(() => {
@@ -92,10 +94,10 @@ const DashBoardOwner = () => {
         setBlankVotes(data.blank);
     };
 
-    socket5.on('send-votes', handleUpdateVotes);
+    socketRef.current.on('send-votes', handleUpdateVotes);
 
     return () => {
-        socket5.off('send-votes', handleUpdateVotes);
+        socketRef.current.off('send-votes', handleUpdateVotes);
     };
 }, [setApprovalVotes, setRejectVotes, setBlankVotes]);
 

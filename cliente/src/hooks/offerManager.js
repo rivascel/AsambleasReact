@@ -14,25 +14,8 @@ export async function createAndSendOffer({roomId,fromPeer,toPeer,localStream }) 
   try {
     pc = getPeerConnection(toPeer);
     if (!pc || pc.connectionState === "closed" || pc.signalingState === "closed") {
-    pc =   createPeerConnection(toPeer);  
+    pc =   createPeerConnection(roomId,fromPeer,toPeer);  
     }
-
-    // 1. Configurar ICE primero
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        sendSignal({
-          room_id: roomId,
-          from_user: fromPeer, // Admin
-          to_user: toPeer,     // Viewer
-          type: "ice-candidate",
-          payload: {
-              candidate: event.candidate.candidate,
-              sdpMid: event.candidate.sdpMid,
-              sdpMLineIndex: event.candidate.sdpMLineIndex
-            }
-        });
-      }
-    };
 
     // 2. Agregar Tracks
     if (!localStream) {

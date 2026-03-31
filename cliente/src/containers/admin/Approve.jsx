@@ -1,20 +1,14 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { io } from "socket.io-client";
 import { listenToRequests } from "../../supabase-client";
 import AppContext from '../../context/AppContext'
 
 
-
-
 const AttendeesList = () => {
   const { apiUrl } = useContext(AppContext);
-  
-  const socket5 = io(`${apiUrl}`, {
-    withCredentials: true,
-    transports: ["websocket"]
-  });
 
 
+  const socketRef = useRef(null);
   const roomId = 'main-room';
   const [loading, setLoading] = useState(true);
   const [pendingUsersIds, setPendingUsersIds] = useState([]);
@@ -24,6 +18,12 @@ const AttendeesList = () => {
    // Elimina updatedUsers y usa los estados directamente
   const hasPending = pendingUsersIds.length > 0;
   const hasApproved = approvedUsersIds.length > 0;
+
+    socketRef.current = io(`${apiUrl}`, {
+    withCredentials: true,
+    transports: ["websocket"]
+  });
+
   
   useEffect( ()=>{
   let isMounted = true;
@@ -31,7 +31,7 @@ const AttendeesList = () => {
 
   const fetchUsers = async () => {
       try {
-        console.log("🔄 Ejecutando fetchUsers...");
+        // console.log("🔄 Ejecutando fetchUsers...");
         const [pendingRes, approvedRes] = await Promise.all([
           fetch(`${apiUrl}/api/recover-users`, { 
             method: 'POST',
@@ -54,8 +54,8 @@ const AttendeesList = () => {
         const pendingUsersJson = await pendingRes.json();
         const approvedUsersJson = await approvedRes.json();
         
-        console.log("pendingUsersJson:", pendingUsersJson);
-        console.log("approvedUsersJson:", approvedUsersJson);
+        // console.log("pendingUsersJson:", pendingUsersJson);
+        // console.log("approvedUsersJson:", approvedUsersJson);
 
         const pendingUsers = pendingUsersJson?.pendingUsers || [];
         const approvedUsers = approvedUsersJson?.approvedUsers || [];
@@ -68,20 +68,20 @@ const AttendeesList = () => {
           ? approvedUsers.filter(id => id) 
           : [];
         
-        console.log(`📊 Resultado fetchUsers - Pendientes: ${pendingIds.length}, Aprobados: ${approvedIds.length}`);
+        // console.log(`📊 Resultado fetchUsers - Pendientes: ${pendingIds.length}, Aprobados: ${approvedIds.length}`);
 
         if (isMounted) {
           setPendingUsersIds(pendingIds);
           setApprovedUsersIds(approvedIds);
           setLoading(false);
           
-          console.log("✅ Estados actualizados:", {
-            pending: pendingIds,
-            approved: approvedIds
-          });
+          // console.log("✅ Estados actualizados:", {
+          //   pending: pendingIds,
+          //   approved: approvedIds
+          // });
         }
       } catch (error) {
-        console.error("Error cargando usuarios:", error);
+        // console.error("Error cargando usuarios:", error);
         if (isMounted) {
           setLoading(false);
         }
@@ -91,7 +91,7 @@ const AttendeesList = () => {
 
   // Función para manejar cambios
   const handleChange = (type) => {
-    console.log(`📡 Cambio detectado en ${type}`);
+    // console.log(`📡 Cambio detectado en ${type}`);
     if (isMounted) {
       fetchUsers();
     }
@@ -117,7 +117,7 @@ const AttendeesList = () => {
     // true
   );
 
-  console.log("✅ Suscripciones configuradas");
+  // console.log("✅ Suscripciones configuradas");
 
   // Limpieza
     return () => {
@@ -125,11 +125,11 @@ const AttendeesList = () => {
       isMounted = false;
       if (channelRequests) {
         console.log("Desuscribiendo channelRequests");
-        channelRequests.unsubscribe();
+        channelRequests.removeChannel();
       }
       if (channelApprovals) {
         console.log("Desuscribiendo channelApprovals");
-        channelApprovals.unsubscribe();
+        channelApprovals.removeChannel();
       }
     };
 },[]);
@@ -138,49 +138,51 @@ const AttendeesList = () => {
 
   // Keep only the logging useEffect for debugging
   useEffect(() => {
-    console.log("📊 Estado actual:", {
-      pendingUsersIds,
-      approvedUsersIds,
-      hasPending,
-      hasApproved,
-      loading
-    });
+    // console.log("📊 Estado actual:", {
+    //   pendingUsersIds,
+    //   approvedUsersIds,
+    //   hasPending,
+    //   hasApproved,
+    //   loading
+    // });
   }, [pendingUsersIds, approvedUsersIds, hasPending, hasApproved, loading]);
 
 
     const handleApprove = async (userId) => {
     try {
-            const response = await fetch(`${apiUrl}/api/approved-users`,
-              { 
-                  method: 'POST',
-                  headers: { 'Content-type':'application/json' },
-                  body: JSON.stringify({ roomId: "main-room" , userId: userId }),
-              });
+      const response = await fetch(`${apiUrl}/api/approved-users`,
+        { 
+            method: 'POST',
+            headers: { 'Content-type':'application/json' },
+            body: JSON.stringify({ roomId: "main-room" , userId: userId }),
+      });
 
-                if (response.ok) {
-                  console.log(`✅ Usuario ${userId} aprobado en el servidor`);
-                  
-                  // CORRECCIÓN AQUÍ: Filtrar por ID (string), no por user.user_id
-                  setPendingUsersIds(prev => prev.filter(id => id !== userId));
-                  
-                  // CORRECCIÓN AQUÍ: Agregar a aprobados
-                  setApprovedUsersIds(prev => [...prev, userId]);
-                  
-                  console.log(`✅ Estados locales actualizados: 
-                    Pendientes eliminado: ${userId}
-                    Aprobados agregado: ${userId}`);
-                } else {
-                  console.error("❌ Error en la respuesta del servidor");
-                }
-            } catch (err) {
-              console.error("❌ Error al aprobar usuario:", err);
-            }
+      if (response.ok) {
+        // console.log(`✅ Usuario ${userId} aprobado en el servidor`);
+
+        socketRef.current.emit("approval-notification", { userId, roomId: "main-room" });
+        
+        // CORRECCIÓN AQUÍ: Filtrar por ID (string), no por user.user_id
+        setPendingUsersIds(prev => prev.filter(id => id !== userId));
+        
+        // CORRECCIÓN AQUÍ: Agregar a aprobados
+        setApprovedUsersIds(prev => [...prev, userId]);
+        
+        // console.log(`✅ Estados locales actualizados: 
+        //   Pendientes eliminado: ${userId}
+        //   Aprobados agregado: ${userId}`);
+      } else {
+        console.error("❌ Error en la respuesta del servidor");
+      }
+    } catch (err) {
+      console.error("❌ Error al aprobar usuario:", err);
+    }
  
     }
 
   const handleCancel = async (userId) => {
     try {
-      console.log(`❌ Intentando cancelar aprobación de: ${userId}`);
+      // console.log(`❌ Intentando cancelar aprobación de: ${userId}`);
       
       const response = await fetch(`${apiUrl}/api/cancel-users`, { 
         method: 'POST',
@@ -190,11 +192,14 @@ const AttendeesList = () => {
       
       if (response.ok) {
         console.log(`✅ Aprobación de ${userId} cancelada en el servidor`);
+
+        socketRef.current.emit("cancel-notification", { userId, roomId: "main-room" });
+        // console.log(`📡 Emitida notificación de cancelación para ${userId}`);
         
         // Actualiza los estados localmente
         setApprovedUsersIds(prev => prev.filter(id => id !== userId));
         
-        console.log(`✅ Estado local actualizado: Aprobados eliminado: ${userId}`);
+        // console.log(`✅ Estado local actualizado: Aprobados eliminado: ${userId}`);
       } else {
         console.error("❌ Error en la respuesta del servidor");
       }

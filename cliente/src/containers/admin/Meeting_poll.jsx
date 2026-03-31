@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext,useRef } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { io } from "socket.io-client";
 import { UserContext } from "../../components/UserContext";
 import axios from 'axios';
@@ -7,8 +7,9 @@ import AppContext from '../../context/AppContext';
 
 const PollingManage = () => {
     const { apiUrl } = useContext(AppContext);
+    const socketRef = useRef(null);
 
-    const socket3 = io(`${apiUrl}`, {
+    socketRef.current = io(`${apiUrl}`, {
     withCredentials: true,
     transports: ["websocket"]
     });
@@ -25,7 +26,7 @@ const PollingManage = () => {
         let second = 0;
         setDisplayTime("00:00");
 
-        socket3.emit('start-cronometer', { 
+        socketRef.current.emit('start-cronometer', { 
             time: `${minute}:00` 
         });
 
@@ -40,7 +41,7 @@ const PollingManage = () => {
                 parar();
                 alert("El tiempo terminó");
 
-                socket3.emit('end-cronometer');
+                socketRef.current.emit('end-cronometer');
             }
 
             const sAux = second < 10 ? "0" + second : second;
@@ -51,7 +52,7 @@ const PollingManage = () => {
             setDisplayTime(time);
 
             // Enviar el cronómetro actualizado a los clientes
-            socket3.emit('update-cronometer', { time });
+            socketRef.current.emit('update-cronometer', { time });
 
             function parar() {
                 if (intervalo.current) {
@@ -145,7 +146,7 @@ const PollingManage = () => {
             setRejectVotes(contarVotosReject(filteredVotes));
             setBlankVotes(contarVotosBlank(filteredVotes));
     
-          socket3.emit('send-votes',{
+          socketRef.current.emit('send-votes',{
             approval: contarVotosApprobal(filteredVotes),
             reject: contarVotosReject(filteredVotes),
             blank: contarVotosBlank(filteredVotes),

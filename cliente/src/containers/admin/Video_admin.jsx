@@ -1,76 +1,60 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { UserContext } from "../../components/UserContext";
 import { io } from "socket.io-client";
-import { startBroadcasting, stopLocalStream, 
-  joinStreamAsAdmin,
-  // getAdmin,
-  listenForApprovals,
-  createOfferToViewer,
-  getLocalStream
+import { startBroadcasting, stopLocalStream, joinStreamAsAdmin,listenForApprovals,createOfferToViewer,getLocalStream
  } from "../../hooks/webrtc-manager";
-import { listenToSignals, getActiveAdmin
-
- } from '../../supabase-client';
+import { listenToSignals, getActiveAdmin } from '../../supabase-client';
  import { handleSignal } from '../../hooks/handleSignal';
  import AppContext from '../../context/AppContext';
 
+ 
+
 const VideoGeneral = () => {
   const { apiUrl } = useContext(AppContext);
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const localRef = useRef();
+  const socketRef = useRef(null);
+  const remoteRef = useRef();
+  const { email } = useContext(UserContext);
+  const [stream, setStream] = useState(false);
+  const roomId="main-room";
+  const [remote, setRemote] = useState(false);
+  // const [userId, setUserId] = useState(null);
+  
+  const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
 
-  const socket10 = io(`${apiUrl}`, {
+  socketRef.current = io(`${apiUrl}`, {
     withCredentials: true,
     transports: ["websocket"]
   });
 
-  const [isBroadcasting, setIsBroadcasting] = useState(false);
-  const localRef = useRef();
-  const remoteRef = useRef();
-  const channelRef = useRef(null);
-  const { email } = useContext(UserContext);
-  const [stream, setStream] = useState(false);
-  const [listen, setListen]=useState(false);
-  const roomId="main-room";
-  const listeningRef = useRef(false);
-  const [remote, setRemote] = useState(false);
-  const [userId, setUserId] = useState(null);
-  
-  const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
-
-  // Corresponde cuando el admin escucha las transmisiones de los viewers aprobados
   useEffect(() => {
     if (!roomId) return;
     let subscribe;
-    let subscription;
 
-    socket10.on("request-stream-approved", async (viewer, roomId)=>{
-      console.log(`un nuevo viewer ${viewer} en el cuarto ${roomId}`);
+    // socketRef.current.on("approved", async ({ userId, roomId })=>{
+      // console.log(`un nuevo viewer aprobado ${userId} en el cuarto ${roomId}`);
 
+      // const admin = await getActiveAdmin(roomId);
+      
+    // });
+
+    //1. Escucha cuando un viewer inicia transmisión previa aprobación del Admin
+    socketRef.current.on("stream-ready-user", async ()=>{
+      console.log(`El usuario comenzó transmisión`);
       await joinStreamAsAdmin
       (
         roomId, 
-        admin, 
+        email, 
         remoteRef.current
       );
-
-
-    });
-    //recibe la señal para conectar con el viewer aprobado y llama a la función para crear oferta
-    socket10.on("listen-user", async (userId, roomId)=>{
-      const stream = getLocalStream();
-      
-      if (!stream) {
-        console.error("No hay stream activo para ",userId);
-        return;
-      }
-      createOfferToViewer(roomId, email, stream);
     });
 
+    //2. Función que escucha si existe una aprobación de viewer para activar pantalla y escucha todas las señales
     const init = async () => {
-    
-      let admin = email;
-      console.log("Admin para escuchar transmisiones:", admin);
+      // let admin = email;
+      const exists = listenForApprovals(roomId);
 
-      const exists = listenForApprovals(roomId, email);
       if (exists) {
         setRemote(true);
       } else {
@@ -88,33 +72,37 @@ const VideoGeneral = () => {
       )
     }
     init();
+
+    //3. recibe mensaje que existe nuevo viewer luego de iniciar transmisión y le crear oferta solo a él.
+    socketRef.current.on("listen-user", async ({ userId, roomId })=>{
+      const stream = getLocalStream();
+      
+      if (!stream) {
+        console.log(`los siguientes usuarios estan conectados ${userId} pero no hay stream local para crear oferta`);
+        return;
+      }
+      createOfferToViewer(roomId, email, stream);
+    });
+
     return () => {
-        socket10.off("request-stream-approved");
-        socket10.off("listen-user");
+        socketRef.current.off("request-stream-approved");
+        socketRef.current.off("listen-user");
         if (subscribe) subscribe.removeChannel();
-        if (subscription) {
-          console.log("🧹 Cancelando suscripción answers de:", email);
-          subscription.removeChannel();
-        }
+        
       }
 
-  },[roomId, userId]);
+  },[roomId, email]);
   
-  //Este inicia transmisión del admin y escucha respuestas
+  //Este inicia transmisión del admin e informa a los usuarios conectados
   useEffect(() => {
     const init = async () => {
 
       if (stream && localRef.current /*&& userStreaming*/) {
-        //en esta funcion llama a receiving stream
         await startBroadcasting(roomId, email, localRef.current);
         const admin = await getActiveAdmin(roomId);
-
-        socket10.emit("admin-ready", admin, roomId);
-
-        // console.log("email del admin:", email);
+        socketRef.current.emit("admin-ready", admin, roomId);
       }
     };
-
     init();
   }, [stream]);
 

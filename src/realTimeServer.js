@@ -134,17 +134,20 @@ module.exports = httpServer =>{
                     socket.broadcast.emit("stream-ready-user",userId, roomId);
                 });
 
-                socket.on("request-stream", (userId, roomId) =>{
-                    console.log("solicitud de user para unirse al stream",userId, roomId);
-                    socket.broadcast.emit("listen-user",userId, roomId);
+                socket.on("request-stream", ({ userId, roomId }) =>{
+                    socket.broadcast.emit("listen-user",{ userId, roomId });
                 });
 
-                socket.on("signal to connect", (userId, roomId) =>{
-                    console.log("señal para conectar con user",userId, roomId);
-                    socket.broadcast.emit("signal to",userId, roomId);
+                socket.on("approval-notification", ({ userId, roomId }) =>{
+                    console.log("notificación de aprobación para unirse al stream",userId, roomId);
+                    socket.broadcast.emit("approved", { userId, roomId });
                 });
-               
-            }
+
+                socket.on("cancel-notification", ({ userId, roomId }) =>{
+                    console.log("notificación de cancelacion para unirse al stream",userId, roomId);
+                    socket.broadcast.emit("canceled", { userId, roomId });
+                });
+            };
             // ===============CONEXION VIDEO ===================================
             // Manejar eventos de WebRTC (señalización)
             socket.on("offer", data => {
@@ -168,11 +171,11 @@ module.exports = httpServer =>{
                 socket.to(roomId).emit("user-connected", socket.id);
             });
 
-            // socket.on("broadCasting",   (email)   => {
-            //     console.log("Administrador transmitiendo:", administrador);
-            //     // Enviar mensaje a todos los clientes conectados   
-            //     io.emit("admin-connected", email );
-            // });
+            socket.on("broadCasting",   (email)   => {
+                console.log("Administrador transmitiendo:", administrador);
+                // Enviar mensaje a todos los clientes conectados   
+                io.emit("admin-connected", email );
+            });
 
             // ================= ENVIO DEL CRONOMETRO A CLIENTES ===================
             // Escuchar el inicio del cronómetro

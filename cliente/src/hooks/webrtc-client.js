@@ -3,11 +3,7 @@ import {
   //... other imports
   getActiveAdmin,
   registerViewer, // Import the existing viewer registration function
-  sendJoinRequest, // Import the new sender function
   sendSignal,
-  listenToSignalsFromAdmin,
-  listenToSignals,
-  setViewerIsStreaming,
   setUserIsStreaming
  
 } from "../../src/supabase-client";
@@ -79,7 +75,7 @@ export async function startLocalStream(roomId, email, localVideoElement) {
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     localVideoElement.srcObject = localStream;
 
-    await createOfferToAdmin(roomId, email /*, pc*/);
+    await createOfferToAdmin(roomId, email, localStream);
 
     return localStream;
   } catch(error){
@@ -118,48 +114,23 @@ export async function joinStreamAsViewer(roomId, viewerId, adminId, streamTarget
 };
 
 // let adminPc;
-export async function createOfferToAdmin(roomId, viewerId /*, pc*/) {
+export async function createOfferToAdmin(roomId, viewerId,localStream) {
 
   const adminId = await getActiveAdmin(roomId);
           // console.log("admin desde cliente", adminId);
-    createAndSendOffer({roomId,viewerId,adminId,localStream });
+    createAndSendOffer({
+      roomId: roomId,
+      fromPeer: viewerId,
+      toPeer: adminId,
+      localStream 
+    });
 };
 
 //====== espectador recibe transmision del admin ======
 export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
 
-  createViewerPC();
 
-  function cleanupViewerConnection() {
-    const pc = peerConnections[adminId]
-
-    if (pc) {
-      pc.ontrack = null
-      pc.onicecandidate = null
-      pc.onconnectionstatechange = null
-      pc.close()
-      delete peerConnections[adminId]
-       console.log("🧹 Viewer PC destruida")
-    }
-
-    if (streamTarget?.srcObject) {
-      streamTarget.srcObject.getTracks().forEach(t => t.stop())
-      streamTarget.srcObject = null;
-      console.log("🧹 Stream remoto detenido y limpiado")
-    }
-    console.log("✅ Viewer cleanup completo")
-   
-  }
-
-  function createRemoteStream() {
-    const stream = new MediaStream()
-    if (streamTarget) {
-      streamTarget.srcObject = stream
-    }
-    return stream
-  }
-
-  async function createViewerPC() {
+  try {
     let pc;
     if (!peerConnections[adminId]) {
       pc = createPeerConnection(adminId);
@@ -193,29 +164,45 @@ export async function receivingStream(roomId, viewerId, adminId, streamTarget) {
       }
     };
 
-    pc.onicecandidate = async (event) => {
-      if (!event.candidate) return;
-
-      await sendSignal({
-        room_id: roomId,
-        from_user: adminId,
-        to_user: viewerId,
-        type: "ice-candidate",
-        payload: {
-          candidate: event.candidate.candidate,
-          sdpMid: event.candidate.sdpMid,
-          sdpMLineIndex: event.candidate.sdpMLineIndex
-        }
-      });
-      console.log("❄️ ICE enviado");
-    };
-
     return pc
+
+  } catch (error) {
+    console.error(error);
+  }
+
+  function createRemoteStream() {
+    const stream = new MediaStream()
+    if (streamTarget) {
+      streamTarget.srcObject = stream
+    }
+    return stream
+  }
+
+
+  function cleanupViewerConnection() {
+    const pc = peerConnections[adminId]
+
+    if (pc) {
+      pc.ontrack = null
+      pc.onicecandidate = null
+      pc.onconnectionstatechange = null
+      pc.close()
+      delete peerConnections[adminId]
+       console.log("🧹 Viewer PC destruida")
+    }
+
+    if (streamTarget?.srcObject) {
+      streamTarget.srcObject.getTracks().forEach(t => t.stop())
+      streamTarget.srcObject = null;
+      console.log("🧹 Stream remoto detenido y limpiado")
+    }
+    console.log("✅ Viewer cleanup completo")
+   
   }
 
   return () => {
     console.log("🧹 Viewer cleanup manual")
-    unsubscribe()
+    
     // cleanupViewerConnection()
   }
 };

@@ -7,8 +7,9 @@ import AppContext from '../../context/AppContext';
 const PollManage = () => {
 
   const { apiUrl } = useContext(AppContext);
+  const socketRef = useRef(null);
 
-  const socket3 = io(`${apiUrl}`, {
+  socketRef.current = io(`${apiUrl}`, {
     withCredentials: true,
     transports: ["websocket"]
   });
@@ -19,11 +20,11 @@ const PollManage = () => {
     let flag = false;
   
     useEffect(() => {
-      socket3.on('receive-decision', (text) => {
+      socketRef.current.on('receive-decision', (text) => {
         setDecisionText(text);
       });
 
-      socket3.on('update-cronometer', ({ time }) => {
+      socketRef.current.on('update-cronometer', ({ time }) => {
         if (!flag) {
           setVotingEnabled(true);
           setDisplayTime(time); // Necesitas un estado displayTime
@@ -32,7 +33,7 @@ const PollManage = () => {
           } 
       });
 
-      socket3.on('end-cronometer', () => {
+      socketRef.current.on('end-cronometer', () => {
         alert("Tiempo terminado");
         setVotingEnabled(false);
     });  
@@ -40,9 +41,9 @@ const PollManage = () => {
 
       // Limpieza para evitar múltiples listeners
       return () => {
-        socket3.off('receive-decision');
-        socket3.off('update-cronometer');
-        socket3.off('end-cronometer');
+        socketRef.current.off('receive-decision');
+        socketRef.current.off('update-cronometer');
+        socketRef.current.off('end-cronometer');
       };
     }, []);
 
