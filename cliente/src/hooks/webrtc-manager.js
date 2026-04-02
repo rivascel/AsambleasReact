@@ -153,7 +153,6 @@ export async function receivingStream(roomId, adminId, streamTarget) {
 
       if (!peerConnections[viewerId]) {
         pc = createPeerConnection(roomId,adminId, viewerId);
-      console.log("🔌 Viewer PC creada")
       } else {
         pc=getPeerConnection(viewerId);
       };

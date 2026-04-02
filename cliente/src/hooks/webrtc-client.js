@@ -46,28 +46,6 @@ export async function getAdmin(roomId) {
   return await getActiveAdmin(roomId);
 };
 
-// async function createPeerConnection(user) {
-//   const config = await getWebRTCConfig();
-//   const pc = new RTCPeerConnection(config);
-//   peerConnections[user] = pc;
-//   console.log(`✅ PeerConnection creada para ${user}`);
-//   return pc;
-// }
-
-// function getPeerConnection(viewerId) {
-//   return peerConnections[viewerId];
-// }
-
-// function closePeerConnection(viewer) {
-//   const pc = peerConnections[viewer];
-//   if (pc) {
-//     pc.close();
-//     delete peerConnections[viewer];
-//     console.log(`✅ PeerConnection de ${viewer} cerrada`);
-//   }
-// }
-
-
 export async function startLocalStream(roomId, email, localVideoElement) {
   // setViewerIsStreaming(email);
   setUserIsStreaming(email)
@@ -102,8 +80,6 @@ export async function joinStreamAsViewer(roomId, viewerId, adminId, streamTarget
     return;
   }
     await registerViewer(roomId, viewerId);
-
-    // await sendJoinRequest(roomId, viewerId, adminId);
 
     await receivingStream(roomId, viewerId, adminId, streamTarget);
     

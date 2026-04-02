@@ -18,13 +18,10 @@ const VideoGeneral = () => {
   const [isAllowed, setIsAllowed] = useState(false);
   const [viewerReady, setViewerReady] = useState(false);
   const ownerInfo = JSON.parse(localStorage.getItem("ownerInfo"));
-  const [ready, setReady] = useState(false);
-  const [adminId, setAdminId] = useState(null);
-  const hasSubscribed = useRef(false);
 
   socketRef.current = io(`${apiUrl}`, {
-  withCredentials: true,
-  transports: ["websocket"]
+    withCredentials: true,
+    transports: ["websocket"]
   });
 
   useEffect(() => {

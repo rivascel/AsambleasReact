@@ -4,10 +4,8 @@ import { io } from "socket.io-client";
 import { startBroadcasting, stopLocalStream, joinStreamAsAdmin,listenForApprovals,createOfferToViewer,getLocalStream
  } from "../../hooks/webrtc-manager";
 import { listenToSignals, getActiveAdmin } from '../../supabase-client';
- import { handleSignal } from '../../hooks/handleSignal';
- import AppContext from '../../context/AppContext';
-
- 
+import { handleSignal } from '../../hooks/handleSignal';
+import AppContext from '../../context/AppContext';
 
 const VideoGeneral = () => {
   const { apiUrl } = useContext(AppContext);
@@ -52,7 +50,6 @@ const VideoGeneral = () => {
 
     //2. Función que escucha si existe una aprobación de viewer para activar pantalla y escucha todas las señales
     const init = async () => {
-      // let admin = email;
       const exists = listenForApprovals(roomId);
 
       if (exists) {

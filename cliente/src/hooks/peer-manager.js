@@ -95,13 +95,17 @@ export async function flushCandidateQueue(peerId) {
 
   console.log("🚀 Procesando cola ICE de", peerId);
 
-  for (const candidate of queue) {
-    try {
-      await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      console.log("Candidato adherido")
-    } catch (err) {
-      console.warn("Error agregando ICE:", err);
-    }
-  }
+  // Solo procesar si el estado permite agregar candidatos
+  // if (pc.remoteDescription && pc.remoteDescription.type) {
+    for (const candidate of queue) {
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log("Candidato adherido")
+      } catch (err) {
+        console.warn("Error agregando ICE:", err);
+      }
+    }  
+    delete iceCandidateQueue[peerId]; // Limpiar la cola después de procesar
+  // }
   iceCandidateQueue[peerId] = [];
 }
