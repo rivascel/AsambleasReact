@@ -11,8 +11,9 @@ export async function createAndSendOffer({roomId,fromPeer,toPeer,localStream }) 
     throw new Error("roomId, fromPeer y toPeer son requeridos");
 
   }
+  let pc;
   try {
-    const pc = getPeerConnection(toPeer);
+    pc = getPeerConnection(toPeer);
     if (!pc || pc.connectionState === "closed" || pc.signalingState === "closed") {
     pc =   createPeerConnection(roomId,fromPeer,toPeer);  
     }
